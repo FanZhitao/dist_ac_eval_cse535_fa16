@@ -26,7 +26,7 @@ forwardToSubjectCoordinator(req):
 
 forwardToResourceCoordinator(app, req):
     assignId(req)               --step 3
-    setupAdmin(req.subject)
+    setupAdmin(req)
     addUpdatedAttr(req)
     resco = lookup(req.resource)
     send(resco, self, req)      --step 4
@@ -49,12 +49,12 @@ assignId():
 -- Step 12: Acknowledges success to the first coordinator
 
 forwardToWorker(subco, req):
-    setupAdmin(req.resource)    --step 5
+    setupAdmin(req)             --step 5
     worker = getFromPool()
     send(worker, subco, req)    --step 6
 
 checkConflict(req):             --step 11
-    if checkAdmin():
+    if checkAdmin(req):
         updateResAttr()
     clearAdmin()
     ack(subco)                  --step 12
@@ -71,5 +71,5 @@ evaluate(subco, req):
 -- High level Data Structure
 -- 1.Request for policy evaluation
 -- 2.Map<SubjectId, SubjectCoordinator>
--- 3.Map<SubjectId, SubjectCoordinator>
+-- 3.Map<SubjectId, ResourceCoordinator>
 -- 4.Result of evaluation
