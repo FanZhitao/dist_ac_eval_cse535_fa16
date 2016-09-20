@@ -1,0 +1,39 @@
+
+-- Application
+-- Step 1: Determines the coordinator that is responsible for the -- subject in question based on the id of the subject and the list of coordinators
+-- Step 2: Sends a policy evaluation request to this coordinator
+
+forwardToSubjectCoordinator(req):
+    co = lookup(req.subject)
+    send(co, req)
+
+receiveResult():
+    ...
+
+-- Subject Coordinator
+-- Step 3: Assigns a globally unique id to this evaluation, sets up the administration for the subject, adds any tentatively updated attributes to the request, determines the coordinator responsible for the resource in question
+-- Step 4: Forwards the authorization request to that coordinator
+
+forwardToResourceCoordinator(req):
+    assignId(req)
+    setupAdmin(req.subject)
+    co = lookup(req.resource)
+    send(co, req)
+
+assignId():
+    ...
+
+-- Resource Coordinator
+-- Step 5: Sets up the administration for the resource
+-- Step 6: Assigns the request to a worker
+
+forwardToWorker(req):
+    setupAdmin(req.resource)
+    worker = getFromPool()
+    send(worker, req)
+
+-- Worker
+-- Step 7: Evaluates the policy for this request
+
+evaluate(req):
+    ...
