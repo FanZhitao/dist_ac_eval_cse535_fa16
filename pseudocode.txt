@@ -1,6 +1,6 @@
 
 -- Application
--- Step 1: Determines the coordinator that is responsible for the -- subject in question based on the id of the subject and the list of coordinators
+-- Step 1: Determines the coordinator that is responsible for the subject in question based on the id of the subject and the list of coordinators
 -- Step 2: Sends a policy evaluation request to this coordinator
 
 forwardToSubjectCoordinator(req):
@@ -11,7 +11,10 @@ receiveResult():
     ...
 
 -- Subject Coordinator
--- Step 3: Assigns a globally unique id to this evaluation, sets up the administration for the subject, adds any tentatively updated attributes to the request, determines the coordinator responsible for the resource in question
+-- Step 3: Assigns a globally unique id to this evaluation, 
+        -- Sets up the administration for the subject, 
+        -- Adds any tentatively updated attributes to the request, 
+        -- Determines the coordinator responsible for the resource in question
 -- Step 4: Forwards the authorization request to that coordinator
 
 forwardToResourceCoordinator(req):
