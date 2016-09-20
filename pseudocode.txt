@@ -1,14 +1,13 @@
 
 -- Application
--- Step 1: Determines the coordinator that is responsible for the subject in question based on the id of the subject and the list of coordinators
+-- Step 1: Determines the coordinator that is responsible for the subject in question 
+        -- based on the id of the subject and the list of coordinators
 -- Step 2: Sends a policy evaluation request to this coordinator
 
 forwardToSubjectCoordinator(req):
-    co = lookup(req.subject)
-    send(co, req)
-
-receiveResult():
-    ...
+    subco = lookup(req.subject) --step 1
+    send(subco, self, req)      --step 2
+    resp = await()
 
 -- Subject Coordinator
 -- Step 3: Assigns a globally unique id to this evaluation, 
@@ -16,12 +15,27 @@ receiveResult():
         -- Adds any tentatively updated attributes to the request, 
         -- Determines the coordinator responsible for the resource in question
 -- Step 4: Forwards the authorization request to that coordinator
+-- Step 9: Checks whether the evaluation employed subject attributes 
+        -- that were updated in the mean while. 
+        -- If not, it tentatively executes the updates of subject attributes
+-- Step 10: Asks the coordinator responsible for the resource 
+        -- whether there are conflicts for resource attributes
+-- Step 13: Executes the tentative attribute updates, 
+        -- Clears its administration for this evaluation
+-- Step 14: Passes the decision along to the application
 
-forwardToResourceCoordinator(req):
-    assignId(req)
+forwardToResourceCoordinator(app, req):
+    assignId(req)               --step 3
     setupAdmin(req.subject)
-    co = lookup(req.resource)
-    send(co, req)
+    addUpdatedAttr(req)
+    resco = lookup(req.resource)
+    send(resco, self, req)      --step 4
+    resp = await()
+    if checkAdmin():            --step 9
+        updateSubAttr(resp)
+    send(resco, req2)           --step 10
+    updateTentativeAttr(req)    --step 13
+    send(app, resp)             --step 14
 
 assignId():
     ...
@@ -29,14 +43,33 @@ assignId():
 -- Resource Coordinator
 -- Step 5: Sets up the administration for the resource
 -- Step 6: Assigns the request to a worker
+-- Step 11: checks its administration, if there are no conflicts, 
+        -- executes the updates of resource attributes, 
+        -- clears its administration for this evaluation
+-- Step 12: Acknowledges success to the first coordinator
 
-forwardToWorker(req):
-    setupAdmin(req.resource)
+forwardToWorker(subco, req):
+    setupAdmin(req.resource)    --step 5
     worker = getFromPool()
-    send(worker, req)
+    send(worker, subco, req)    --step 6
+
+checkConflict(req):             --step 11
+    if checkAdmin():
+        updateResAttr()
+    clearAdmin()
+    ack(subco)                  --step 12
 
 -- Worker
 -- Step 7: Evaluates the policy for this request
+-- Step 8: Sends the result to the coordinator responsible for the subject
 
-evaluate(req):
-    ...
+evaluate(subco, req):
+    resp = doEvaluate(req)      --step 7
+    send(subco, resp)           --step 8
+
+
+-- High level Data Structure
+-- 1.Request for policy evaluation
+-- 2.Map<SubjectId, SubjectCoordinator>
+-- 3.Map<SubjectId, SubjectCoordinator>
+-- 4.Result of evaluation
