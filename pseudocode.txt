@@ -1,5 +1,5 @@
 
--- Application
+-- (I) Application
 -- Step 1: Determines the coordinator that is responsible for the subject in question 
         -- based on the id of the subject and the list of coordinators
 -- Step 2: Sends a policy evaluation request to this coordinator
@@ -9,7 +9,8 @@ forwardToSubjectCoordinator(req):
     send(subco, self, req)      --step 2
     resp = await()
 
--- Subject Coordinator
+
+-- (II) Subject Coordinator
 -- Step 3: Assigns a globally unique id to this evaluation, 
         -- Sets up the administration for the subject, 
         -- Adds any tentatively updated attributes to the request, 
@@ -40,7 +41,8 @@ forwardToResourceCoordinator(app, req):
 assignId():
     ...
 
--- Resource Coordinator
+
+-- (III) Resource Coordinator
 -- Step 5: Sets up the administration for the resource
 -- Step 6: Assigns the request to a worker
 -- Step 11: checks its administration, if there are no conflicts, 
@@ -59,7 +61,8 @@ checkConflict(req):             --step 11
     clearAdmin()
     ack(subco)                  --step 12
 
--- Worker
+
+-- (IV) Worker
 -- Step 7: Evaluates the policy for this request
 -- Step 8: Sends the result to the coordinator responsible for the subject
 
