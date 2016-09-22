@@ -4,9 +4,9 @@
         -- based on the id of the subject and the list of coordinators
 -- Step 2: Sends a policy evaluation request to this coordinator
 
-forwardToSubjectCoordinator(req):
-    subco = lookup(req.subject) --step 1
-    send(subco, self, req)      --step 2
+forwardToSC(req):
+    sc = lookup(req.subject)     --step 1
+    send(sc, self, req)          --step 2
     resp = await()
 
 
@@ -25,22 +25,32 @@ forwardToSubjectCoordinator(req):
         -- Clears its administration for this evaluation
 -- Step 14: Passes the decision along to the application
 
-forwardToResourceCoordinator(app, req):
+forwardToRC(app, req):
     assignId(req)               --step 3
     setupAdmin(req)
     addUpdatedAttr(req)
-    resco = lookup(req.resource)
-    send(resco, self, req)      --step 4
-    resp = await()
-    if checkAdmin():            --step 9
-        updateSubAttr(resp)
-    send(resco, req2)           --step 10
-    updateTentativeAttr(req)    --step 13
+    rc = lookup(req.resource)
+    send(rc, self, req)         --step 4
+
+handleConflict(worker, resp):
+    if !check(tAttr, resp.rAttr, resp.wAttr) --step 9
+        restart()
+        return
+    add(tAttr, resp.wAttr)
+    send(rc, self, req)         --step 10
+
+handleCommit(worker, resp):
+    commit(resp.wAttr)          --step 13
     send(app, resp)             --step 14
 
-assignId():
-    ...
+assignId(req):
+    req.id = generate()
 
+setupAdmin(req):
+    req.scAdmin = createAdmin()
+
+addUpdatedAttr(req):
+    req.tAttr = tentativeAttrs
 
 -- (III) Resource Coordinator
 -- Step 5: Sets up the administration for the resource
@@ -50,29 +60,50 @@ assignId():
         -- clears its administration for this evaluation
 -- Step 12: Acknowledges success to the first coordinator
 
-forwardToWorker(subco, req):
+forwardToWorker(sc, req):
     setupAdmin(req)             --step 5
     worker = getFromPool()
-    send(worker, subco, req)    --step 6
+    send(worker, sc, req)       --step 6
 
-checkConflict(req):             --step 11
+checkConflict(sc, req):         --step 11
     if checkAdmin(req):
         updateResAttr()
     clearAdmin()
-    ack(subco)                  --step 12
+    ack(sc)                     --step 12
+
+setupAdmin(req):
+    req.rcAdmin = createAdmin()
 
 
 -- (IV) Worker
 -- Step 7: Evaluates the policy for this request
 -- Step 8: Sends the result to the coordinator responsible for the subject
 
-evaluate(subco, req):
-    resp = doEvaluate(req)      --step 7
-    send(subco, resp)           --step 8
+evaluatePolicy(sc, req):
+    decision = doEvaluate(DB, req)
+    rAttr = getReadAttr(DB, req)
+    wAttr = getUpdateAttr(DB, req)
+    resp = createResponse(req, decision, rAttr, wAttr)   --step 7
+    send(sc, resp)                                       --step 8
 
 
 -- High level Data Structure
 -- 1.Request for policy evaluation
+    -- subject: subject Id
+    -- resource: resource Id
+    -- id: assigned global Id
+    -- app: application instance
+    -- scAdmin: subject administration Id
+    -- rcAdmin: resource administration Id
+    -- tAttr: tentatively updated attribute list
 -- 2.Map<SubjectId, SubjectCoordinator>
--- 3.Map<SubjectId, ResourceCoordinator>
--- 4.Result of evaluation
+-- 3.Administration
+-- 4.Map<ResourceId, ResourceCoordinator>
+-- 5.Administration
+-- 6.Response of evaluation
+    -- id: assigned global Id
+    -- app: application instance
+    -- scAdmin: subject administration Id
+    -- rcAdmin: resource administration Id
+    -- List<Attribute> that should be updated
+    -- List<Attribute> that were read
