@@ -6,7 +6,7 @@
 
 forwardToSC(req):
     sc = lookup(req.subject)     --step 1
-    send(sc, self, req)          --step 2
+    send(sc, req)          --step 2
     resp = await()
 
 
@@ -15,6 +15,8 @@ forwardToSC(req):
         -- Sets up the administration for the subject, 
         -- Adds any tentatively updated attributes to the request, 
         -- Determines the coordinator responsible for the resource in question
+		-- If it dectes a conflicting update of a subject attribute,
+		-- it immediately restarts the evaluation.
 -- Step 4: Forwards the authorization request to that coordinator
 -- Step 9: Checks whether the evaluation employed subject attributes 
         -- that were updated in the mean while. 
@@ -25,7 +27,7 @@ forwardToSC(req):
         -- Clears its administration for this evaluation
 -- Step 14: Passes the decision along to the application
 
-forwardToRC(app, req):
+forwardToRC(req):
     assignId(req)               --step 3
     setupAdmin(req)
     addUpdatedAttr(req)
@@ -34,13 +36,14 @@ forwardToRC(app, req):
 
 handleConflict(worker, resp):
     if !check(tAttr, resp.rAttr, resp.wAttr) --step 9
-        restart()
+        restart(resp.id)
         return
     add(tAttr, resp.wAttr)
     send(rc, self, req)         --step 10
 
 handleCommit(worker, resp):
     commit(resp.wAttr)          --step 13
+	clearAdmin(resp.id)
     send(app, resp)             --step 14
 
 assignId(req):
@@ -52,12 +55,21 @@ setupAdmin(req):
 addUpdatedAttr(req):
     req.tAttr = tentativeAttrs
 
+restart(requestId):
+	req = getRequestById(requestId)
+	clearAdmin(req)
+	forwardToRC(req)
+	
+
 -- (III) Resource Coordinator
 -- Step 5: Sets up the administration for the resource
 -- Step 6: Assigns the request to a worker
 -- Step 11: checks its administration, if there are no conflicts, 
         -- executes the updates of resource attributes, 
         -- clears its administration for this evaluation
+		--
+		-- If it detects a conflicting update of a resource attribute,
+		-- it notifies the sc.
 -- Step 12: Acknowledges success to the first coordinator
 
 forwardToWorker(sc, req):
@@ -66,10 +78,13 @@ forwardToWorker(sc, req):
     send(worker, sc, req)       --step 6
 
 checkConflict(sc, req):         --step 11
-    if checkAdmin(req):
-        updateResAttr()
-    clearAdmin()
-    ack(sc)                     --step 12
+	if (hasDetectedAConflicting()):
+		nofityResourceConflict(sc)
+	else:
+    	if checkAdmin(req):
+        	updateResAttr()
+    	clearAdmin(req)
+    	ack(sc)                     --step 12
 
 setupAdmin(req):
     req.rcAdmin = createAdmin()
