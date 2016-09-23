@@ -88,7 +88,7 @@ checkConflict(sc, req):         --step 11
     	if checkAdmin(req):
         	updateResAttr()
     	clearAdmin(req)
-    	ack(sc)                     --step 12
+    	ackSuccess(sc)           --step 12
 
 setupAdmin(req):
     req.rcAdmin = createAdmin()
