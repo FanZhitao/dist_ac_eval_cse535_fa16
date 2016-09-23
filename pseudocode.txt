@@ -35,11 +35,11 @@ forwardToRC(req):
     send(rc, self, req)         --step 4
 
 handleConflict(worker, resp):
-    if !check(tAttr, resp.rAttr, resp.wAttr) --step 9
+    if findConflict(resp)       --step 9
         restart(resp.id)
-        return
-    add(tAttr, resp.wAttr)
-    send(rc, self, req)         --step 10
+    else:
+        add(tAttr, resp.wAttr)
+        send(rc, self, req)     --step 10
 
 handleCommit(worker, resp):
     commit(resp.wAttr)          --step 13
@@ -54,6 +54,10 @@ setupAdmin(req):
 
 addUpdatedAttr(req):
     req.tAttr = tentativeAttrs
+
+findConflict(resp):
+    return isIn(tentativeAttrs, resp.wAttr) or
+            isIn(tentativeAttrs, resp.rAttr)
 
 restart(requestId):
 	req = getRequestById(requestId)
@@ -103,7 +107,7 @@ evaluatePolicy(sc, req):
 
 
 -- High level Data Structure
--- 1.Request for policy evaluation
+-- 1.req: request for policy evaluation
     -- subject: subject Id
     -- resource: resource Id
     -- id: assigned global Id
@@ -111,14 +115,13 @@ evaluatePolicy(sc, req):
     -- scAdmin: subject administration Id
     -- rcAdmin: resource administration Id
     -- tAttr: tentatively updated attribute list
--- 2.Map<SubjectId, SubjectCoordinator>
--- 3.Administration
--- 4.Map<ResourceId, ResourceCoordinator>
--- 5.Administration
--- 6.Response of evaluation
+-- 2.scMap: mapping from subjectId to Subject Coordinator instance
+-- 4.rcMap: mapping from resourceId to Resource Coordinator instance
+-- 5.tentativeAttrs: Tentatively updated attributes
+-- 6.resp: response of evaluation
     -- id: assigned global Id
     -- app: application instance
     -- scAdmin: subject administration Id
     -- rcAdmin: resource administration Id
-    -- List<Attribute> that should be updated
-    -- List<Attribute> that were read
+    -- wAttr: attributes that should be updated
+    -- rAttr: attributes that were read
