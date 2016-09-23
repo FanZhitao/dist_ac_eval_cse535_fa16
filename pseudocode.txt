@@ -1,4 +1,6 @@
 
+Name: Zhitao Fan, Chen Dai
+
 -- (I) Application
 -- Step 1: Determines the coordinator that is responsible for the subject in question 
         -- based on the id of the subject and the list of coordinators
@@ -35,16 +37,18 @@ forwardToRC(req):
     send(rc, self, req)         --step 4
 
 handleConflict(worker, resp):
-    if findConflict(resp)       --step 9
+    if findConflict(resp)       --step 9: Optimistic locking
         restart(resp.id)
     else:
-        add(tAttr, resp.wAttr)
+        add(tentativeAttrs, resp.wAttr) --Update to block conflicting requests
         send(rc, self, req)     --step 10
-
-handleCommit(worker, resp):
-    commit(resp.wAttr)          --step 13
-	clearAdmin(resp.id)
-    send(app, resp)             --step 14
+        wait(rc, ack)
+        if ack == success:
+            commit(DB, resp.wAttr)  --step 13
+	        clearAdmin(resp.scAdmin)
+            send(app, resp)         --step 14
+        else:
+            restart(resp.id)
 
 assignId(req):
     req.id = generate()
@@ -61,7 +65,7 @@ findConflict(resp):
 
 restart(requestId):
 	req = getRequestById(requestId)
-	clearAdmin(req)
+	clearAdmin(req.scAdmin)
 	forwardToRC(req)
 	
 
@@ -85,14 +89,16 @@ checkConflict(sc, req):         --step 11
 	if (hasDetectedAConflicting()):
 		nofityResourceConflict(sc)
 	else:
-    	if checkAdmin(req):
-        	updateResAttr()
+    	if checkAdmin(req.rcAdmin):
+        	updateResAttr(DB)
     	clearAdmin(req)
     	ackSuccess(sc)           --step 12
 
 setupAdmin(req):
     req.rcAdmin = createAdmin()
 
+restart(req):
+    clearAdmin(req.rcAdmin)
 
 -- (IV) Worker
 -- Step 7: Evaluates the policy for this request
