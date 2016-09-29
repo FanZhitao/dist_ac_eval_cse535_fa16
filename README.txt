@@ -4,6 +4,8 @@
 
 instructions to build and run your system.  the instructions should not assume that an IDE is installed.  provide a detailed sequence of commands, a shell sript, a Makefile, or something similar.  include a specific example of the command to run a selected testcase.
 
+Please run bin/startup.sh
+
 ## 2.MAIN FILES
 
 The full pathname of the files containing the main code for the client, coordinator, worker, and master.  (this will help graders look at the most important code first.)
