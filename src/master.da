@@ -1,0 +1,12 @@
+import sys
+
+class Master(process):
+	def setup(): pass
+
+	def run():
+		output("System is starting up")
+
+def main():
+	config(clock='lamport')
+	master = new (Master)
+	start(master)
