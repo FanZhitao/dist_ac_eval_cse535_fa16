@@ -1,0 +1,7 @@
+
+class Worker(process):
+    def setup():
+        pass
+        
+    def run():
+        output("Worker is up")

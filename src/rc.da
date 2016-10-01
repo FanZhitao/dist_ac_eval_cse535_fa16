@@ -1,0 +1,7 @@
+
+class RC(process):
+    def setup():
+        pass
+
+    def run():
+        output("RC is up")

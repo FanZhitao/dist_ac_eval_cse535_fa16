@@ -1,4 +1,13 @@
+import sys
 import xml.etree.ElementTree as ET
+
+class DB(process):
+    def setup():
+        output("hello")
+
+    def run():
+        output("hello")
+
 
 def main():
     tree = ET.parse('policy-example.xml')
@@ -18,5 +27,3 @@ def main():
         if ru != None:
             print('resource update', ru.attrib)
         print()
-        
-main()

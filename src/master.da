@@ -1,32 +1,11 @@
 import sys
-#import sc.P
-
-class SC(process):
-    def setup():
-        pass
-
-    def run():
-        output("SC is up")
-
-
-class RC(process):
-    def setup():
-        pass
-
-    def run():
-        output("RC is up")
-
-
-class Worker(process):
-    def setup():
-        pass
-        
-    def run():
-        output("Worker is up")
-
+from sc import SC
+from rc import RC
+from worker import Worker
+from db import DB
 
 def main():
-    config(clock='lamport')
+    config(channel= 'fifo', clock='lamport')
 
     w = new(Worker, num=2)
     for p in w: setup(p)

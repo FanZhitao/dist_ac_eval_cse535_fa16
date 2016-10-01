@@ -1,4 +1,4 @@
-class P(process):
+class SC(process):
     def setup():
         pass
 
