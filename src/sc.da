@@ -5,3 +5,7 @@ class SC(process):
     def run():
         output("SC is up")
 
+    def receive(msg=('subject1',), from_=c):
+        output("Incoming request!")
+        send(('done',), to=p)
+

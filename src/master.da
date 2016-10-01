@@ -1,4 +1,5 @@
 import sys
+from client import Client
 from sc import SC
 from rc import RC
 from worker import Worker
@@ -7,14 +8,22 @@ from db import DB
 def main():
     config(channel= 'fifo', clock='lamport')
 
+    db = new(DB, num=1)
+    for p in db: setup(p)
+    start(db)
+
     w = new(Worker, num=2)
     for p in w: setup(p)
     start(w)
 
-    rc = new(RC, num=2)
+    rc = new(RC, num=1)
     for p in rc: setup(p)
     start(rc)
 
-    sc = new(SC, num=2)
+    sc = new(SC, num=1)
     for p in sc: setup(p)
     start(sc)
+
+    c = new(Client, num=1)
+    for p in c: setup(p, (sc))
+    start(c)
