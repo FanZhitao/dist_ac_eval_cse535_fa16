@@ -1,0 +1,7 @@
+class P(process):
+    def setup():
+        pass
+
+    def run():
+        output("SC is up")
+

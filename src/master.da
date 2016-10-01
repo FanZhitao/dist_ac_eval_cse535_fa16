@@ -1,12 +1,41 @@
 import sys
+#import sc.P
 
-class Master(process):
-	def setup(): pass
+class SC(process):
+    def setup():
+        pass
 
-	def run():
-		output("System is starting up")
+    def run():
+        output("SC is up")
+
+
+class RC(process):
+    def setup():
+        pass
+
+    def run():
+        output("RC is up")
+
+
+class Worker(process):
+    def setup():
+        pass
+        
+    def run():
+        output("Worker is up")
+
 
 def main():
-	config(clock='lamport')
-	master = new (Master)
-	start(master)
+    config(clock='lamport')
+
+    w = new(Worker, num=2)
+    for p in w: setup(p)
+    start(w)
+
+    rc = new(RC, num=2)
+    for p in rc: setup(p)
+    start(rc)
+
+    sc = new(SC, num=2)
+    for p in sc: setup(p)
+    start(sc)
