@@ -5,6 +5,9 @@ class Client(process):
 
     def run():
         output("Client is up")
-        clk = logical_clock()
-        send(('subject1',), to=sc)
-        await(some(received(('done',), clk=rclk), has=(rclk > clk)))
+        while True:
+            clk = logical_clock()
+            send(('subject1',), to=sc)
+            #await(some(received(('done',), clk=rclk), has=(rclk > clk)))
+            await(received('done'))
+            output("Receive response")

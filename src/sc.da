@@ -4,8 +4,10 @@ class SC(process):
 
     def run():
         output("SC is up")
+        while True:
+            await(received(('subject1',)))
 
-    def receive(msg=('subject1',), from_=c):
+    def receive(msg=('subject1',), from_=p):
         output("Incoming request!")
-        send(('done',), to=p)
+        send('done', to=p)
 
