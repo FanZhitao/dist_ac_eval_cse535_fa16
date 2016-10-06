@@ -1,5 +1,6 @@
 import sys
 import logging
+import configparser
 
 from client import Client
 from sc import SC
@@ -17,8 +18,9 @@ def getResources():
 
 def main():
     config(channel= 'fifo', clock='lamport')
-
-    log.info("Hello")
+    cfg = configparser.ConfigParser()
+    cfg.read(sys.argv[1]);
+    log.info(cfg['master']['clients'])
 
     db = new(DB, num=1)
     #for p in db: setup(p)
