@@ -1,3 +1,6 @@
+import sys
+from collections import namedtuple
+from msg.request import Request
 
 class Client(process):
     def setup(scmap:dict):
@@ -7,7 +10,11 @@ class Client(process):
         output("Client is up")
         while True:
             clk = logical_clock()
-            send(('subject1',), to=scmap['subject1'])
+            #req = namedtuple("request", "id")
+            output("Send request")
+            req = Request()
+            req.subject = "subject1"
+            send((req,), to=scmap['subject1'])
             #await(some(received(('done',), clk=rclk), has=(rclk > clk)))
             await(received('done'))
             output("Receive response")

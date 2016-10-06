@@ -1,0 +1,10 @@
+
+class Request:
+    def __init__(self):
+        self.id = 0
+        self.subject = ""
+        self.resource = ""
+        #self.client
+        #self.scadm
+        #self.rcadm
+        self.tattr = list()

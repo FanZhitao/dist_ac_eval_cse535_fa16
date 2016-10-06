@@ -2,7 +2,8 @@ import logging
 
 class SC(process):
 
-    log = logging.getLogger(__name__)
+    #def __init__(self):
+        #self.log = logging.getLogger(__name__)
 
     def setup(rcmap:dict):
         pass
@@ -10,9 +11,11 @@ class SC(process):
     def run():
         #log.info("SC is up")
         while True:
-            await(received(('subject1',)))
+            await(received(('req',)))
 
-    def receive(msg=('subject1',), from_=p):
-        output("Incoming request!")
+    def receive(msg=(req,), from_=p):
+        #log = logging.getLogger(__name__)
+        #log.info("Incoming request: %s", req)
+        output(req.subject)
         send('done', to=p)
 
