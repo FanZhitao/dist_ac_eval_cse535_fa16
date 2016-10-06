@@ -1,13 +1,13 @@
 
 class Client(process):
-    def setup(sc:SC):
+    def setup(scmap:dict):
         pass
 
     def run():
         output("Client is up")
         while True:
             clk = logical_clock()
-            send(('subject1',), to=sc)
+            send(('subject1',), to=scmap['subject1'])
             #await(some(received(('done',), clk=rclk), has=(rclk > clk)))
             await(received('done'))
             output("Receive response")

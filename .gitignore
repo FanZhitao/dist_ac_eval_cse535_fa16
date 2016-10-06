@@ -34,3 +34,4 @@
 # DistAlgo temp files
 __pycache__/
 *.py
+*.log
