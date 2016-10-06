@@ -1,20 +1,21 @@
-import sys
-from collections import namedtuple
+import logging
+
 from msg.request import Request
+
+log = logging.getLogger("Client")
 
 class Client(process):
     def setup(scmap:dict):
         pass
 
     def run():
-        output("Client is up")
+        log.info("Client is up")
         while True:
             clk = logical_clock()
-            #req = namedtuple("request", "id")
-            output("Send request")
+            log.info("Send request")
             req = Request()
             req.subject = "subject1"
             send((req,), to=scmap['subject1'])
             #await(some(received(('done',), clk=rclk), has=(rclk > clk)))
             await(received('done'))
-            output("Receive response")
+            log.info("Receive response")
