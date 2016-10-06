@@ -3,10 +3,10 @@ import logging
 import configparser
 
 from client import Client
-from sc import SC
-from rc import RC
-from worker import Worker
-from db import DB
+from comp.sc import SC
+from comp.rc import RC
+from comp.worker import Worker
+from db.db import DB
 
 log = logging.getLogger(__name__)
 
@@ -32,12 +32,14 @@ def main():
     res = getResources()
     sub = getSubjects()
 
+    rcmap = dict()
     rc = new(RC, num=len(res))
-    #for p in rc: setup(p)
+    for r, p in zip(res, rc): 
+        rcmap[r] = p
     start(rc)
 
-    sc = new(SC, num=len(sub))
     scmap = dict()
+    sc = new(SC, (rcmap,), num=len(sub))
     for s, p in zip(sub, sc): 
         scmap[s] = p
     start(sc)

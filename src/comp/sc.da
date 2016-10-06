@@ -1,9 +1,14 @@
+import logging
+
 class SC(process):
-    def setup():
+
+    log = logging.getLogger(__name__)
+
+    def setup(rcmap:dict):
         pass
 
     def run():
-        output("SC is up")
+        #log.info("SC is up")
         while True:
             await(received(('subject1',)))
 

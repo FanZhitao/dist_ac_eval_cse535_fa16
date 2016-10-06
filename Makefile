@@ -2,20 +2,20 @@
 src/master.py: src/master.da src/client.py
 	dac src/master.da
 
-src/client.py: src/client.da src/sc.py
+src/client.py: src/client.da src/comp/sc.py
 	dac src/client.da
 
-src/sc.py: src/sc.da src/rc.py
-	dac src/sc.da
+src/comp/sc.py: src/comp/sc.da src/comp/rc.py
+	dac src/comp/sc.da
 
-src/rc.py: src/rc.da src/worker.py
-	dac src/rc.da
+src/comp/rc.py: src/comp/rc.da src/comp/worker.py
+	dac src/comp/rc.da
 
-src/worker.py: src/worker.da src/db.py
-	dac src/worker.da
+src/comp/worker.py: src/comp/worker.da src/db/db.py
+	dac src/comp/worker.da
 
-src/db.py: src/db.da
-	dac src/db.da
+src/db/db.py: src/db/db.da
+	dac src/db/db.da
 
 clean:
-	rm -rf src/*.py src/__pycache__
+	rm -rf src/*.py src/**/*.py src/__pycache__ src/**/__pycache__
