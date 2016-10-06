@@ -1,11 +1,14 @@
 import logging
+import threading
 
 log = logging.getLogger("SC")
 
 class SC(process):
 
+
     def setup(rcmap:dict):
-        pass
+        self.lock = threading.Lock()
+        self.cnt = 0
 
     def run():
         log.info("SC is up")
@@ -13,6 +16,15 @@ class SC(process):
             await(received(('req',)))
 
     def receive(msg=(req,), from_=p):
-        log.info("Incoming request: %s", req)
+        log.info("Incoming request: subject=[%s]", req.subject)
+        assignId(req) 
+        req.client = p
+
         send('done', to=p)
+
+    def assignId(req):
+        lock.acquire()
+        req.id = cnt
+        cnt += 1
+        lock.release()
 

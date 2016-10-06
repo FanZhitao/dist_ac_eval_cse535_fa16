@@ -1,10 +1,9 @@
 
-class Request:
+class Response:
     def __init__(self):
         self.id = 0
         self.client = None
-        self.subject = ""
-        self.resource = ""
         self.scadm = None
         self.rcadm = None
-        self.tattr = list()
+        self.wattr = list()
+        self.rattr = list()
