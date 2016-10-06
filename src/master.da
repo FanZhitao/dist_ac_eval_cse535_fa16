@@ -20,13 +20,12 @@ def main():
     config(channel= 'fifo', clock='lamport')
     cfg = configparser.ConfigParser()
     cfg.read(sys.argv[1]);
-    log.info(cfg['master']['clients'])
 
     db = new(DB, num=1)
     #for p in db: setup(p)
     start(db)
 
-    w = new(Worker, num=2)
+    w = new(Worker, num=int(cfg['master']['workers']))
     #for p in w: setup(p)
     start(w)
 
@@ -43,6 +42,6 @@ def main():
         scmap[s] = p
     start(sc)
 
-    c = new(Client, (scmap,), num=1)
+    c = new(Client, (scmap,), num=int(cfg['master']['clients']))
     start(c)
 
