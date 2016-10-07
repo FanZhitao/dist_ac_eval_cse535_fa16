@@ -1,16 +1,37 @@
 import sys
 import xml.etree.ElementTree as ET
+import random
+import logging
+import asyncio
+
+log = logging.getLogger('DB')
 
 class DB(process):
-    def setup():
-        output("hello")
+    def setup(minDBlatency:int, maxDBlatency:int): pass
+		% TODO: latency is int?
 
     def run():
-        output("hello")
+		log.info("DB is up.")
+		while true:
+			await(some(received())) % TODO
 
+	def receive(msg=('Ping',), from_=p): % TODO: msg struct
+		log.info("DB received a message")
+
+		% TODO: read and write attributes of
+		% individual records (record format?)
+
+		% picks a latency l uniformly at random from
+		% the interval between the specified min and
+		% max, and makes the update visible to all
+		% workers after delay l
+		l = random.randrange(minDBlatency, maxDBlatency, 1)
+		await asyncio.sleep(l)
+		for p in s:
+			send(('Pong',), to=p) % TODO: update msg
 
 def main():
-    tree = ET.parse('policy-example.xml')
+    tree = ET.parse('policy.xml')
     root = tree.getroot()
     for rule in root.iter('rule'):
         print('rule', rule.attrib['name'])
