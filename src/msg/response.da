@@ -3,7 +3,7 @@ class Response:
     def __init__(self):
         self.id = 0
         self.client = None
-        self.scadm = None
-        self.rcadm = None
-        self.wattr = list()
-        self.rattr = list()
+        self.scAdm = None
+        self.rcAdm = None
+        self.wAttr = set()
+        self.rAttr = set()

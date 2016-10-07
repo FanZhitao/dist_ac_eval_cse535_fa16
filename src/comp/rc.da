@@ -1,7 +1,22 @@
+import logging
+
+from msg.response import Response
+
+log = logging.getLogger("RC")
 
 class RC(process):
+
     def setup():
         pass
 
     def run():
-        output("RC is up")
+        log.info("RC is up")
+        #while True:
+        #    await(received(('req',)))
+        await(received(('done',)))
+
+    def receive(msg=(req,), from_=p):
+        log.info("Incoming request: subject=[%s]", req.subject)
+        resp = Response()
+        resp.client = req.client
+        send(('resp', resp,), to=p)

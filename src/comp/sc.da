@@ -5,26 +5,41 @@ log = logging.getLogger("SC")
 
 class SC(process):
 
-
     def setup(rcmap:dict):
         self.lock = threading.Lock()
         self.cnt = 0
+        self.tAttr = set()
 
     def run():
         log.info("SC is up")
-        while True:
-            await(received(('req',)))
+        #while True:
+        #    await(received(('req', req))) #or received('resp',)))
+        await(received(('done',)))
 
-    def receive(msg=(req,), from_=p):
+    def receive(msg=('req', req,), from_=p):
         log.info("Incoming request: subject=[%s]", req.subject)
-        assignId(req) 
+        assignId(req)
         req.client = p
+        req.tAttr = tAttr
+        send((req,), to=rcmap['resource1'])
 
-        send('done', to=p)
+    def receive(msg=('resp', resp,), from_=p):
+        log.info("Incoming response")
+        if conflict(resp):
+            restart()
+        else:
+            restart()
+        send('done', to=resp.client)
 
     def assignId(req):
         lock.acquire()
         req.id = cnt
         cnt += 1
         lock.release()
+
+    def conflict(resp):
+        return False 
+
+    def restart():
+        pass
 

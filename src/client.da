@@ -5,17 +5,19 @@ from msg.request import Request
 log = logging.getLogger("Client")
 
 class Client(process):
+
     def setup(scmap:dict):
         pass
 
     def run():
         log.info("Client is up")
-        while True:
+        #while True:
+        for _ in range(1):
             clk = logical_clock()
             log.info("Send request")
             req = Request()
             req.subject = "subject1"
-            send((req,), to=scmap['subject1'])
+            send(('req', req,), to=scmap['subject1'])
             #await(some(received(('done',), clk=rclk), has=(rclk > clk)))
             await(received('done'))
             log.info("Receive response")

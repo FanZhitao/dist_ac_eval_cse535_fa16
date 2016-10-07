@@ -3,8 +3,9 @@ class Request:
     def __init__(self):
         self.id = 0
         self.client = None
+        self.sc = None
         self.subject = ""
         self.resource = ""
-        self.scadm = None
-        self.rcadm = None
-        self.tattr = list()
+        self.scAdm = None
+        self.rcAdm = None
+        self.tAttr = None 
