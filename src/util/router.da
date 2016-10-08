@@ -1,0 +1,28 @@
+import logging
+
+log = logging.getLogger(__name__)
+
+class Router:
+
+    def __init__(self):
+        self.scmap = dict()
+        self.rcmap = dict()
+
+    def assign(self, subjects, resources, coordinators):
+        colist = list(coordinators)
+        total = len(colist)
+        for sub in subjects:
+            idx = hash(sub) % total
+            log.info("Assign subject=[%s] to coordinator=[%d]", sub, idx) 
+            self.scmap[sub] = colist[idx] 
+        for res in resources:
+            idx = hash(res) % total
+            log.info("Assign resource=[%s] to coordinator=[%d]", res, idx) 
+            self.rcmap[res] = colist[idx]
+
+    def getSC(self, sub):
+        return self.scmap[sub]
+
+    def getRC(self, res):
+        return self.rcmap[res]
+
