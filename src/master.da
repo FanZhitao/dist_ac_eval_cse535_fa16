@@ -6,7 +6,8 @@ from client import Client
 from comp.sc import SC
 from comp.rc import RC
 from comp.worker import Worker
-from db.db import DB
+#from db.db import DB
+from util.router import Router
 
 log = logging.getLogger(__name__)
 
@@ -21,17 +22,22 @@ def main():
     cfg = configparser.ConfigParser()
     cfg.read(sys.argv[1]);
 
-    db = new(DB, num=1)
+    #db = new(DB, num=1)
     #for p in db: setup(p)
-    start(db)
+    #start(db)
 
     w = new(Worker, num=int(cfg['master']['workers']))
     #for p in w: setup(p)
     start(w)
 
-    res = getResources()
-    sub = getSubjects()
+    subjects = getSubjects()
+    resources = getResources()
 
+    router = Router()
+    coordinators = new(RC, num=int(cfg['master']['coordinators']))
+    router.assign(subjects, resources, coordinators)
+
+'''
     rcmap = dict()
     rc = new(RC, num=len(res))
     for r, p in zip(res, rc): 
@@ -43,7 +49,8 @@ def main():
     for s, p in zip(sub, sc): 
         scmap[s] = p
     start(sc)
+'''
 
-    c = new(Client, (scmap,), num=int(cfg['master']['clients']))
-    start(c)
+    #c = new(Client, (scmap,), num=int(cfg['master']['clients']))
+    #start(c)
 
