@@ -1,0 +1,74 @@
+import logging
+import threading
+
+from util.router import Router
+from msg.response import Response
+
+log = logging.getLogger("Coordinator")
+
+class Coordinator(process):
+
+    def setup():
+        self.router = None 
+        self.lock = threading.Lock()
+        self.cnt = 0
+        self.tAttr = set()
+
+    def run():
+        log.info("Coordinator is up")
+        await(received(('done',)))
+
+    def receive(msg=('routetbl', router,)):
+        """
+        Receive route table from master process
+        """
+        self.router = router
+
+    def receive(msg=('reqclient', req,), from_=p):
+        """
+        SC Role: receive request from client
+        """
+        log.info("Incoming request: subject=[%s]", req.subject)
+        assignId(req)
+        req.client = p
+        req.tAttr = tAttr
+        send(('reqeval', req,), to=router.getRC(req.resource))
+
+    def receive(msg=('respeval', resp,), from_=p):
+        """
+        SC Role: receive evaluate result from worker
+        """
+        log.info("Incoming response")
+        if conflict(resp):
+            restart()
+        else:
+            restart()
+        send('done', to=resp.client)
+
+    def receive(msg=('reqeval', req,), from_=p):
+        """
+        RC Role: receive evaluate request from SC
+        """
+        log.info("Incoming request: resource=[%s]", req.resource)
+        resp = Response()
+        resp.client = req.client
+        send(('respeval', resp,), to=p)
+
+    def receive(msg=('reqcommit', req,), from_=p):
+        """
+        RC Role: receive commit request from SC
+        """
+        pass
+
+    def assignId(req):
+        self.lock.acquire()
+        req.id = cnt
+        self.cnt += 1
+        self.lock.release()
+
+    def conflict(resp):
+        return False 
+
+    def restart():
+        pass
+

@@ -2,14 +2,11 @@
 src/master.py: src/master.da src/client.py src/msg/request.py src/msg/response.py src/util/router.py
 	dac src/master.da
 
-src/client.py: src/client.da src/comp/sc.py src/msg/request.py src/msg/response.py src/util/router.py
+src/client.py: src/client.da src/comp/coordinator.py src/msg/request.py src/msg/response.py src/util/router.py
 	dac src/client.da
 
-src/comp/sc.py: src/comp/sc.da src/comp/rc.py src/msg/request.py src/msg/response.py
-	dac src/comp/sc.da
-
-src/comp/rc.py: src/comp/rc.da src/comp/worker.py src/msg/request.py src/msg/response.py
-	dac src/comp/rc.da
+src/comp/coordinator.py: src/comp/coordinator.da src/comp/worker.py src/msg/request.py src/msg/response.py
+	dac src/comp/coordinator.da
 
 src/comp/worker.py: src/comp/worker.da src/db/db.py src/msg/request.py src/msg/response.py
 	dac src/comp/worker.da

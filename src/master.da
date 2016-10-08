@@ -3,54 +3,50 @@ import logging
 import configparser
 
 from client import Client
-from comp.sc import SC
-from comp.rc import RC
+from comp.coordinator import Coordinator
 from comp.worker import Worker
 #from db.db import DB
 from util.router import Router
 
 log = logging.getLogger(__name__)
 
-def getSubjects():
-    return ["subject1", "subject2"]
+class Master(process):
 
-def getResources():
-    return ["resource1", "resource2"]
+    def setup(): pass
+
+    def run():
+        cfg = configparser.ConfigParser()
+        cfg.read(sys.argv[1]);
+
+        #db = new(DB, num=1)
+        #for p in db: setup(p)
+        #start(db)
+
+        # Start workers
+        w = new(Worker, num=int(cfg['master']['workers']))
+        start(w)
+
+        # Start coordinators
+        co = new(Coordinator, (), num=int(cfg['master']['coordinators']))
+        start(co)
+
+        # Distribute subjects/resource to coordinator pool uniformly
+        router = Router()
+        router.assign(getSubjects(), getResources(), co)
+        for c in co:
+            send(('routetbl', router,), to=c)
+
+        # Start client to test
+        c = new(Client, (router,), num=int(cfg['master']['clients']))
+        start(c)
+
+    def getSubjects():
+        return ["subject1", "subject2"]
+
+    def getResources():
+        return ["resource1", "resource2"]
 
 def main():
     config(channel= 'fifo', clock='lamport')
-    cfg = configparser.ConfigParser()
-    cfg.read(sys.argv[1]);
-
-    #db = new(DB, num=1)
-    #for p in db: setup(p)
-    #start(db)
-
-    w = new(Worker, num=int(cfg['master']['workers']))
-    #for p in w: setup(p)
-    start(w)
-
-    subjects = getSubjects()
-    resources = getResources()
-
-    router = Router()
-    coordinators = new(RC, num=int(cfg['master']['coordinators']))
-    router.assign(subjects, resources, coordinators)
-
-'''
-    rcmap = dict()
-    rc = new(RC, num=len(res))
-    for r, p in zip(res, rc): 
-        rcmap[r] = p
-    start(rc)
-
-    scmap = dict()
-    sc = new(SC, (rcmap,), num=len(sub))
-    for s, p in zip(sub, sc): 
-        scmap[s] = p
-    start(sc)
-'''
-
-    #c = new(Client, (scmap,), num=int(cfg['master']['clients']))
-    #start(c)
+    start(new(Master))
 

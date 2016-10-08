@@ -1,23 +1,28 @@
 import logging
 
 from msg.request import Request
+from util.router import Router
 
 log = logging.getLogger("Client")
 
 class Client(process):
 
-    def setup(scmap:dict):
+    def setup(router:Router):
         pass
 
     def run():
         log.info("Client is up")
-        #while True:
         for _ in range(1):
-            clk = logical_clock()
-            log.info("Send request")
             req = Request()
             req.subject = "subject1"
-            send(('req', req,), to=scmap['subject1'])
+            req.resource= "resource1"
+            req.action = "read"
+
+            co = router.getSC(req.subject)
+            log.info("Send request to coordinator")
+            send(('reqclient', req,), to=co)
+
+            #clk = logical_clock()
             #await(some(received(('done',), clk=rclk), has=(rclk > clk)))
             await(received('done'))
             log.info("Receive response")
