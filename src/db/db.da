@@ -7,7 +7,7 @@ import asyncio
 log = logging.getLogger('DB')
 
 class DB(process):
-    def setup(policy_filename:str, minDBlatency:int, maxDBlatency:int):
+    def setup(policy_filename:str, minDBlatency:int, maxDBlatency:int, workers:set):
         log.info("DB is setting up.")
         log.info("parsing policy file: %s", policy_filename)
         tree = ET.parse(policy_filename)
@@ -20,34 +20,35 @@ class DB(process):
             self.rules['subjectUpdate'] = rule.find('subjectUpdate')
             self.rules['resourceUpdate'] = rule.find('resourceUpdate')
         log.info("min and max latency: %s, %s", minDBlatency, maxDBlatency)
+        log.info("creating initial records")
+        self.records = {}
+        # TODO: needs to know all subjects & resources here?
+        self.workers = workers
         log.info("DB setup finished.")
 
     def run():
         log.info("DB is up.")
-        # listen to messages from resource coodinators
-        await(received(('evaluation')))	
 
-    def receive(msg=('action', ), from_=worker_id): # TODO: msg struct
-        log.info("DB received a message from %d" + worker_id)
+    def receive(msg=('getpolicydata', ), from_=worker_id):
+        log.info("DB received policy request message from %d", worker_id)
+        send(('policydata', self.rules), to=worker_id)
 
-        # TODO: read and write attributes of
-        # individual records (record format?)
-        # subject = .subject
-        # resource = .resource
+    def receive(msg=('getupdaterecords', ), from_=worker_id):
+        log.info("DB received records request message from %d", worker_id)
 
         # picks a latency l uniformly at random from
         # the interval between the specified min and
         # max, and makes the update visible to all
         # workers after delay l
         l = random.randrange(minDBlatency, maxDBlatency, 1)
-        delay_send(l)
-
-        send(('Pong',), to=worker_id) # TODO: update msg
-        log.info("DB sent a update message to " + worker_id)
-
-    async def delay_send(latency:int):
-        log.info("delay " + str(int))
+        log.info("picked random number: %d", l)
 		# await asyncio.sleep(latency)
+        # TODO: update records
+
+        log.info("making the update visible to all workers after delay %d", l)
+        send(('updaterecords', self.records), to=self.workers) # TODO: update msg
+        log.info("DB sent a update message to all workers.")
+
 
 def main():
     tree = ET.parse('policy.xml')

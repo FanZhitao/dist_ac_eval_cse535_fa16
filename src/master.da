@@ -33,6 +33,7 @@ class Master(process):
 
         # Start coordinators
         co = new(Coordinator, (), num=int(cfg['master']['coordinators']))
+        #setup(co, (w))
         start(co)
 
         # Distribute subjects/resource to coordinator pool uniformly

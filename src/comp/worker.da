@@ -1,7 +1,29 @@
+import logging
+
+log = logging.getLogger('WORKER')
 
 class Worker(process):
-    def setup():
-        pass
+    def setup(db:set):
+        self.db = db
         
     def run():
-        output("Worker is up")
+        log.info("Worker is up.")
+        send('getpolicydata', to=self.db)
+        log.info("Sending message to database to fetch policy data.")
+        await(received("policydata"))
+
+    def receive(msg=('respeval', resp,), from_=rc):
+        log.info("Received evaluation request from resource coodinator: %s", rc)
+        send('getupdaterecords', to=self.db)
+        log.info("Sending message to database to update records.")
+        await(received("updaterecords"))
+
+    def receive(msg=('policydata', policy,), from_=db):
+        log.info("Received policy data from database: %d", db)
+
+    def receive(msg=('updaterecords', records,), from_=db):
+        log.info("Received updated records from database: %d", db)
+        evaluate(None, None)
+
+    def evaluate(rules, request):
+        return True
