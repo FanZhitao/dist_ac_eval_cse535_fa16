@@ -23,7 +23,6 @@ class DB(process):
         log.info("creating initial records")
         self.records = {}
         # TODO: needs to know all subjects & resources here?
-        self.workers = workers
         log.info("DB setup finished.")
 
     def run():
@@ -46,7 +45,7 @@ class DB(process):
         # TODO: update records
 
         log.info("making the update visible to all workers after delay %d", l)
-        send(('updaterecords', self.records), to=self.workers) # TODO: update msg
+        send(('updaterecords', self.records), to=workers) # TODO: update msg
         log.info("DB sent a update message to all workers.")
 
 
