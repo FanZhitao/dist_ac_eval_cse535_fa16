@@ -8,11 +8,13 @@ log = logging.getLogger("Coordinator")
 
 class Coordinator(process):
 
+    #def setup(workers:set):
     def setup():
         self.router = None 
         self.lock = threading.Lock()
         self.cnt = 0
         self.tAttr = set()
+        #self.workers = list(workers)
 
     def run():
         log.info("Coordinator is up")
@@ -32,7 +34,9 @@ class Coordinator(process):
         assignId(req)
         req.client = p
         req.tAttr = tAttr
-        send(('reqeval', req,), to=router.getRC(req.resource))
+        to_rc = router.getRC((req.resource))
+        send(('reqeval', req,), to=to_rc)
+        log.info("Sending evaluation request message to resource coodinator: %d", to_rc)
 
     def receive(msg=('respeval', resp,), from_=p):
         """
@@ -41,18 +45,19 @@ class Coordinator(process):
         log.info("Incoming response")
         if conflict(resp):
             restart()
-        else:
-            restart()
         send('done', to=resp.client)
 
     def receive(msg=('reqeval', req,), from_=p):
         """
         RC Role: receive evaluate request from SC
         """
-        log.info("Incoming request: resource=[%s]", req.resource)
+        log.info("Incoming request: resource=[%s] from subject coodinator: %d", req.resource, p)
         resp = Response()
         resp.client = req.client
-        send(('respeval', resp,), to=p)
+        # pick a worker
+        # round robin style
+        #worker = self.workers[0]
+        #send(('respeval', resp,), to=worker)
 
     def receive(msg=('reqcommit', req,), from_=p):
         """

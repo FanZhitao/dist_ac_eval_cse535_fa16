@@ -31,7 +31,7 @@ class DB(process):
 
     def receive(msg=('getpolicydata', ), from_=worker_id):
         log.info("DB received policy request message from %d", worker_id)
-        send(('policydata', self.rules,), to=worker_id)
+        send(('policydata', self.rules), to=worker_id)
 
     def receive(msg=('getupdaterecords', ), from_=worker_id):
         log.info("DB received records request message from %d", worker_id)

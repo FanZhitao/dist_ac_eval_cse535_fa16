@@ -19,10 +19,13 @@ class Client(process):
             req.action = "read"
 
             co = router.getSC(req.subject)
-            log.info("Send request to coordinator")
+            log.info("Send request to coordinator %s", co)
             send(('reqclient', req,), to=co)
 
             #clk = logical_clock()
             #await(some(received(('done',), clk=rclk), has=(rclk > clk)))
+            log.info("waiting for response")
             await(received('done'))
-            log.info("Receive response")
+
+    def receive(msg=('done', result,), from_=sc):
+        log.info("Received request result: %s from subject coordinator %d", result, sc)
