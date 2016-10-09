@@ -13,14 +13,14 @@ class Admin:
         self.subcache = dict()
         self.rescache = dict()
 
-    def query(attr):
-        return tattr[attr][0]
+    def ts(self, attr):
+        return self.tattr[attr][0]
 
-    def update(attr, newval, ts):
-        tattr[attr] = (newval, ts)
+    def update(self, attr, newval, ts):
+        self.tattr[attr] = (newval, ts)
 
-    def commit(attr):
+    def commit(self, attr):
         pass
 
-    def rollback(attr):
+    def rollback(self, attr):
         pass

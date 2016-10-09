@@ -1,4 +1,5 @@
 import logging
+from queue import Queue
 from enum import Enum
 
 from util.router import Router
@@ -14,7 +15,8 @@ class Coordinator(process):
 
     def setup(workers:set):
         self.router = None 
-        self.admin = Admin(None)
+        self.subadmin = Admin(None)
+        self.resadmin = Admin(None)
         self.idgen = IdGen("proc-1")
         self.reqs = Queue()
         #self.workers = list(workers)
@@ -45,7 +47,7 @@ class Coordinator(process):
         """
         log.info("Incoming response")
         if is_conflict(resp):
-            restart(resp.id)
+            restart(resp.id, Phase.Eval)
         else:
             update_tattr(resp)
         send('done', to=resp.client)
@@ -54,8 +56,8 @@ class Coordinator(process):
         """
         If RC found conflict or found conflict
         """
-        if resp.conflict == True or is_conflict(resp):
-            restart(resp.id)
+        if resp.conflict or is_conflict(resp):
+            restart(resp.id, Phase.Commit)
         else:
             commit_to_db(resp)
 
@@ -86,13 +88,16 @@ class Coordinator(process):
 
     def is_conflict(resp):
         for attr, ts in resp.rattr:
-            if self.admin.query(attr) != ts
+            if self.subadmin.ts(attr) != ts:
                 return True
         return False
 
     def update_tattr(resp):
         for attr, newval, ts in resp.wattr:
-            self.admin.update(attr, newval, ts)
+            self.subadmin.update(attr, newval, ts)
+
+    def commit_to_db():
+        pass
 
     def restart(resp, phase):
         """
@@ -100,7 +105,7 @@ class Coordinator(process):
         This causes evaluations that depend on it being restarted implicitly
         """
         for attr in resp.wattr:
-            self.admin.rollback(attr)
+            self.subadmin.rollback(attr)
 
         if phase == Phase.Commit:
             pass
