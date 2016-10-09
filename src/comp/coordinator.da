@@ -30,8 +30,7 @@ class Coordinator(process):
         """
         log.info("Incoming request: subject=[%s]", req.subject)
         assignId(req)
-        req.client = p
-        req.tAttr = tAttr
+        populate(req, p)
         send(('reqeval', req,), to=router.getRC(req.resource))
 
     def receive(msg=('respeval', resp,), from_=p):
@@ -39,10 +38,10 @@ class Coordinator(process):
         SC Role: receive evaluate result from worker
         """
         log.info("Incoming response")
-        if conflict(resp):
+        if isConflict(resp):
             restart()
         else:
-            restart()
+            updateTentativeAttr()
         send('done', to=resp.client)
 
     def receive(msg=('reqeval', req,), from_=p):
@@ -66,8 +65,15 @@ class Coordinator(process):
         self.cnt += 1
         self.lock.release()
 
-    def conflict(resp):
-        return False 
+    def populate(req, p):
+        req.client = p
+        req.tAttr = tAttr
+
+    def isConflict(resp):
+        return False
+
+    def updateTentativeAttr():
+        pass
 
     def restart():
         pass

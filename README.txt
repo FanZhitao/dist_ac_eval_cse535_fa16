@@ -14,6 +14,8 @@ The full pathname of the files containing the main code for the client, coordina
 
 a list of all known bugs in and limitations of your code.
 
+A.Conflict could happen of hash function whne assigning coordinator
+
 ## 4.CONTRIBUTIONS  
 
 a list of contributions of each team member to the current submission.  this should reflect how the work was divided between the team members.  generally, a dozen lines or so is sufficient detail.
