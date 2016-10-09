@@ -12,8 +12,7 @@ Phase = Enum('Phase', 'Eval', 'Commit')
 
 class Coordinator(process):
 
-    #def setup(workers:set):
-    def setup():
+    def setup(workers:set):
         self.router = None 
         self.admin = Admin(None)
         self.idgen = IdGen("proc-1")
@@ -22,7 +21,6 @@ class Coordinator(process):
 
     def run():
         log.info("Coordinator is up")
-        await(received(('done',)))
 
     def receive(msg=('routetbl', router,)):
         """
@@ -38,7 +36,7 @@ class Coordinator(process):
         assignId(req)
         populate(req, p)
         to_rc = router.getRC((req.resource))
-        send(('reqeval', req,), to=to_rc)
+        send(('reqeval', req), to=to_rc)
         log.info("Sending evaluation request message to resource coodinator: %d", to_rc)
 
     def receive(msg=('respeval', resp,), from_=p):

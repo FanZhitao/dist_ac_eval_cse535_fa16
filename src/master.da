@@ -20,20 +20,20 @@ class Master(process):
 
         db = new(DB, num=1)
         # setup paramters
-        # 1st: str, policy filename
-        # 2nd: int, min latency
-        # 3rd: int, max latency
+        # 1st: policy filename
+        # 2nd: min latency
+        # 3rd: max latency
         path = './src/db/' + cfg['db']['policy']
-        setup(db, (path, cfg['db']['minDBlatency'], cfg['db']['maxDBlatency']))
-        start(db)
 
         # Start workers
-        w = new(Worker, num=int(cfg['master']['workers']))
+        w = new(Worker, (db,), num=int(cfg['master']['workers']))
         start(w)
 
+        setup(db, (path, cfg['db']['minDBlatency'], cfg['db']['maxDBlatency'], w))
+        start(db)
+
         # Start coordinators
-        co = new(Coordinator, (), num=int(cfg['master']['coordinators']))
-        #setup(co, (w))
+        co = new(Coordinator, (w,), num=int(cfg['master']['coordinators']))
         start(co)
 
         # Distribute subjects/resource to coordinator pool uniformly
