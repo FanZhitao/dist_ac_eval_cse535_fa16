@@ -1,0 +1,26 @@
+import logging
+
+log = logging.getLogger("Coordinator")
+
+class Admin:
+
+    def __init__(self, db):
+        """
+        tattr: <attr, (timestamp, val)>
+        """
+        self.db = db
+        self.tattr = dict()
+        self.subcache = dict()
+        self.rescache = dict()
+
+    def query(attr):
+        return tattr[attr][0]
+
+    def update(attr, newval, ts):
+        tattr[attr] = (newval, ts)
+
+    def commit(attr):
+        pass
+
+    def rollback(attr):
+        pass

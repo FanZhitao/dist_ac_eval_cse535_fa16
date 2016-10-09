@@ -1,0 +1,14 @@
+import threading
+
+class IdGen:
+
+    def __init__(self, name):
+        self.name = name
+        self.lock = threading.Lock()
+        self.cnt = 0
+
+    def next():
+        self.lock.acquire()
+        self.cnt += 1
+        self.lock.release()
+        return self.cnt
