@@ -1,6 +1,5 @@
 import logging
 from queue import Queue
-from enum import Enum
 
 from util.router import Router
 from util.admin import Admin
@@ -9,16 +8,13 @@ from msg.response import Response
 
 log = logging.getLogger("Coordinator")
 
-Phase = Enum('Phase', 'Eval', 'Commit')
-
 class Coordinator(process):
 
     def setup(workers:set):
         self.router = None 
-        self.subadmin = Admin(None)
-        self.resadmin = Admin(None)
+        self.scadmin = Admin(None)
+        self.rcadmin = Admin(None)
         self.idgen = IdGen("proc-1")
-        self.reqs = Queue()
         #self.workers = list(workers)
 
     def run():
@@ -46,10 +42,13 @@ class Coordinator(process):
         SC Role: receive evaluate result from worker
         """
         log.info("Incoming response")
-        if is_conflict(resp):
-            restart(resp.id, Phase.Eval)
-        else:
+        sm = self.scadmin.state(resp.id)
+        deps = self.scadmin.all_state()
+        tattr = self.scadmin.tattr_cache()
+        if sm.respeval(resp, deps, tattr):
             update_tattr(resp)
+        else:
+            restart(resp.id, sm.state())
         send('done', to=resp.client)
 
     def receive(msg=('respcommit', resp,), from_=p):
@@ -111,4 +110,3 @@ class Coordinator(process):
         if phase == Phase.Commit:
             pass
         # resend to SC
-
