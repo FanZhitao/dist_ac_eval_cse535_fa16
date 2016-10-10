@@ -54,7 +54,8 @@ class Coordinator(process):
 
     def receive(msg=('respcommit', resp,), from_=p):
         """
-        If RC found conflict or found conflict
+        SC Role: If RC failed to commit due to conflict or SC found conflict at this point
+                 Possibly because dependent evaluation being restarted.
         """
         if resp.conflict or is_conflict(resp):
             restart(resp.id, Phase.Commit)
