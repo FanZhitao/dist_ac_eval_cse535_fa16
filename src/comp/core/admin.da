@@ -1,0 +1,39 @@
+import logging
+from queue import Queue
+
+from comp.core.cache import Cache
+from comp.core.statemac import StateMac
+
+log = logging.getLogger("Admin")
+
+class Admin:
+
+    def __init__(self, db):
+        self.db = db
+        self.cache = Cache()
+        self.states = dict()
+        self.queue = Queue()
+
+    def setup(self, req):
+        self.states[req.id] = StateMac(req)
+
+    def clean(self, reqid):
+        pass
+
+    def state(self, reqid):
+        return self.states[req.id]
+
+    def all_state(self):
+        return self.states
+
+    def tattr_cache(self):
+        return self.cache.tattr()
+
+    def update(self, sub, attr, reqid, newval, ts):
+        self.tattr[sub][attr] = (reqid, newval, ts)
+
+    def commit(self, attr):
+        pass
+
+    def rollback(self, attr):
+        pass

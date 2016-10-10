@@ -1,0 +1,19 @@
+
+class Cache:
+
+    def __init__(self):
+        """
+        tattr: <subid, <attr, (reqid, val, ts)>>
+        """
+        self.tattr = dict()
+        self.subcache = dict()
+        self.rescache = dict()
+
+    def get_tattr():
+        return self.tatt
+
+    def get_subcache():
+        return self.subcache
+
+    def get_rescache():
+        return self.rescache

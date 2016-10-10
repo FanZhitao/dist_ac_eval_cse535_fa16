@@ -1,0 +1,45 @@
+import logging
+import time
+from enum import Enum
+
+State = Enum('State', 'init', 
+            'reqclient', 'respeval', 'respcommit', 
+            'reqeval', 'reqcommit',
+            'restart', 'complete')
+
+class StateMac:
+
+    def __init__(self, req):
+        self.state = State.init
+        self.id = req.id
+        self.subid = req.subject
+        self.resid = req.resource
+        self.dep = dict()
+
+    def reqclient(self, attrs):
+        for attr, reqid, val, ts in attrs:
+            self.dep[attr] = (reqid, val, ts)
+        self.state = State.reqclient
+        return True
+
+    def respeval(self, resp, deps, tattr):
+        # 1.Tentative update dependency check
+        for attr in resp.rattr:
+            depstate = deps[self.dep[attr].reqid].state() 
+            if depstate == State.restart: 
+                return False
+            while depstate != State.complete: 
+                time.sleep(5)   
+
+        # 2.Subject update conflict check
+        for attr in resp.rattr:
+            if self.dep[attr].ts != tattr[attr].ts:
+                return False
+        return True
+
+    def respcommit(self):
+        return True
+
+    def state(self):
+        return self.state
+
