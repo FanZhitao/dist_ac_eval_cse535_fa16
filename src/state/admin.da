@@ -1,8 +1,8 @@
 import logging
 from queue import Queue
 
-from comp.core.cache import Cache
-from comp.core.statemac import StateMac
+from state.cache import Cache
+from state.statemac import StateMac
 
 log = logging.getLogger("Admin")
 
@@ -21,13 +21,16 @@ class Admin:
         pass
 
     def state(self, reqid):
-        return self.states[req.id]
+        return self.states[reqid]
 
     def all_state(self):
         return self.states
 
-    def tattr_cache(self):
-        return self.cache.tattr()
+    def tattr_cache(self, subid):
+        return self.cache.get_tattr()[subid]
+
+    def res_cache(self, resid):
+        return self.cache.get_subcache()[resid]
 
     def update(self, sub, attr, reqid, newval, ts):
         self.tattr[sub][attr] = (reqid, newval, ts)

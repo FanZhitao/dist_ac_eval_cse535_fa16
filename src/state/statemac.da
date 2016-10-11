@@ -2,11 +2,7 @@ import logging
 import time
 from enum import Enum
 
-State = Enum('State', 'init', 
-            'reqclient', 'respeval', 'respcommit', 
-            'reqeval', 'reqcommit',
-            'restart', 'complete')
-
+State = Enum('State', 'init, reqclient, respeval, respcommit, restart, complete') 
 class StateMac:
 
     def __init__(self, req):
@@ -16,13 +12,13 @@ class StateMac:
         self.resid = req.resource
         self.dep = dict()
 
-    def reqclient(self, attrs):
-        for attr, reqid, val, ts in attrs:
+    def reqclient(self, tattrs):
+        for attr, reqid, val, ts in tattrs:
             self.dep[attr] = (reqid, val, ts)
         self.state = State.reqclient
         return True
 
-    def respeval(self, resp, deps, tattr):
+    def respeval(self, resp, deps, tattrs):
         # 1.Tentative update dependency check
         for attr in resp.rattr:
             depstate = deps[self.dep[attr].reqid].state() 
@@ -33,7 +29,7 @@ class StateMac:
 
         # 2.Subject update conflict check
         for attr in resp.rattr:
-            if self.dep[attr].ts != tattr[attr].ts:
+            if self.dep[attr].ts != tattrs[attr].ts:
                 return False
         return True
 

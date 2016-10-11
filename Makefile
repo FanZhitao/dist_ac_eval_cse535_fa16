@@ -5,7 +5,7 @@ src/master.py: src/master.da src/client.py src/msg/request.py src/msg/response.p
 src/client.py: src/client.da src/comp/coordinator.py src/msg/request.py src/msg/response.py src/util/router.py
 	dac src/client.da
 
-src/comp/coordinator.py: src/comp/coordinator.da src/comp/worker.py src/msg/request.py src/msg/response.py src/util/router.py src/util/admin.py src/util/idgen.py
+src/comp/coordinator.py: src/comp/coordinator.da src/comp/worker.py src/msg/request.py src/msg/response.py src/util/router.py src/util/idgen.py src/state/admin.py 
 	dac src/comp/coordinator.da
 
 src/comp/worker.py: src/comp/worker.da src/db/db.py src/msg/request.py src/msg/response.py
@@ -23,11 +23,17 @@ src/msg/response.py: src/msg/response.da
 src/util/router.py: src/util/router.da
 	dac src/util/router.da
 
-src/util/admin.py: src/util/admin.da
-	dac src/util/admin.da
-
 src/util/idgen.py: src/util/idgen.da
 	dac src/util/idgen.da
+
+src/state/admin.py: src/state/admin.da src/state/cache.py src/state/statemac.py
+	dac src/state/admin.da
+
+src/state/cache.py: src/state/cache.da
+	dac src/state/cache.da
+
+src/state/statemac.py: src/state/statemac.da
+	dac src/state/statemac.da
 
 clean:
 	rm -rf src/*.py src/**/*.py src/__pycache__ src/**/__pycache__

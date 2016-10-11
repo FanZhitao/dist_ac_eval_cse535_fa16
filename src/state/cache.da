@@ -9,11 +9,11 @@ class Cache:
         self.subcache = dict()
         self.rescache = dict()
 
-    def get_tattr():
+    def get_tattr(self):
         return self.tatt
 
-    def get_subcache():
+    def get_subcache(self):
         return self.subcache
 
-    def get_rescache():
+    def get_rescache(self):
         return self.rescache

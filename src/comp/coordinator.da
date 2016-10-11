@@ -1,9 +1,11 @@
 import logging
+import time
 from queue import Queue
 
+from state.admin import Admin
 from util.router import Router
-from util.admin import Admin
 from util.idgen import IdGen
+from msg.request import Request
 from msg.response import Response
 
 log = logging.getLogger("Coordinator")
@@ -12,8 +14,7 @@ class Coordinator(process):
 
     def setup(workers:set):
         self.router = None 
-        self.scadmin = Admin(None)
-        self.rcadmin = Admin(None)
+        self.admin = Admin(None)
         self.idgen = IdGen("proc-1")
         #self.workers = list(workers)
 
@@ -31,20 +32,20 @@ class Coordinator(process):
         SC Role: receive request from client
         """
         log.info("Incoming request: subject=[%s]", req.subject)
-        assignId(req)
-        populate(req, p)
-        to_rc = router.getRC((req.resource))
-        send(('reqeval', req), to=to_rc)
-        log.info("Sending evaluation request message to resource coodinator: %d", to_rc)
+        setup_admin(req)
+        prepare_eval_sc(req, p)
+        rc = router.getRC(req.resource)
+        send(('reqeval', req), to=rc)
+        log.info("Sending evaluation request message to resource coodinator: %d", rc)
 
     def receive(msg=('respeval', resp,), from_=p):
         """
         SC Role: receive evaluate result from worker
         """
         log.info("Incoming response")
-        sm = self.scadmin.state(resp.id)
-        deps = self.scadmin.all_state()
-        tattr = self.scadmin.tattr_cache()
+        sm = self.admin.state(resp.id)
+        deps = self.admin.all_state()
+        tattr = self.admin.tattr_cache(resp.subject)
         if sm.respeval(resp, deps, tattr):
             update_tattr(resp)
         else:
@@ -56,18 +57,20 @@ class Coordinator(process):
         SC Role: If RC failed to commit due to conflict or SC found conflict at this point
                  Possibly because dependent evaluation being restarted.
         """
-        if resp.conflict or is_conflict(resp):
-            restart(resp.id, Phase.Commit)
-        else:
-            commit_to_db(resp)
+        #if resp.conflict or is_conflict(resp):
+        #    restart(resp.id, Phase.Commit)
+        #else:
+        #    commit_to_db(resp)
 
     def receive(msg=('reqeval', req,), from_=p):
         """
         RC Role: receive evaluate request from SC
         """
         log.info("Incoming request: resource=[%s] from subject coodinator: %d", req.resource, p)
+        prepare_eval_rc(req, p)
+
         resp = Response()
-        resp.client = req.client
+        resp.client = req.app
         # pick a worker
         # round robin style
         #worker = self.workers[0]
@@ -79,22 +82,24 @@ class Coordinator(process):
         """
         pass
 
-    def assignId(req):
+    def setup_admin(req):
+        self.admin.setup(req)
+        tattrs = self.admin.tattr_cache(req.subject)
+        sm = self.admin.state(req.id)
+        sm.reqclient(tattrs)
+
+    def prepare_eval_sc(req, p):
         req.id = self.idgen.next()
+        req.app = p
+        req.subattr = self.admin.tattr_cache(req.subject) 
 
-    def populate(req, p):
-        req.client = p
-        #req.tAttr = tAttr
-
-    def is_conflict(resp):
-        for attr, ts in resp.rattr:
-            if self.subadmin.ts(attr) != ts:
-                return True
-        return False
+    def prepare_eval_rc(req, p):
+        req.sc = p
+        req.resattr = self.admin.res_cache(req.resource)
 
     def update_tattr(resp):
-        for attr, newval, ts in resp.wattr:
-            self.subadmin.update(attr, newval, ts)
+        for attr, newval in resp.wattr:
+            self.admin.update(attr, newval, time.time())
 
     def commit_to_db():
         pass
@@ -105,8 +110,8 @@ class Coordinator(process):
         This causes evaluations that depend on it being restarted implicitly
         """
         for attr in resp.wattr:
-            self.subadmin.rollback(attr)
+            self.admin.rollback(attr)
 
-        if phase == Phase.Commit:
-            pass
+        #if phase == Phase.Commit:
+        #    pass
         # resend to SC

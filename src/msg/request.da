@@ -2,11 +2,14 @@
 class Request:
     def __init__(self):
         self.id = 0
-        self.client = None
+        self.app = None
         self.sc = None
         self.subject = ""
         self.resource = ""
         self.action = ""
-        self.scAdm = None
-        self.rcAdm = None
-        self.tAttr = None 
+        #self.scAdm = None
+        #self.rcAdm = None
+        #self.tAttr = None 
+        self.subattr = None
+        self.resattr = None
+
