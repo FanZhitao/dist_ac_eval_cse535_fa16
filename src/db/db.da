@@ -8,7 +8,7 @@ log = logging.getLogger('DB')
 
 class DB(process):
     def setup(policy_filename:str, minDBlatency:int, maxDBlatency:int, workers:set):
-        log.info("DB is setting up.")
+        log.info("DB %s is setting up.", self)
         log.info("parsing policy file: %s", policy_filename)
         tree = ET.parse(policy_filename)
         root = tree.getroot()
@@ -26,14 +26,16 @@ class DB(process):
         log.info("DB setup finished.")
 
     def run():
-        log.info("DB is up.")
+        log.info("DB %s is up.", self)
+        while True:
+            await(received(()))
 
-    def receive(msg=('getpolicydata', ), from_=worker_id):
-        log.info("DB received policy request message from %d", worker_id)
-        send(('policydata', self.rules), to=worker_id)
+    def receive(msg=('getpolicy'), from_=p):
+        log.info("DB received policy request message from worker %s", p)
+        send(('policy', self.rules), to=p)
 
-    def receive(msg=('getupdaterecords', ), from_=worker_id):
-        log.info("DB received records request message from %d", worker_id)
+    def receive(msg=('getrecords'), from_=p):
+        log.info("DB received records request message from worker %s", p)
 
         # picks a latency l uniformly at random from
         # the interval between the specified min and
@@ -45,8 +47,8 @@ class DB(process):
         # TODO: update records
 
         log.info("making the update visible to all workers after delay %d", l)
-        send(('updaterecords', self.records), to=workers) # TODO: update msg
-        log.info("DB sent a update message to all workers.")
+        send(('records', self.records), to=workers)
+        log.info("DB sent updated records to all workers.")
 
 
 def main():
