@@ -17,7 +17,10 @@ class Admin:
     def setup(self, req):
         self.states[req.id] = StateMac(req)
 
-    def clean(self, reqid):
+    def clean_sub(self, reqid):
+        pass
+
+    def clean_res(self, reqid):
         pass
 
     def state(self, reqid):
@@ -30,7 +33,7 @@ class Admin:
         return self.cache.get_tattr()[subid]
 
     def res_cache(self, resid):
-        return self.cache.get_subcache()[resid]
+        return self.cache.get_rescache()[resid]
 
     def update(self, sub, attr, reqid, newval, ts):
         self.tattr[sub][attr] = (reqid, newval, ts)

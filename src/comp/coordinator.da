@@ -10,7 +10,7 @@ from msg.response import Response
 
 log = logging.getLogger("Coordinator")
 
-class Coordinator(process):
+class Coordinator2(process):
     def setup(workers:set, db:DB):
         pass
 
@@ -22,11 +22,12 @@ class Coordinator(process):
     def receive(msg=('reqclient', req,), from_=p):
         log.info("Incoming request: subject=[%s]", req.subject)
 
-class Coordinator1(process):
+class Coordinator(process):
 
     def setup(workers:set, db:DB):
-        self.router = None 
-        self.admin = Admin(None)
+        self.router = None
+        self.scadmin = Admin(db)
+        self.rcadmin = Admin(db)
         self.idgen = IdGen("proc-1")
         #self.workers = list(workers)
 
@@ -45,7 +46,7 @@ class Coordinator1(process):
         SC Role: receive request from client
         """
         log.info("Incoming request: subject=[%s]", req.subject)
-        setup_admin(req)
+        setup_admin_sc(req)
         prepare_eval_sc(req, p)
         rc = router.getRC(req.resource)
         send(('reqeval', req), to=rc)
@@ -56,9 +57,9 @@ class Coordinator1(process):
         SC Role: receive evaluate result from worker
         """
         log.info("Incoming response")
-        sm = self.admin.state(resp.id)
-        deps = self.admin.all_state()
-        tattr = self.admin.tattr_cache(resp.subject)
+        sm = self.scadmin.state(resp.id)
+        deps = self.scadmin.all_state()
+        tattr = self.scadmin.tattr_cache(resp.subject)
         if sm.respeval(resp, deps, tattr):
             update_tattr(resp)
         else:
@@ -70,60 +71,78 @@ class Coordinator1(process):
         SC Role: If RC failed to commit due to conflict or SC found conflict at this point
                  Possibly because dependent evaluation being restarted.
         """
-        #if resp.conflict or is_conflict(resp):
-        #    restart(resp.id, Phase.Commit)
-        #else:
-        #    commit_to_db(resp)
+        sm = self.scadmin.state(resp.id)
+        if resp.success:
+            commit_sub_to_db(resp)
+        else:
+            self.scadmin.clean_sub(resp.id)
+            restart(resp.id, sm.state())
 
     def receive(msg=('reqeval', req,), from_=p):
         """
         RC Role: receive evaluate request from SC
         """
         log.info("Incoming request: resource=[%s] from subject coodinator: %d", req.resource, p)
+        setup_admin_rc(req)
         prepare_eval_rc(req, p)
 
         resp = Response()
+        resp.id = req.id
         resp.client = req.app
+        resp.subject = req.subject
+        resp.resource = req.resource
+        send(('respeval', resp,), to=p)
         # pick a worker
         # round robin style
         #worker = self.workers[0]
         #send(('respeval', resp,), to=worker)
 
-    def receive(msg=('reqcommit', req,), from_=p):
+    def receive(msg=('reqcommit', resp,), from_=p):
         """
         RC Role: receive commit request from SC
         """
-        pass
+        sm = self.rcadmin.state(resp.id)
+        attrs = self.rcadmin.res_cache(resp.resource)
+        if sm.reqcommit(resp, attrs):
+            commit_res_to_db(resp)
+        else:
+            self.rcadmin.clean_res(resp.id)
+            restart(resp.id, sm.state())
 
-    def setup_admin(req):
-        self.admin.setup(req)
-        tattrs = self.admin.tattr_cache(req.subject)
-        sm = self.admin.state(req.id)
+    def setup_admin_sc(req):
+        self.scadmin.setup(req)
+        tattrs = self.scadmin.tattr_cache(req.subject)
+        sm = self.scadmin.state(req.id)
         sm.reqclient(tattrs)
+
+    def setup_admin_rc(req):
+        self.rcadmin.setup(req)
+        attrs = self.rcadmin.res_cache(req.resource)
+        sm = self.rcadmin.state(req.id)
+        sm.reqeval(attrs)
 
     def prepare_eval_sc(req, p):
         req.id = self.idgen.next()
         req.app = p
-        req.subattr = self.admin.tattr_cache(req.subject) 
+        req.subattr = self.scadmin.tattr_cache(req.subject) 
 
     def prepare_eval_rc(req, p):
         req.sc = p
-        req.resattr = self.admin.res_cache(req.resource)
+        req.resattr = self.scadmin.res_cache(req.resource)
 
     def update_tattr(resp):
-        for attr, newval in resp.wattr:
-            self.admin.update(attr, newval, time.time())
+        for attr, newval in resp.subwattr:
+            self.scadmin.update(attr, newval, time.time())
 
-    def commit_to_db():
+    def commit_sub_to_db(resp):
+        pass
+
+    def commit_res_to_db(resp):
         pass
 
     def restart(resp, phase):
-        """
-        Rollback attributes of current evaluation
-        This causes evaluations that depend on it being restarted implicitly
-        """
-        for attr in resp.wattr:
-            self.admin.rollback(attr)
+        for attr in resp.subwattr:
+            self.scadmin.rollback(attr)
 
         #if phase == Phase.Commit:
         #    pass

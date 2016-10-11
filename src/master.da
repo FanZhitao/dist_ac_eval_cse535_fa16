@@ -46,9 +46,6 @@ class Master(process):
         c = new(Client, (router,), num=int(cfg['master']['clients']))
         start(c)
 
-        for c in co:
-            c.join()
-
     def getSubjects():
         return ["subject1", "subject2"]
 
