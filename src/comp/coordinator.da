@@ -37,7 +37,8 @@ class Coordinator(process):
         log.info("SC - Incoming application request: subject=[%s]", req.subject)
         generate_global_id(req)
         setup_admin_sc(req)
-        prepare_eval_sc(req, p)
+        prepare_eval_sc(req)
+        enqueue(req, p)
         rc = router.getRC(req.resource)
         send(('reqeval', req), to=rc)
         log.info("SC - Send evaluation request to RC: %s", rc)
@@ -77,7 +78,6 @@ class Coordinator(process):
 
         resp = Response()
         resp.id = req.id
-        resp.client = req.app
         resp.subject = req.subject
         resp.resource = req.resource
         send(('respeval', resp,), to=p)
@@ -114,8 +114,7 @@ class Coordinator(process):
     def generate_global_id(req):
         req.id = self.idgen.next()
 
-    def prepare_eval_sc(req, p):
-        req.app = p
+    def prepare_eval_sc(req):
         req.subattr = dict()
         tattrs = self.scadmin.tattr_cache(req.subject) 
         for attr, (_, val, _) in tattrs.items():
@@ -124,9 +123,12 @@ class Coordinator(process):
     def prepare_eval_rc(req, p):
         req.sc = p
         req.resattr = dict()
-        rescache = self.scadmin.res_cache(req.resource)
-        for attr, (val, _) in rescache.items():
+        attrs = self.rcadmin.res_cache(req.resource)
+        for attr, (val, _) in attrs.items():
             req.resattr[attr] = val
+
+    def enqueue(req, p):
+        self.scadmin.push_into_queue((req, p))
 
     def update_tattr(resp):
         for attr, newval in resp.subwattr.items():

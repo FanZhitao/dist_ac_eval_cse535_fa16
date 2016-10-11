@@ -1,0 +1,9 @@
+
+from msg.request import Request
+
+class CommitReq(Request):
+
+    def __init__(self):
+        Request.__init__(self)
+        self.resrattr = None
+        self.reswattr = None

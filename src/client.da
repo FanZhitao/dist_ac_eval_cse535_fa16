@@ -1,6 +1,6 @@
 import logging
 
-from msg.request import Request
+from msg.evalreq import EvalReq
 from util.router import Router
 
 log = logging.getLogger("Client")
@@ -13,18 +13,18 @@ class Client(process):
     def run():
         log.info("Client is up")
         for _ in range(1):
-            req = Request()
+            req = EvalReq()
             req.subject = "subject1"
             req.resource= "resource1"
             req.action = "read"
 
             sc = router.getSC(req.subject)
-            log.info("Send request to coordinator %s", sc)
+            log.info("App - Send request to SC %s", sc)
             send(('reqclient', req,), to=sc)
 
             #clk = logical_clock()
             #await(some(received(('done',), clk=rclk), has=(rclk > clk)))
-            log.info("waiting for response")
+            log.info("App - Waiting for response")
             await(received('done'))
 
     def receive(msg=('done', result,), from_=sc):

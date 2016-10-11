@@ -1,5 +1,5 @@
 import logging
-from queue import Queue
+from collections import deque
 
 from state.cache import Cache
 from state.statemac import StateMac
@@ -12,7 +12,7 @@ class Admin:
         self.db = db
         self.cache = Cache()
         self.states = dict()
-        self.queue = Queue()
+        self.queue = deque()
 
     def setup(self, req):
         self.states[req.id] = StateMac(req)
@@ -37,6 +37,15 @@ class Admin:
 
     def update_tattr(self, subid, attr, reqid, newval):
         self.cache.update_tattr(subid, attr, reqid, newval)
+
+    def push_into_queue(self, item):
+        self.queue.append(item)
+
+    def top_of_queue(self):
+        self.queue[0]
+
+    def pop_from_queue(self):
+        return self.queue.pop()
 
     def commit(self, attr):
         pass
