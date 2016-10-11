@@ -33,7 +33,7 @@ class Master(process):
         start(db)
 
         # Start coordinators
-        co = new(Coordinator, (w,), num=int(cfg['master']['coordinators']))
+        co = new(Coordinator, (w, db), num=int(cfg['master']['coordinators']))
         start(co)
 
         # Distribute subjects/resource to coordinator pool uniformly
@@ -45,6 +45,9 @@ class Master(process):
         # Start client to test
         c = new(Client, (router,), num=int(cfg['master']['clients']))
         start(c)
+
+        for c in co:
+            c.join()
 
     def getSubjects():
         return ["subject1", "subject2"]

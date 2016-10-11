@@ -1,7 +1,7 @@
 import logging
 import time
-from queue import Queue
 
+from db.db import DB
 from state.admin import Admin
 from util.router import Router
 from util.idgen import IdGen
@@ -11,8 +11,20 @@ from msg.response import Response
 log = logging.getLogger("Coordinator")
 
 class Coordinator(process):
+    def setup(workers:set, db:DB):
+        pass
 
-    def setup(workers:set):
+    def run(): pass
+
+    def receive(msg=('routetbl', router,)):
+        log.info("Receive route table")
+
+    def receive(msg=('reqclient', req,), from_=p):
+        log.info("Incoming request: subject=[%s]", req.subject)
+
+class Coordinator1(process):
+
+    def setup(workers:set, db:DB):
         self.router = None 
         self.admin = Admin(None)
         self.idgen = IdGen("proc-1")
@@ -25,6 +37,7 @@ class Coordinator(process):
         """
         Receive route table from master process
         """
+        log.info("Receive route table")
         self.router = router
 
     def receive(msg=('reqclient', req,), from_=p):

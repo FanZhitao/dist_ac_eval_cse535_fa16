@@ -1,6 +1,9 @@
 #!/bin/bash -x
 
-if [ $# -gt 1 ]; then
+if [ $# -eq 1 ]; then
+    level="$1"
+    config="config/test1.config"
+elif [ $# -gt 1 ]; then
     level="$1"
     config="$2"
 else

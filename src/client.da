@@ -18,9 +18,9 @@ class Client(process):
             req.resource= "resource1"
             req.action = "read"
 
-            co = router.getSC(req.subject)
-            log.info("Send request to coordinator %s", co)
-            send(('reqclient', req,), to=co)
+            sc = router.getSC(req.subject)
+            log.info("Send request to coordinator %s", sc)
+            send(('reqclient', req,), to=sc)
 
             #clk = logical_clock()
             #await(some(received(('done',), clk=rclk), has=(rclk > clk)))

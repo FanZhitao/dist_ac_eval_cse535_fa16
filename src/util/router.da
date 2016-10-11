@@ -1,7 +1,7 @@
 import logging
 import pprint
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('Router')
 
 class Router:
 
@@ -10,18 +10,18 @@ class Router:
         self.rcmap = dict()
 
     def assign(self, subjects, resources, coordinators):
-        colist = list(coordinators)
-        total = len(colist)
+        co = list(coordinators)
+        total = len(co)
 
         for sub in subjects:
             idx = hash(sub) % total
-            log.info("Assign subject=[%s] to coordinator=[%d]", sub, idx) 
-            self.scmap[sub] = colist[idx] 
+            log.info("Assign subject=[%s] to coordinator=[%s]", sub, co[idx]) 
+            self.scmap[sub] = co[idx] 
 
         for res in resources:
             idx = hash(res) % total
-            log.info("Assign resource=[%s] to coordinator=[%d]", res, idx) 
-            self.rcmap[res] = colist[idx]
+            log.info("Assign resource=[%s] to coordinator=[%s]", res, co[idx]) 
+            self.rcmap[res] = co[idx]
 
     def getSC(self, sub):
         #log.info(pprint.pformat(self.scmap))
