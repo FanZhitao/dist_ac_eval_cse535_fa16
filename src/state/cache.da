@@ -7,8 +7,8 @@ class Cache:
 
     def __init__(self):
         """
-        tattr: Tentative update cache - <subid, <attr, (reqid, val, ts)>>
-        subcache: Subject DB cache - <subid, <attr, (reqid, val, ts)>>
+        tattr: Tentative update cache - <subid, <attr, (val, ts, reqid)>>
+        subcache: Subject DB cache - <subid, <attr, (val, ts, reqid)>>
         rescache: Resource DB cache - <resid, <attr, (val, ts)>>
         """
         self.tattrs = dict()
@@ -24,12 +24,12 @@ class Cache:
             self.subcache[subid] = dict()
             for attr, val in data.items():
                 ts = time.time()
-                self.tattrs[subid][attr] = (None, val, ts)
-                self.subcache[subid][attr] = (None, val, ts)
+                self.tattrs[subid][attr] = (val, ts, None)
+                self.subcache[subid][attr] = (val, ts, None)
         return self.tattrs[subid]
 
     def update_tattr(self, subid, attr, reqid, val):
-        self.tattrs[subid][attr] = (reqid, val, time.time())
+        self.tattrs[subid][attr] = (val, time.time(), reqid)
 
     def query_rescache(self, resid):
         if resid not in self.rescache:

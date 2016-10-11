@@ -2,46 +2,67 @@ import logging
 import time
 from enum import Enum
 
+log = logging.getLogger("StateMac")
+
 State = Enum('State', 
         'init, reqclient, respeval, respcommit, reqeval, reqcommit, restart, complete') 
+
+VAL = 0
+TS = 1
+ID = 2
+
 class StateMac:
 
     def __init__(self, req):
+        """
+        subdep: subject of current evaluation dependency info
+                <attr, (val, ts, reqid)>
+        resdep: resource of current evaluation dependency info
+                <attr, (val, ts)>
+        """
         self.state = State.init
         self.id = req.id
         self.subid = req.subject
         self.resid = req.resource
-        self.sattrdep = dict()
-        self.rattrdep = dict()
+        self.subdep = dict()
+        self.resdep = dict()
 
     def reqclient(self, tattrs):
         for attr, (reqid, val, ts) in tattrs.items():
-            self.sattrdep[attr] = (reqid, val, ts)
+            self.subdep[attr] = (reqid, val, ts)
         self.state = State.reqclient
 
     def respeval(self, resp, deps, tattrs):
+        #import pprint
+        #log.info("deps: " + pprint.pformat(deps))
+        #log.info("tattrs: " + pprint.pformat(tattrs))
         # 1.Tentative update dependency check
         for attr in resp.subrattr:
-            depstate = deps[self.sattrdep[attr].reqid].state() 
+            depid = self.subdep[attr][ID]
+            if depid is None:
+                continue
+
+            depstate = deps[depid].state() 
             if depstate == State.restart: 
                 return False
+
             while depstate != State.complete: 
-                time.sleep(5)   
+                time.sleep(5)
 
         # 2.Subject update conflict check
         for attr in resp.subrattr:
-            if self.sattrdep[attr].ts != tattrs[attr].ts:
+            if self.subdep[attr][TS] != tattrs[attr][TS]:
                 return False
         return True
 
     def reqeval(self, attrs):
         for attr, (val, ts) in attrs.items():
-            self.rattrdep[attr] = (val, ts)
+            self.resdep[attr] = (val, ts)
         self.state = State.reqeval
 
     def reqcommit(self, resp, attrs):
         for attr in resp.resrattr:
-            if self.rattrdep[attr].ts != attrs[attr].ts:
+            if self.resdep[attr][TS] != attrs[attr][TS]:
                 return False
         return True
 

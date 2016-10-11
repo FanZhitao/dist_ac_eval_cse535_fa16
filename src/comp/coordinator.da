@@ -50,16 +50,13 @@ class Coordinator(process):
         SC: Receive evaluation result from worker
         """
         log.info("SC - Incoming evaluation response from RC")
-        sm = self.scadmin.state(resp.id)
-        deps = self.scadmin.all_state()
-        tattr = self.scadmin.tattr_cache(resp.subject)
-        if sm.respeval(resp, deps, tattr):
+        if is_conflict(resp):
+            restart(resp.id, sm.state())
+        else:
             update_tattr(resp)
             req = prepare_commitreq(resp)
             send(('reqcommit', req), to=router.getRC(req.resource))
             log.info("SC - Send commit request to RC")
-        else:
-            restart(resp.id, sm.state())
 
     def receive(msg=('respcommit', resp,), from_=p):
         """
@@ -83,6 +80,10 @@ class Coordinator(process):
         resp.id = req.id
         resp.subject = req.subject
         resp.resource = req.resource
+        resp.subrattr = ['attr1']
+        resp.subwattr = {'attr2': 10}
+        resp.resrattr = ['attr3']
+        #resp.reswattr = {'attr3': 20}
         send(('respeval', resp,), to=p)
         # pick a worker
         # round robin style
@@ -139,6 +140,12 @@ class Coordinator(process):
         req.resrattr = resp.resrattr
         req.reswattr = resp.reswattr
         return req
+
+    def is_conflict(resp):
+        sm = self.scadmin.state(resp.id)
+        deps = self.scadmin.all_state()
+        tattr = self.scadmin.tattr_cache(resp.subject)
+        return sm.respeval(resp, deps, tattr) == False
 
     def enqueue(req, p):
         self.scadmin.push_into_queue((req, p))
