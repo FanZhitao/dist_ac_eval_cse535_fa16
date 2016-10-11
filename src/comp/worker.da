@@ -7,22 +7,26 @@ class Worker(process):
         pass
         
     def run():
-        log.info("Worker is up.")
-        send('getpolicydata', to=self.db)
-        log.info("Sending message to database to fetch policy data.")
-        await(received("policydata"))
+        log.info("Worker %s is up.", self)
+        #p = next(iter(db))
+        send(('getpolicy'), to=db)
+        log.info("Sending message to database %s to fetch policy and waiting for response.", db)
+        while True:
+            await(received(()))
 
     def receive(msg=('respeval', resp), from_=rc):
         log.info("Received evaluation request from resource coodinator: %s", rc)
-        send('getupdaterecords', to=self.db)
-        log.info("Sending message to database to update records.")
-        await(received("updaterecords"))
+        send(('getupdaterecords'), to=db)
+        log.info("Sending message to database %s to get records.", db)
+        await(received(('records')))
 
-    def receive(msg=('policydata', policy), from_=db):
-        log.info("Received policy data from database: %d", db)
+    def receive(msg=('policy', policy), from_=p):
+        log.info("Received policy data from database: %s", p)
+        log.info("policy: %s", policy)
 
-    def receive(msg=('updaterecords', records), from_=db):
-        log.info("Received updated records from database: %d", db)
+    def receive(msg=('records', records), from_=p):
+        log.info("Received updated records from database: %s", p)
+        log.info("records: %s", records)
         evaluate(None, None)
 
     def evaluate(rules, request):
