@@ -15,7 +15,7 @@ class StateMac:
         self.rattrdep = dict()
 
     def reqclient(self, tattrs):
-        for attr, reqid, val, ts in tattrs:
+        for attr, (reqid, val, ts) in tattrs.items():
             self.sattrdep[attr] = (reqid, val, ts)
         self.state = State.reqclient
 
@@ -35,7 +35,7 @@ class StateMac:
         return True
 
     def reqeval(self, attrs):
-        for attr, val, ts in attrs:
+        for attr, (val, ts) in attrs.items():
             self.rattrdep[attr] = (val, ts)
         self.state = State.reqeval
 

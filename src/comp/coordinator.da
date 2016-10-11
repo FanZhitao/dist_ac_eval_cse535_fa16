@@ -1,5 +1,4 @@
 import logging
-import time
 
 from db.db import DB
 from state.admin import Admin
@@ -9,18 +8,6 @@ from msg.request import Request
 from msg.response import Response
 
 log = logging.getLogger("Coordinator")
-
-class Coordinator2(process):
-    def setup(workers:set, db:DB):
-        pass
-
-    def run(): pass
-
-    def receive(msg=('routetbl', router,)):
-        log.info("Receive route table")
-
-    def receive(msg=('reqclient', req,), from_=p):
-        log.info("Incoming request: subject=[%s]", req.subject)
 
 class Coordinator(process):
 
@@ -33,30 +20,32 @@ class Coordinator(process):
 
     def run():
         log.info("Coordinator is up")
+        while True:
+            await(received(('done',)))
 
     def receive(msg=('routetbl', router,)):
         """
-        Receive route table from master process
+        SC/RC: Receive route table from master process
         """
-        log.info("Receive route table")
+        log.info("Received route table")
         self.router = router
 
     def receive(msg=('reqclient', req,), from_=p):
         """
-        SC Role: receive request from client
+        SC: Received request from client
         """
-        log.info("Incoming request: subject=[%s]", req.subject)
+        log.info("SC: Incoming application request: subject=[%s]", req.subject)
         setup_admin_sc(req)
         prepare_eval_sc(req, p)
         rc = router.getRC(req.resource)
         send(('reqeval', req), to=rc)
-        log.info("Sending evaluation request message to resource coodinator: %d", rc)
+        log.info("Sending evaluation request message to resource coodinator: %s", rc)
 
     def receive(msg=('respeval', resp,), from_=p):
         """
-        SC Role: receive evaluate result from worker
+        SC: Receive evaluation result from worker
         """
-        log.info("Incoming response")
+        log.info("SC: Incoming evaluation response from RC")
         sm = self.scadmin.state(resp.id)
         deps = self.scadmin.all_state()
         tattr = self.scadmin.tattr_cache(resp.subject)
@@ -68,8 +57,7 @@ class Coordinator(process):
 
     def receive(msg=('respcommit', resp,), from_=p):
         """
-        SC Role: If RC failed to commit due to conflict or SC found conflict at this point
-                 Possibly because dependent evaluation being restarted.
+        SC: Receive RC commit result, check if success.
         """
         sm = self.scadmin.state(resp.id)
         if resp.success:
@@ -80,9 +68,9 @@ class Coordinator(process):
 
     def receive(msg=('reqeval', req,), from_=p):
         """
-        RC Role: receive evaluate request from SC
+        RC: Receive evaluation request from SC
         """
-        log.info("Incoming request: resource=[%s] from subject coodinator: %d", req.resource, p)
+        log.info("RC: Incoming evaluation request: resource=[%s] from subject coodinator: %s", req.resource, p)
         setup_admin_rc(req)
         prepare_eval_rc(req, p)
 
@@ -99,7 +87,7 @@ class Coordinator(process):
 
     def receive(msg=('reqcommit', resp,), from_=p):
         """
-        RC Role: receive commit request from SC
+        RC: Receive commit request from SC
         """
         sm = self.rcadmin.state(resp.id)
         attrs = self.rcadmin.res_cache(resp.resource)
@@ -124,15 +112,21 @@ class Coordinator(process):
     def prepare_eval_sc(req, p):
         req.id = self.idgen.next()
         req.app = p
-        req.subattr = self.scadmin.tattr_cache(req.subject) 
+        req.subattr = dict()
+        tattrs = self.scadmin.tattr_cache(req.subject) 
+        for attr, (_, val, _) in tattrs.items():
+            req.subattr[attr] = val
 
     def prepare_eval_rc(req, p):
         req.sc = p
-        req.resattr = self.scadmin.res_cache(req.resource)
+        req.resattr = dict()
+        rescache = self.scadmin.res_cache(req.resource)
+        for attr, (val, _) in rescache.items():
+            req.resattr[attr] = val
 
     def update_tattr(resp):
-        for attr, newval in resp.subwattr:
-            self.scadmin.update(attr, newval, time.time())
+        for attr, newval in resp.subwattr.items():
+            self.scadmin.update_tattr(resp.subject, attr, resp.id, newval)
 
     def commit_sub_to_db(resp):
         pass

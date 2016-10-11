@@ -1,19 +1,42 @@
+import logging
+import time
+
+log = logging.getLogger("Cache")
 
 class Cache:
 
     def __init__(self):
         """
-        tattr: <subid, <attr, (reqid, val, ts)>>
+        tattr: Tentative update cache - <subid, <attr, (reqid, val, ts)>>
+        subcache: Subject DB cache - <subid, <attr, (reqid, val, ts)>>
+        rescache: Resource DB cache - <resid, <attr, (val, ts)>>
         """
-        self.tattr = dict()
+        self.tattrs = dict()
         self.subcache = dict()
         self.rescache = dict()
 
-    def get_tattr(self):
-        return self.tatt
+    def query_tattr(self, subid):
+        if subid not in self.tattrs: # TODO: need locking here?
+            # load data of specific subject from DB
+            log.info("Subject [%s] doesn't exist in cache, load from DB", subid)
+            data = {'attr1': 1, 'attr2': 2}
+            self.tattrs[subid] = dict()
+            self.subcache[subid] = dict()
+            for attr, val in data.items():
+                ts = time.time()
+                self.tattrs[subid][attr] = (None, val, ts)
+                self.subcache[subid][attr] = (None, val, ts)
+        return self.tattrs[subid]
 
-    def get_subcache(self):
-        return self.subcache
+    def update_tattr(self, subid, attr, reqid, val):
+        self.tattrs[subid][attr] = (reqid, val, time.time())
 
-    def get_rescache(self):
-        return self.rescache
+    def query_rescache(self, resid):
+        if resid not in self.rescache:
+            log.info("Resource [%s] doesn't exist in cache, load from DB", resid)
+            data = {'attr3': 3}
+            self.rescache[resid] = dict()
+            for attr, val in data.items():
+                self.rescache[resid][attr] = (val, time.time())
+        return self.rescache[resid]
+

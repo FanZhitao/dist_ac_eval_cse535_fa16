@@ -30,16 +30,17 @@ class Admin:
         return self.states
 
     def tattr_cache(self, subid):
-        return self.cache.get_tattr()[subid]
+        return self.cache.query_tattr(subid)
 
     def res_cache(self, resid):
-        return self.cache.get_rescache()[resid]
+        return self.cache.query_rescache(resid)
 
-    def update(self, sub, attr, reqid, newval, ts):
-        self.tattr[sub][attr] = (reqid, newval, ts)
+    def update_tattr(self, subid, attr, reqid, newval):
+        self.cache.update_tattr(subid, attr, reqid, newval)
 
     def commit(self, attr):
         pass
 
     def rollback(self, attr):
         pass
+
