@@ -15,7 +15,7 @@ class Coordinator(process):
         self.router = None
         self.scadmin = Admin(db)
         self.rcadmin = Admin(db)
-        self.idgen = IdGen("proc-1")
+        self.idgen = IdGen()
         #self.workers = list(workers)
 
     def run():
@@ -34,18 +34,19 @@ class Coordinator(process):
         """
         SC: Received request from client
         """
-        log.info("SC: Incoming application request: subject=[%s]", req.subject)
+        log.info("SC - Incoming application request: subject=[%s]", req.subject)
+        generate_global_id(req)
         setup_admin_sc(req)
         prepare_eval_sc(req, p)
         rc = router.getRC(req.resource)
         send(('reqeval', req), to=rc)
-        log.info("Sending evaluation request message to resource coodinator: %s", rc)
+        log.info("SC - Send evaluation request to RC: %s", rc)
 
     def receive(msg=('respeval', resp,), from_=p):
         """
         SC: Receive evaluation result from worker
         """
-        log.info("SC: Incoming evaluation response from RC")
+        log.info("SC - Incoming evaluation response from RC")
         sm = self.scadmin.state(resp.id)
         deps = self.scadmin.all_state()
         tattr = self.scadmin.tattr_cache(resp.subject)
@@ -53,7 +54,7 @@ class Coordinator(process):
             update_tattr(resp)
         else:
             restart(resp.id, sm.state())
-        send('done', to=resp.client)
+        #send('done', to=resp.client)
 
     def receive(msg=('respcommit', resp,), from_=p):
         """
@@ -70,7 +71,7 @@ class Coordinator(process):
         """
         RC: Receive evaluation request from SC
         """
-        log.info("RC: Incoming evaluation request: resource=[%s] from subject coodinator: %s", req.resource, p)
+        log.info("RC - Incoming evaluation request: resource=[%s] from SC: %s", req.resource, p)
         setup_admin_rc(req)
         prepare_eval_rc(req, p)
 
@@ -84,6 +85,7 @@ class Coordinator(process):
         # round robin style
         #worker = self.workers[0]
         #send(('respeval', resp,), to=worker)
+        log.info("RC - Send evaluation response to SC: %s", p)
 
     def receive(msg=('reqcommit', resp,), from_=p):
         """
@@ -109,8 +111,10 @@ class Coordinator(process):
         sm = self.rcadmin.state(req.id)
         sm.reqeval(attrs)
 
-    def prepare_eval_sc(req, p):
+    def generate_global_id(req):
         req.id = self.idgen.next()
+
+    def prepare_eval_sc(req, p):
         req.app = p
         req.subattr = dict()
         tattrs = self.scadmin.tattr_cache(req.subject) 

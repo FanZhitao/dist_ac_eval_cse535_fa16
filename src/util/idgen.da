@@ -1,9 +1,10 @@
 import threading
+import multiprocessing
 
 class IdGen:
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self):
+        self.name = multiprocessing.current_process().name
         self.lock = threading.Lock()
         self.cnt = 0
 
@@ -11,4 +12,4 @@ class IdGen:
         self.lock.acquire()
         self.cnt += 1
         self.lock.release()
-        return self.cnt
+        return self.name + '@' + str(self.cnt)
