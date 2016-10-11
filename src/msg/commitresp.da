@@ -1,0 +1,8 @@
+
+from msg.response import Response
+
+class CommitResp(Response):
+
+    def __init__(self):
+        Response.__init__(self)
+        self.conflict = False

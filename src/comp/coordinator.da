@@ -4,8 +4,10 @@ from db.db import DB
 from state.admin import Admin
 from util.router import Router
 from util.idgen import IdGen
-from msg.request import Request
-from msg.response import Response
+from msg.evalreq import EvalReq
+from msg.evalresp import EvalResp
+from msg.commitreq import CommitReq
+from msg.commitresp import CommitResp
 
 log = logging.getLogger("Coordinator")
 
@@ -37,7 +39,7 @@ class Coordinator(process):
         log.info("SC - Incoming application request: subject=[%s]", req.subject)
         generate_global_id(req)
         setup_admin_sc(req)
-        prepare_eval_sc(req)
+        prepare_evalreq_sc(req)
         enqueue(req, p)
         rc = router.getRC(req.resource)
         send(('reqeval', req), to=rc)
@@ -53,20 +55,21 @@ class Coordinator(process):
         tattr = self.scadmin.tattr_cache(resp.subject)
         if sm.respeval(resp, deps, tattr):
             update_tattr(resp)
+            req = prepare_commitreq(resp)
+            send(('reqcommit', req), to=router.getRC(req.resource))
+            log.info("SC - Send commit request to RC")
         else:
             restart(resp.id, sm.state())
-        #send('done', to=resp.client)
 
     def receive(msg=('respcommit', resp,), from_=p):
         """
         SC: Receive RC commit result, check if success.
         """
-        sm = self.scadmin.state(resp.id)
-        if resp.success:
-            commit_sub_to_db(resp)
-        else:
+        if resp.conflict:
             self.scadmin.clean_sub(resp.id)
-            restart(resp.id, sm.state())
+            restart(resp.id, None)
+        else:
+            commit_sub_to_db(resp)
 
     def receive(msg=('reqeval', req,), from_=p):
         """
@@ -74,9 +77,9 @@ class Coordinator(process):
         """
         log.info("RC - Incoming evaluation request: resource=[%s] from SC: %s", req.resource, p)
         setup_admin_rc(req)
-        prepare_eval_rc(req, p)
+        prepare_evalreq_rc(req, p)
 
-        resp = Response()
+        resp = EvalResp()
         resp.id = req.id
         resp.subject = req.subject
         resp.resource = req.resource
@@ -95,6 +98,7 @@ class Coordinator(process):
         attrs = self.rcadmin.res_cache(resp.resource)
         if sm.reqcommit(resp, attrs):
             commit_res_to_db(resp)
+            #send('done', to=resp.client)
         else:
             self.rcadmin.clean_res(resp.id)
             restart(resp.id, sm.state())
@@ -114,18 +118,27 @@ class Coordinator(process):
     def generate_global_id(req):
         req.id = self.idgen.next()
 
-    def prepare_eval_sc(req):
+    def prepare_evalreq_sc(req):
         req.subattr = dict()
         tattrs = self.scadmin.tattr_cache(req.subject) 
         for attr, (_, val, _) in tattrs.items():
             req.subattr[attr] = val
 
-    def prepare_eval_rc(req, p):
+    def prepare_evalreq_rc(req, p):
         req.sc = p
         req.resattr = dict()
         attrs = self.rcadmin.res_cache(req.resource)
         for attr, (val, _) in attrs.items():
             req.resattr[attr] = val
+
+    def prepare_commitreq(resp):
+        req = CommitReq()
+        req.id = resp.id
+        req.subject = resp.subject
+        req.resource = resp.resource
+        req.resrattr = resp.resrattr
+        req.reswattr = resp.reswattr
+        return req
 
     def enqueue(req, p):
         self.scadmin.push_into_queue((req, p))

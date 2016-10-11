@@ -3,12 +3,5 @@ class Response:
 
     def __init__(self):
         self.id = 0
-        self.app = None
         self.subject = ''
         self.resource = ''
-        #self.scAdm = None
-        #self.rcAdm = None
-        self.subwattr = dict()
-        self.subrattr = dict()
-        self.reswattr = dict()
-        self.resrattr = dict()
