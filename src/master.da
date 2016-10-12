@@ -2,7 +2,7 @@ import sys
 import logging
 import configparser
 
-from application import Application
+from comp.application import Application
 from comp.coordinator import Coordinator
 from comp.worker import Worker
 from db.db import DB
