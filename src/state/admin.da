@@ -17,11 +17,8 @@ class Admin:
     def setup(self, req):
         self.states[req.id] = StateMac(req)
 
-    def clean_sub(self, reqid):
-        pass
-
-    def clean_res(self, reqid):
-        pass
+    def clean_state(self, reqid):
+        self.states[reqid] = None
 
     def state(self, reqid):
         return self.states[reqid]

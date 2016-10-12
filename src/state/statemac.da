@@ -36,28 +36,29 @@ class StateMac:
 
     def respeval(self, resp, deps, tattrs):
         log.info('Before check, tattr cache is: %s', pprint.pformat(tattrs))
-        #import pprint
-        #log.info("deps: " + pprint.pformat(deps))
-        #log.info("tattrs: " + pprint.pformat(tattrs))
         # 1.Tentative update dependency check
         for attr in resp.subrattr:
             depid = self.subdep[attr][ID]
             if depid is None:
                 continue
 
-            depstate = deps[depid].state() 
+            log.info(pprint.pformat(deps[depid].state))
+
+            depstate = deps[depid].state
             if depstate == State.restart:
-                log.warn("Req-[%s] rely on tentative-update Req-[%s] which failed on attr-[%s]", resp.id, depid, attr)
+                log.warn("***** Conflict *****: Req-[%s] rely on tentative-update Req-[%s] which failed on attr-[%s]", resp.id, depid, attr)
+                self.state = State.restart
                 return False
 
             while depstate != State.complete: 
-                log.warn("Req-[%s] wait for Req-[%s] complete on attr-[%s]", resp.id, depid, attr)
+                log.warn("***** Conflict *****: Req-[%s] wait for Req-[%s] complete on attr-[%s]", resp.id, depid, attr)
                 time.sleep(5)
 
         # 2.Subject update conflict check
         for attr in resp.subrattr:
             if self.subdep[attr][TS] != tattrs[attr][TS]:
-                log.warn("Req-[%s] subject-update conflict with Req-[%s] on attr-[%s]", resp.id, depid, attr)
+                log.warn("***** Conflict *****: Req-[%s] subject-update conflict with Req-[%s] on attr-[%s]", resp.id, tattrs[attr][ID], attr)
+                self.state = State.restart
                 return False
         return True
 
@@ -70,10 +71,11 @@ class StateMac:
     def reqcommit(self, resp, attrs):
         for attr in resp.resrattr:
             if self.resdep[attr][TS] != attrs[attr][TS]:
+                self.state = State.restart
                 return False
         self.state = State.reqcommit
         return True
 
-    def state(self):
-        return self.state
+    def complete(self):
+        self.state = State.complete
 
