@@ -1,0 +1,32 @@
+import logging
+
+from msg.evalreq import EvalReq
+from util.router import Router
+
+log = logging.getLogger("Application")
+
+class Application(process):
+
+    def setup(router:Router, cfg):
+        pass
+
+    def run():
+        log.info("Client is up")
+        for i in range(1, int(cfg['reqno']) + 1):
+            req = EvalReq()
+            req.seq = i
+            req.subject = "subject1"
+            req.resource= "resource1"
+            req.action = "read"
+
+            sc = router.getSC(req.subject)
+            log.info("App - Send request to SC %s", sc)
+            send(('reqclient', req,), to=sc)
+
+            #clk = logical_clock()
+            #await(some(received(('done',), clk=rclk), has=(rclk > clk)))
+            log.info("App - Waiting for response")
+            await(received('done'))
+
+    def receive(msg=('done', result,), from_=sc):
+        log.info("Received request result: %s from subject coordinator %d", result, sc)
