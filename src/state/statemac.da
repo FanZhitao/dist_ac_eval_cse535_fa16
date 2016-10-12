@@ -44,6 +44,7 @@ class StateMac:
 
             depstate = deps[depid].state() 
             if depstate == State.restart: 
+                log.warn("Req-[%s] tentative-update conflict with Req-[%s] on attr", resp.id, depid, attr)
                 return False
 
             while depstate != State.complete: 
@@ -52,6 +53,7 @@ class StateMac:
         # 2.Subject update conflict check
         for attr in resp.subrattr:
             if self.subdep[attr][TS] != tattrs[attr][TS]:
+                log.warn("Req-[%s] subject-update conflict with Req-[%s] on attr", resp.id, depid, attr)
                 return False
         return True
 

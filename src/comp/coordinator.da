@@ -37,6 +37,7 @@ class Coordinator(process):
         """
         SC: Received request from client
         """
+        delay(req.seq, 'reqclient')
         log.info("SC - Incoming application request: subject=[%s]", req.subject)
         generate_global_id(req)
         setup_admin_sc(req)
@@ -183,5 +184,8 @@ class Coordinator(process):
             self.scadmin.rollback(attr)
 
     def delay(seq, method):
-        time.sleep(int(cfg['req' + seq + '.delay.' + method]))
+        key = 'req' + str(seq) + '.delay.' + method
+        if key in cfg:
+            log.info('Delay: %d (s)', int(cfg[key]))
+            time.sleep(int(cfg[key]))
 

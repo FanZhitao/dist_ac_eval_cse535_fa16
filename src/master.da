@@ -8,7 +8,7 @@ from comp.worker import Worker
 from db.db import DB
 from util.router import Router
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('Master')
 
 class Master(process):
 
@@ -18,6 +18,8 @@ class Master(process):
         cfg = configparser.ConfigParser()
         cfg.read(sys.argv[1]);
         workload = sys.argv[2]
+
+        print_config(cfg, workload)
 
         db = new(DB, num=1)
         # setup paramters
@@ -52,6 +54,17 @@ class Master(process):
 
     def getResources():
         return ["resource1", "resource2"]
+
+    def print_config(cfg, workload):
+        log.info('=' * 20)
+        for section in cfg.keys():
+            if section.startswith('workload') and section != workload:
+                continue
+            log.info('[%s]', section)
+            for key, val in cfg[section].items():
+                log.info('%s=%s', key, val)
+            log.info('')
+        log.info('=' * 20)
 
 def main():
     config(channel= 'fifo', clock='lamport')
