@@ -3,7 +3,7 @@ from msg.request import Request
 
 class CommitReq(Request):
 
-    def __init__(self):
-        Request.__init__(self)
+    def __init__(self, resp = None):
+        Request.__init__(self, resp)
         self.resrattr = None
         self.reswattr = None

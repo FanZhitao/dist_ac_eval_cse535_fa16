@@ -1,9 +1,18 @@
 
 class Response:
 
-    def __init__(self):
-        self.seq = 0
-        self.id = 0
-        self.app = None
-        self.subject = ''
-        self.resource = ''
+    def __init__(self, req = None):
+        if req is None:
+            self.seq = 0
+            self.id = 0
+            self.app = None
+            self.subject = ''
+            self.resource = ''
+            self.action = ''
+        else:
+            self.seq = req.seq
+            self.id = req.id
+            self.app = req.app
+            self.subject = req.subject
+            self.resource = req.resource
+            self.action = req.action

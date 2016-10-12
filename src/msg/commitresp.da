@@ -3,6 +3,6 @@ from msg.response import Response
 
 class CommitResp(Response):
 
-    def __init__(self):
-        Response.__init__(self)
+    def __init__(self, req = None):
+        Response.__init__(self, req)
         self.conflict = False

@@ -1,4 +1,5 @@
 import logging
+import pprint
 import time
 from enum import Enum
 
@@ -31,8 +32,10 @@ class StateMac:
         for attr, (reqid, val, ts) in tattrs.items():
             self.subdep[attr] = (reqid, val, ts)
         self.state = State.reqapp
+        log.info('Subject attr dependency: %s', pprint.pformat(self.subdep))
 
     def respeval(self, resp, deps, tattrs):
+        log.info('Before check, tattr cache is: %s', pprint.pformat(tattrs))
         #import pprint
         #log.info("deps: " + pprint.pformat(deps))
         #log.info("tattrs: " + pprint.pformat(tattrs))
@@ -44,17 +47,17 @@ class StateMac:
 
             depstate = deps[depid].state() 
             if depstate == State.restart:
-                log.warn("Req-[%s] rely on tentative-update Req-[%s] which failed on attr", resp.id, depid, attr)
+                log.warn("Req-[%s] rely on tentative-update Req-[%s] which failed on attr-[%s]", resp.id, depid, attr)
                 return False
 
             while depstate != State.complete: 
-                log.warn("Req-[%s] wait for Req-[%s] complete on attr", resp.id, depid, attr)
+                log.warn("Req-[%s] wait for Req-[%s] complete on attr-[%s]", resp.id, depid, attr)
                 time.sleep(5)
 
         # 2.Subject update conflict check
         for attr in resp.subrattr:
             if self.subdep[attr][TS] != tattrs[attr][TS]:
-                log.warn("Req-[%s] subject-update conflict with Req-[%s] on attr", resp.id, depid, attr)
+                log.warn("Req-[%s] subject-update conflict with Req-[%s] on attr-[%s]", resp.id, depid, attr)
                 return False
         return True
 
@@ -62,11 +65,13 @@ class StateMac:
         for attr, (val, ts) in attrs.items():
             self.resdep[attr] = (val, ts)
         self.state = State.reqeval
+        log.info('Resource attr dependency: %s', pprint.pformat(self.resdep))
 
     def reqcommit(self, resp, attrs):
         for attr in resp.resrattr:
             if self.resdep[attr][TS] != attrs[attr][TS]:
                 return False
+        self.state = State.reqcommit
         return True
 
     def state(self):
