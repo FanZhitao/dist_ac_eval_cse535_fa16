@@ -55,7 +55,7 @@ class Coordinator(process):
         """
         log.info("SC - Incoming evaluation response from RC: #seq=[%d]", resp.seq)
         if is_tattr_or_sub_conflict(resp):
-            restart(resp)
+            send(('reqapp', EvalReq(resp)), to=router.getSC(resp.subject))
         else:
             log.info('No conflict then update tattr cache: #seq=[%d]', resp.seq)
             update_tattr(resp)
@@ -70,7 +70,7 @@ class Coordinator(process):
         log.info("SC - Incoming commit response from RC: #seq=[%d]", resp.seq)
         if resp.conflict:
             #self.scadmin.clean_sub(resp.id)
-            restart(resp)
+            send(('reqapp', EvalReq(resp)), to=router.getSC(resp.subject))
         else:
             commit_sub_to_db(resp)
             log.info("SC - Send application response: #seq=[%d]", resp.seq)
@@ -84,13 +84,7 @@ class Coordinator(process):
         setup_admin_rc(req)
         prepare_evalreq_rc(req, p)
 
-        resp = EvalResp()
-        resp.seq = req.seq
-        resp.id = req.id
-        resp.app = req.app
-        resp.subject = req.subject
-        resp.resource = req.resource
-        resp.action = req.action
+        resp = EvalResp(req)
         resp.subrattr = ['attr1', 'attr2']
         resp.subwattr = {'attr2': 10}
         resp.resrattr = ['attr3']
@@ -149,26 +143,13 @@ class Coordinator(process):
             req.resattr[attr] = val
 
     def prepare_commitreq(resp):
-        req = CommitReq()
-        req.seq = resp.seq
-        req.id = resp.id
-        req.app = resp.app
-        req.subject = resp.subject
-        req.action = resp.action
-        req.resource = resp.resource
+        req = CommitReq(resp)
         req.resrattr = resp.resrattr
         req.reswattr = resp.reswattr
         return req
 
     def prepare_commitresp(req):
-        resp = CommitResp()
-        resp.seq = req.seq
-        resp.id = req.id
-        resp.app = req.app
-        resp.subject = req.subject
-        resp.resource = req.resource
-        resp.action = req.action
-        return resp
+        return CommitResp(req)
 
     def is_tattr_or_sub_conflict(resp):
         sm = self.scadmin.state(resp.id)
@@ -193,10 +174,6 @@ class Coordinator(process):
 
     def commit_res_to_db(resp):
         self.rcadmin.commit_res(resp.resource)
-
-    def restart(resp):
-        req = EvalReq(resp)
-        send(('reqapp', req), to=router.getSC(req.subject))
 
     def delay(seq, method):
         key = 'req' + str(seq) + '.delay.' + method

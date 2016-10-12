@@ -10,6 +10,8 @@ Please run bin/startup.sh
 
 The full pathname of the files containing the main code for the client, coordinator, worker, and master.  (this will help graders look at the most important code first.)
 
+Name convention: https://www.python.org/dev/peps/pep-0008/
+
 ## 3.BUGS AND LIMITATIONS
 
 a list of all known bugs in and limitations of your code.
