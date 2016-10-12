@@ -4,5 +4,6 @@ class Response:
     def __init__(self):
         self.seq = 0
         self.id = 0
+        self.app = None
         self.subject = ''
         self.resource = ''

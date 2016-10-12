@@ -21,12 +21,12 @@ class Application(process):
 
             sc = router.getSC(req.subject)
             log.info("App - Send request to SC %s", sc)
-            send(('reqclient', req,), to=sc)
+            send(('reqapp', req,), to=sc)
 
-            #clk = logical_clock()
-            #await(some(received(('done',), clk=rclk), has=(rclk > clk)))
-            log.info("App - Waiting for response")
-            await(received('done'))
+        #clk = logical_clock()
+        #await(some(received(('done',), clk=rclk), has=(rclk > clk)))
+        log.info("App - Waiting for response")
+        await(received('done'))
 
-    def receive(msg=('done', result,), from_=sc):
-        log.info("Received request result: %s from subject coordinator %d", result, sc)
+    def receive(msg=('respapp', result,), from_=sc):
+        log.info("Received request result: %s from subject coordinator %s", result, sc)

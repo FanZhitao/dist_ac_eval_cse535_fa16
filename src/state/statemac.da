@@ -5,7 +5,7 @@ from enum import Enum
 log = logging.getLogger("StateMac")
 
 State = Enum('State', 
-        'init, reqclient, respeval, respcommit, reqeval, reqcommit, restart, complete') 
+        'init, reqapp, respeval, respcommit, reqeval, reqcommit, restart, complete') 
 
 VAL = 0
 TS = 1
@@ -27,10 +27,10 @@ class StateMac:
         self.subdep = dict()
         self.resdep = dict()
 
-    def reqclient(self, tattrs):
+    def reqapp(self, tattrs):
         for attr, (reqid, val, ts) in tattrs.items():
             self.subdep[attr] = (reqid, val, ts)
-        self.state = State.reqclient
+        self.state = State.reqapp
 
     def respeval(self, resp, deps, tattrs):
         #import pprint
@@ -43,11 +43,12 @@ class StateMac:
                 continue
 
             depstate = deps[depid].state() 
-            if depstate == State.restart: 
-                log.warn("Req-[%s] tentative-update conflict with Req-[%s] on attr", resp.id, depid, attr)
+            if depstate == State.restart:
+                log.warn("Req-[%s] rely on tentative-update Req-[%s] which failed on attr", resp.id, depid, attr)
                 return False
 
             while depstate != State.complete: 
+                log.warn("Req-[%s] wait for Req-[%s] complete on attr", resp.id, depid, attr)
                 time.sleep(5)
 
         # 2.Subject update conflict check

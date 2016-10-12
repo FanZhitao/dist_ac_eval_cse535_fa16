@@ -33,62 +33,67 @@ class Coordinator(process):
         log.info("Received route table")
         self.router = router
 
-    def receive(msg=('reqclient', req,), from_=p):
+    def receive(msg=('reqapp', req,), from_=p):
         """
         SC: Received request from client
         """
-        delay(req.seq, 'reqclient')
-        log.info("SC - Incoming application request: subject=[%s]", req.subject)
+        log.info("SC - Incoming application request: #seq=[%d] subject=[%s]", req.seq, req.subject)
+        delay(req.seq, 'reqapp')
+
         generate_global_id(req)
         setup_admin_sc(req)
-        prepare_evalreq_sc(req)
+        prepare_evalreq_sc(req, p)
         enqueue(req, p)
+
         rc = router.getRC(req.resource)
+        log.info("SC - Send evaluation request to RC: #seq=[%d], rc=%s",req.seq, rc)
         send(('reqeval', req), to=rc)
-        log.info("SC - Send evaluation request to RC: %s", rc)
 
     def receive(msg=('respeval', resp,), from_=p):
         """
         SC: Receive evaluation result from worker
         """
-        log.info("SC - Incoming evaluation response from RC")
-        if is_conflict(resp):
+        log.info("SC - Incoming evaluation response from RC: #seq=[%d]", resp.seq)
+        if is_tattr_or_sub_conflict(resp):
             restart(resp.id, None)
         else:
             update_tattr(resp)
             req = prepare_commitreq(resp)
+            log.info("SC - Send commit request to RC: #seq=[%d]", resp.seq)
             send(('reqcommit', req), to=router.getRC(req.resource))
-            log.info("SC - Send commit request to RC")
 
     def receive(msg=('respcommit', resp,), from_=p):
         """
         SC: Receive RC commit result, check if success.
         """
-        log.info("SC - Incoming commit response from RC")
+        log.info("SC - Incoming commit response from RC: #seq=[%d]", resp.seq)
         if resp.conflict:
             self.scadmin.clean_sub(resp.id)
             restart(resp.id, None)
         else:
             commit_sub_to_db(resp)
-            log.info("SC - Send application response to App")
+            log.info("SC - Send application response: #seq=[%d]", resp.seq)
+            send(('respapp', True,), to=resp.app)
 
     def receive(msg=('reqeval', req,), from_=p):
         """
         RC: Receive evaluation request from SC
         """
-        log.info("RC - Incoming evaluation request: resource=[%s] from SC: %s", req.resource, p)
+        log.info("RC - Incoming evaluation request: #seq=[%d] resource=[%s] sc=%s", req.seq, req.resource, p)
         setup_admin_rc(req)
         prepare_evalreq_rc(req, p)
 
         resp = EvalResp()
+        resp.seq = req.seq
         resp.id = req.id
+        resp.app = req.app
         resp.subject = req.subject
         resp.resource = req.resource
         resp.subrattr = ['attr1']
         resp.subwattr = {'attr2': 10}
         resp.resrattr = ['attr3']
         #resp.reswattr = {'attr3': 20}
-        log.info("RC - Send evaluation response to SC: %s", p)
+        log.info("RC - Send evaluation response to SC: #seq=[%d] worker=%s", req.seq, p)
         send(('respeval', resp,), to=p)
         # pick a worker
         # round robin style
@@ -99,26 +104,23 @@ class Coordinator(process):
         """
         RC: Receive commit request from SC
         """
-        log.info("RC - Incoming commit request: resource=[%s] from SC: %s", req.resource, p)
+        log.info("RC - Incoming commit request: #seq=[%d] resource=[%s] sc=%s", req.seq, req.resource, p)
         resp = prepare_commitresp(req)
-        sm = self.rcadmin.state(req.id)
-        attrs = self.rcadmin.res_cache(req.resource)
-        if sm.reqcommit(req, attrs):
-            commit_res_to_db(req)
-            #send('done', to=resp.client)
-            resp.conflict = False
-        else:
+        if is_res_conflict(req):
             self.rcadmin.clean_res(req.id)
             resp.conflict = True
             #restart(resp.id, sm.state())
+        else:
+            commit_res_to_db(req)
+            resp.conflict = False
+        log.info("RC - Send commit response to SC: #seq=[%d] sc=%s", req.seq, p)
         send(('respcommit', resp), to=p)
-        log.info("RC - Send commit response to SC: %s", p)
 
     def setup_admin_sc(req):
         self.scadmin.setup(req)
         tattrs = self.scadmin.tattr_cache(req.subject)
         sm = self.scadmin.state(req.id)
-        sm.reqclient(tattrs)
+        sm.reqapp(tattrs)
 
     def setup_admin_rc(req):
         self.rcadmin.setup(req)
@@ -129,7 +131,8 @@ class Coordinator(process):
     def generate_global_id(req):
         req.id = self.idgen.next()
 
-    def prepare_evalreq_sc(req):
+    def prepare_evalreq_sc(req, p):
+        req.app = p
         req.subattr = dict()
         tattrs = self.scadmin.tattr_cache(req.subject) 
         for attr, (_, val, _) in tattrs.items():
@@ -146,6 +149,7 @@ class Coordinator(process):
         req = CommitReq()
         req.seq = resp.seq
         req.id = resp.id
+        req.app = resp.app
         req.subject = resp.subject
         req.resource = resp.resource
         req.resrattr = resp.resrattr
@@ -156,15 +160,21 @@ class Coordinator(process):
         resp = CommitResp()
         resp.seq = req.seq
         resp.id = req.id
+        resp.app = req.app
         resp.subject = req.subject
         resp.resource = req.resource
         return resp
 
-    def is_conflict(resp):
+    def is_tattr_or_sub_conflict(resp):
         sm = self.scadmin.state(resp.id)
         deps = self.scadmin.all_state()
         tattr = self.scadmin.tattr_cache(resp.subject)
         return sm.respeval(resp, deps, tattr) == False
+
+    def is_res_conflict(req):
+        sm = self.rcadmin.state(req.id)
+        attrs = self.rcadmin.res_cache(req.resource)
+        return sm.reqcommit(req, attrs) == False
 
     def enqueue(req, p):
         self.scadmin.push_into_queue((req, p))
@@ -186,6 +196,6 @@ class Coordinator(process):
     def delay(seq, method):
         key = 'req' + str(seq) + '.delay.' + method
         if key in cfg:
-            log.info('Delay: %d (s)', int(cfg[key]))
+            log.info('***** Delay *****: %d (s)', int(cfg[key]))
             time.sleep(int(cfg[key]))
 
