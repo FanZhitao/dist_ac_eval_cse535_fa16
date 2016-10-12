@@ -1,9 +1,9 @@
 
-src/master.py: src/master.da src/client.py src/msg/request.py src/msg/response.py src/util/router.py
+src/master.py: src/master.da src/application.py src/msg/request.py src/msg/response.py src/util/router.py
 	dac src/master.da
 
-src/client.py: src/client.da src/comp/coordinator.py src/msg/request.py src/msg/response.py src/util/router.py
-	dac src/client.da
+src/application.py: src/application.da src/comp/coordinator.py src/msg/request.py src/msg/response.py src/util/router.py
+	dac src/application.da
 
 src/comp/coordinator.py: src/comp/coordinator.da src/comp/worker.py src/msg/evalreq.py src/msg/evalresp.py src/msg/commitreq.py src/msg/commitresp.py src/util/router.py src/util/idgen.py src/state/admin.py 
 	dac src/comp/coordinator.da

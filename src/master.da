@@ -2,7 +2,7 @@ import sys
 import logging
 import configparser
 
-from client import Client
+from application import Application
 from comp.coordinator import Coordinator
 from comp.worker import Worker
 from db.db import DB
@@ -17,6 +17,7 @@ class Master(process):
     def run():
         cfg = configparser.ConfigParser()
         cfg.read(sys.argv[1]);
+        workload = sys.argv[2]
 
         db = new(DB, num=1)
         # setup paramters
@@ -33,7 +34,7 @@ class Master(process):
         start(db)
 
         # Start coordinators
-        co = new(Coordinator, (w, db), num=int(cfg['master']['coordinators']))
+        co = new(Coordinator, (w, db, cfg[workload],), num=int(cfg['master']['coordinators']))
         start(co)
 
         # Distribute subjects/resource to coordinator pool uniformly
@@ -43,7 +44,7 @@ class Master(process):
             send(('routetbl', router,), to=c)
 
         # Start client to test
-        c = new(Client, (router,), num=int(cfg['master']['clients']))
+        c = new(Application, (router, cfg[workload],), num=int(cfg['master']['clients']))
         start(c)
 
     def getSubjects():

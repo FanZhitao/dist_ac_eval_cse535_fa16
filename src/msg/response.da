@@ -2,6 +2,7 @@
 class Response:
 
     def __init__(self):
+        self.seq = 0
         self.id = 0
         self.subject = ''
         self.resource = ''

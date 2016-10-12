@@ -47,8 +47,11 @@ class Admin:
     def pop_from_queue(self):
         return self.queue.pop()
 
-    def commit(self, attr):
-        pass
+    def commit_sub(self, subid):
+        self.cache.commit_tattr(subid)
+
+    def commit_res(self, resid):
+        self.cache.commit_rescache(resid)
 
     def rollback(self, attr):
         pass

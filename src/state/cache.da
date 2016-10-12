@@ -31,6 +31,12 @@ class Cache:
     def update_tattr(self, subid, attr, reqid, val):
         self.tattrs[subid][attr] = (val, time.time(), reqid)
 
+    def commit_tattr(self, subid):
+        import pprint
+        log.info(pprint.pformat(self.tattrs))
+        for attr, (val, ts, reqid) in self.tattrs[subid].items():
+            self.subcache[subid][attr] = (val, ts, reqid)
+
     def query_rescache(self, resid):
         if resid not in self.rescache:
             log.info("Resource [%s] doesn't exist in cache, load from DB", resid)
@@ -39,4 +45,8 @@ class Cache:
             for attr, val in data.items():
                 self.rescache[resid][attr] = (val, time.time())
         return self.rescache[resid]
+
+    def commit_rescache(self, resid):
+        #for attr, (val, ts) in self.rescache[resid]:
+        pass
 
