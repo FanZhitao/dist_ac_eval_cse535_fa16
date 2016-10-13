@@ -1,5 +1,7 @@
 import logging
-from collections import deque
+import queue
+import threading
+#from collections import deque
 
 from state.cache import Cache
 from state.statemac import StateMac
@@ -9,10 +11,15 @@ log = logging.getLogger("Admin")
 class Admin:
 
     def __init__(self, db):
+        """
+        states: <reqid, StateMachine>
+        queue: [reqid1, reqid2...]
+        """
+        self.lock = threading.Lock()
         self.db = db
         self.cache = Cache()
         self.states = dict()
-        self.queue = deque()
+        self.q = queue.Queue() # name 'queue' conflict with module
 
     def setup(self, req):
         self.states[req.id] = StateMac(req)
@@ -35,14 +42,11 @@ class Admin:
     def update_tattr(self, subid, attrs, reqid):
         self.cache.update_tattr(subid, attrs, reqid)
 
-    def push_into_queue(self, item):
-        self.queue.append(item)
+    def push_into_queue(self, reqid):
+        self.q.put(self.states[reqid])
 
-    def top_of_queue(self):
-        self.queue[0]
-
-    def pop_from_queue(self):
-        return self.queue.pop()
+    def remove_from_queue(self, reqid):
+        return self.q.get()
 
     def commit_sub(self, subid):
         self.cache.commit_tattr(subid)
@@ -50,6 +54,11 @@ class Admin:
     def commit_res(self, resid, attrs):
         self.cache.commit_rescache(resid, attrs)
 
-    def rollback(self, attr):
-        pass
+    def rollback_tattr(self, reqid):
+        #self.lock.acquire()
+        sm = self.states[reqid]
+        tattr = self.cache.query_tattr(sm.subid)
+        subcache = self.cache.query_subcache(sm.subid)
+        sm.rollback(tattr, subcache, self.q)
+        #self.lock.release()
 

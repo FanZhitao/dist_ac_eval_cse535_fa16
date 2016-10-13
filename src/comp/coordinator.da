@@ -43,7 +43,7 @@ class Coordinator(process):
         generate_global_id(req)
         setup_admin_sc(req)
         prepare_evalreq_sc(req, p)
-        enqueue(req, p)
+        enqueue(req.id)
 
         rc = router.getRC(req.resource)
         log.info("SC - Send evaluation request to RC: #seq=[%d], rc=%s\n",req.seq, rc)
@@ -54,8 +54,10 @@ class Coordinator(process):
         SC: Receive evaluation result from worker
         """
         log.info("SC - Incoming evaluation response from RC: #seq=[%d]", resp.seq)
+        delay(resp.seq, 'respeval')
         if is_tattr_or_sub_conflict(resp):
             log.info('SC - Conflict found, restart: #seq=[%d]', resp.seq)
+            dequeue(resp.id)
             cleanup_admin_sc(resp)
             send(('reqapp', EvalReq(resp)), to=router.getSC(resp.subject))
         else:
@@ -70,12 +72,16 @@ class Coordinator(process):
         SC: Receive RC commit result, check if success.
         """
         log.info("SC - Incoming commit response from RC: #seq=[%d]", resp.seq)
+        delay(resp.seq, 'respcommit')
         if resp.conflict:
             log.info('SC - Commit conflict found: #seq=[%d]', resp.seq)
+            dequeue(resp.id)
+            rollback_tattr(resp)
             cleanup_admin_sc(resp)
             send(('reqapp', EvalReq(resp)), to=router.getSC(resp.subject))
         else:
             log.info('SC - No conflict found, commit subject updates to db: #seq=[%d]', resp.seq)
+            dequeue(resp.id)
             commit_sub_to_db(resp)
             log.info("SC - Send application response: #seq=[%d]\n", resp.seq)
             send(('respapp', True,), to=resp.app)
@@ -85,6 +91,8 @@ class Coordinator(process):
         RC: Receive evaluation request from SC
         """
         log.info("RC - Incoming evaluation request: #seq=[%d] resource=[%s] sc=%s", req.seq, req.resource, p)
+        delay(req.seq, 'reqeval')
+
         setup_admin_rc(req)
         prepare_evalreq_rc(req, p)
 
@@ -105,6 +113,7 @@ class Coordinator(process):
         RC: Receive commit request from SC
         """
         log.info("RC - Incoming commit request: #seq=[%d] resource=[%s] sc=%s", req.seq, req.resource, p)
+        delay(req.seq, 'reqcommit')
         resp = prepare_commitresp(req)
         if is_res_conflict(req):
             log.info('RC - Conflict found: #seq=[%d]', req.seq)
@@ -117,11 +126,17 @@ class Coordinator(process):
         log.info("RC - Send commit response to SC: #seq=[%d] sc=%s\n", req.seq, p)
         send(('respcommit', resp), to=p)
 
+    def generate_global_id(req):
+        if req.id is None: # reuse same id for rc track and cleanup
+            req.id = self.idgen.next()
+        log.info('Assign globalID=[%s] to #seq=[%s]', req.id, req.seq)
+
     def setup_admin_sc(req):
         self.scadmin.setup(req)
         tattrs = self.scadmin.tattr_cache(req.subject)
         sm = self.scadmin.state(req.id)
         sm.reqapp(tattrs)
+        self.scadmin.push_into_queue(req.id)
 
     def setup_admin_rc(req):
         if req.id in self.rcadmin.all_state():
@@ -130,11 +145,6 @@ class Coordinator(process):
         attrs = self.rcadmin.res_cache(req.resource)
         sm = self.rcadmin.state(req.id)
         sm.reqeval(attrs)
-
-    def generate_global_id(req):
-        if req.id is None: # reuse same id for rc track and cleanup
-            req.id = self.idgen.next()
-        log.info('Assign globalID=[%s] to #seq=[%s]', req.id, req.seq)
 
     def prepare_evalreq_sc(req, p):
         if req.app is None: # app isn't None if request from restart
@@ -160,6 +170,12 @@ class Coordinator(process):
     def prepare_commitresp(req):
         return CommitResp(req)
 
+    def enqueue(reqid):
+        self.scadmin.push_into_queue(reqid)
+
+    def dequeue(reqid):
+        self.scadmin.remove_from_queue(reqid)
+
     def is_tattr_or_sub_conflict(resp):
         sm = self.scadmin.state(resp.id)
         deps = self.scadmin.all_state()
@@ -170,9 +186,6 @@ class Coordinator(process):
         sm = self.rcadmin.state(req.id)
         attrs = self.rcadmin.res_cache(req.resource)
         return sm.reqcommit(req, attrs) == False
-
-    def enqueue(req, p):
-        self.scadmin.push_into_queue((req, p))
 
     def update_tattr(resp):
         self.scadmin.update_tattr(resp.subject, resp.subwattr, resp.id)
@@ -187,6 +200,9 @@ class Coordinator(process):
         sm.complete()
         self.rcadmin.commit_res(req.resource, req.reswattr)
 
+    def rollback_tattr(resp):
+        self.scadmin.rollback_tattr(resp.id)
+
     def cleanup_admin_sc(resp):
         self.scadmin.clean_state(resp.id)
 
@@ -196,6 +212,6 @@ class Coordinator(process):
     def delay(seq, method):
         key = 'req' + str(seq) + '.delay.' + method
         if key in cfg:
-            log.info('***** Delay *****: #seq=[%d] %d(s)', seq, int(cfg[key]))
-            time.sleep(int(cfg[key]))
+            log.info('***** Delay *****: #seq=[%d] %f(s) at [%s]', seq, float(cfg[key]), key)
+            time.sleep(float(cfg[key]))
 

@@ -1,0 +1,28 @@
+
+===== Case 1: Normal =====
+
+===== Case 2: Pressure =====
+
+===== Case 3: Conflict =====
+
+== Case 3.1: Subject Update Conflict ==
+
+== Case 3.2: Resource Update Conflict ==
+
+a) Config in [workload2] section.
+
+b) Explain:
+
+ Request #1:
+
+ Request #2:
+
+ Delay: Block #1 and #2 in each SC separately before sending commit request to same RC.
+        So one of them would found conflict caused by update of the other.
+        Then the "loser" has to be rollback (tentative cache) and restarted to try again. 
+
+c) Result:
+
+== Case 3.3: Tentative Update Conflict ==
+
+== Case 3.4: Tentative Update Delay ==
