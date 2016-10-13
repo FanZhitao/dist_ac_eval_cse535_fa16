@@ -1,10 +1,14 @@
 import logging
+from msg.evalreq import EvalReq
+from msg.evalresp import EvalResp
+from msg.commitreq import CommitReq
+from msg.commitresp import CommitResp
 
 log = logging.getLogger('Worker')
 
 class Worker(process):
     def setup(db:set):
-        pass
+        self.policy = None
         
     def run():
         log.info("Worker %s is up.", self)
@@ -14,20 +18,102 @@ class Worker(process):
         while True:
             await(received(()))
 
-    def receive(msg=('respeval', resp), from_=rc):
+    def receive(msg=('assignreq', resp), from_=rc):
         log.info("Received evaluation request from resource coodinator: %s", rc)
-        send(('getupdaterecords'), to=db)
-        log.info("Sending message to database %s to get records.", db)
-        await(received(('records')))
+        #send(('getupdaterecords'), to=db)
+        #log.info("Sending message to database %s to get records.", db)
+        #self.resp = resp
+        #await(received(('records')))
+
+        # In case not received policy from database yet.
+        if self.policy == None:
+            await(received(('records')))
+
+        # Evaluate request and send the result back to subject coordinator.
+        resp = evaluate(resp)
+        #send(('respeval', resp,), to=resp.scAdm)
 
     def receive(msg=('policy', policy), from_=p):
         log.info("Received policy data from database: %s", p)
         log.info("policy: %s", policy)
+        self.policy = policy
 
     def receive(msg=('records', records), from_=p):
         log.info("Received updated records from database: %s", p)
         log.info("records: %s", records)
-        evaluate(None, None)
+        result = evaluate(None, None)
+        #send(('evalresult'), to=self.resp.scAdm)
 
-    def evaluate(rules, request):
+    def evaluate(resp:EvalResp):
+        output(resp)
+        resp.decision = False
+
+        for rule in policy.iter('rule'): # rule is an ElementTree instance
+            # check if conditions satisfy the current rule
+            should_try_next_rule = False # flag used to continue outter for loop
+
+            # subject
+            should_try_next_rule = not doAttributesMatch(rule.find('subjectCondition'), resp.subrattr)
+
+            if should_try_next_rule == True:
+                continue
+
+            # resource
+            # TODO: copy subject code
+
+            if should_try_next_rule == True:
+                continue
+
+            # action
+            action_rule = rule.find('action')
+            action_rule = action_rule['name']
+            if action_rule == resp.action:
+                # all subject, resource, and action satisfied
+                resp.decision = True
+                break
+
+        return resp
+
+    def doAttributesMatch(condition:dict, attributes:dict):
+        for attribute_name in iter(condition.attrib):
+            if attribute_name not in attributes:
+                # keys do not match
+                return False
+
+            # keys match, then check values
+            value_condition = condition.attrib[attribute_name]
+            value_attribute = attributes[attribute_name]
+            # need to deal with different value forms
+            # case 1: $subject.ATTRIBUTE or $resource.ATTRIBUTE
+            if value_condition.startswith("$"):
+                dot_index = value_condition.index(".")
+
+            # case 2: <constant or >constant
+            if value_condition.startswith("<"):
+                num_str = value_condition[1:]
+                if not num_str.isnumeric():
+                    # the attribute value is not a numberic string
+                    return False
+
+                # valid, then compare them
+                num_condition = int(num_str)
+                num_attribute = int(value_attribute)
+                if num_attribute >= num_condition:
+                    return False
+
+            # TODO: >
+
+            # case 3: constant
+            if value_condition != value_attribute:
+                return False
+
+        # all passed
         return True
+
+    def updateAttributes(resp:EvalResp, rule:Element):
+        output(resp)
+        
+
+def main():
+    # test cases to simlulate messages from resource coordinators
+    resp = EvalResp()
