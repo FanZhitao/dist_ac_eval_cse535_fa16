@@ -50,6 +50,8 @@ class StateMac:
 
             while depstate != State.complete:
                 log.warn("***** Conflict *****: Req-[%s] wait for Req-[%s] complete on attr-[%s]", resp.id, depid, attr)
+                depstate = deps[depid].state
+                log.info('State is: %s', depstate)
                 time.sleep(5)
 
         # 2.Subject update conflict check

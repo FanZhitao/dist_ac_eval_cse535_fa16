@@ -28,8 +28,9 @@ class Cache:
                 self.subcache[subid][attr] = (val, ts, None)
         return self.tattrs[subid]
 
-    def update_tattr(self, subid, attr, reqid, val):
-        self.tattrs[subid][attr] = (val, time.time(), reqid)
+    def update_tattr(self, subid, attrs, reqid):
+        for attr, newval in attrs.items():
+            self.tattrs[subid][attr] = (newval, time.time(), reqid)
 
     def commit_tattr(self, subid):
         import pprint
@@ -46,7 +47,7 @@ class Cache:
                 self.rescache[resid][attr] = (val, time.time())
         return self.rescache[resid]
 
-    def commit_rescache(self, attrs):
-        for attr, (newval, ts) in attrs.items():
-            self.rescache[resid][attr] = (newval, ts)
+    def commit_rescache(self, resid, attrs):
+        for attr, newval in attrs.items():
+            self.rescache[resid][attr] = (newval, time.time())
 

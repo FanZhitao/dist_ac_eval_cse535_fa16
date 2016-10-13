@@ -32,8 +32,8 @@ class Admin:
     def res_cache(self, resid):
         return self.cache.query_rescache(resid)
 
-    def update_tattr(self, subid, attr, reqid, newval):
-        self.cache.update_tattr(subid, attr, reqid, newval)
+    def update_tattr(self, subid, attrs, reqid):
+        self.cache.update_tattr(subid, attrs, reqid)
 
     def push_into_queue(self, item):
         self.queue.append(item)
@@ -47,8 +47,8 @@ class Admin:
     def commit_sub(self, subid):
         self.cache.commit_tattr(subid)
 
-    def commit_res(self, attrs):
-        self.cache.commit_rescache(attrs)
+    def commit_res(self, resid, attrs):
+        self.cache.commit_rescache(resid, attrs)
 
     def rollback(self, attr):
         pass

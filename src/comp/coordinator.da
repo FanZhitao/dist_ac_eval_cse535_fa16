@@ -175,8 +175,7 @@ class Coordinator(process):
         self.scadmin.push_into_queue((req, p))
 
     def update_tattr(resp):
-        for attr, newval in resp.subwattr.items():
-            self.scadmin.update_tattr(resp.subject, attr, resp.id, newval)
+        self.scadmin.update_tattr(resp.subject, resp.subwattr, resp.id)
 
     def commit_sub_to_db(resp):
         sm = self.scadmin.state(resp.id)
@@ -186,7 +185,7 @@ class Coordinator(process):
     def commit_res_to_db(req):
         sm = self.rcadmin.state(req.id)
         sm.complete()
-        #self.rcadmin.commit_res(req.reswattr)
+        self.rcadmin.commit_res(req.resource, req.reswattr)
 
     def cleanup_admin_sc(resp):
         self.scadmin.clean_state(resp.id)
