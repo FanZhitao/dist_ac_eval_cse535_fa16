@@ -47,8 +47,8 @@ class Admin:
     def commit_sub(self, subid):
         self.cache.commit_tattr(subid)
 
-    def commit_res(self, resid):
-        self.cache.commit_rescache(resid)
+    def commit_res(self, attrs):
+        self.cache.commit_rescache(attrs)
 
     def rollback(self, attr):
         pass

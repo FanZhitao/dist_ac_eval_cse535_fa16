@@ -55,11 +55,11 @@ class Coordinator(process):
         """
         log.info("SC - Incoming evaluation response from RC: #seq=[%d]", resp.seq)
         if is_tattr_or_sub_conflict(resp):
-            log.info('Conflict found, restart: #seq=[%d]', resp.seq)
+            log.info('SC - Conflict found, restart: #seq=[%d]', resp.seq)
             cleanup_admin_sc(resp)
             send(('reqapp', EvalReq(resp)), to=router.getSC(resp.subject))
         else:
-            log.info('No conflict, update tattr cache: #seq=[%d]', resp.seq)
+            log.info('SC - No conflict found, update tattr cache: #seq=[%d]', resp.seq)
             update_tattr(resp)
             req = prepare_commitreq(resp)
             log.info("SC - Send commit request to RC: #seq=[%d]\n", resp.seq)
@@ -71,9 +71,11 @@ class Coordinator(process):
         """
         log.info("SC - Incoming commit response from RC: #seq=[%d]", resp.seq)
         if resp.conflict:
-            #self.scadmin.clean_sub(resp.id)
+            log.info('SC - Commit conflict found: #seq=[%d]', resp.seq)
+            cleanup_admin_sc(resp)
             send(('reqapp', EvalReq(resp)), to=router.getSC(resp.subject))
         else:
+            log.info('SC - No conflict found, commit subject updates to db: #seq=[%d]', resp.seq)
             commit_sub_to_db(resp)
             log.info("SC - Send application response: #seq=[%d]\n", resp.seq)
             send(('respapp', True,), to=resp.app)
@@ -87,10 +89,10 @@ class Coordinator(process):
         prepare_evalreq_rc(req, p)
 
         resp = EvalResp(req)
-        resp.subrattr = ['attr1', 'attr2']
+        resp.subrattr = ['attr1', 'attr2']  # subject update conflict
         resp.subwattr = {'attr2': 10}
-        resp.resrattr = ['attr3']
-        #resp.reswattr = {'attr3': 20}
+        resp.resrattr = ['attr3']           # resource update conflict
+        resp.reswattr = {'attr3': 20}
         log.info("RC - Send evaluation response to SC: #seq=[%d] worker=%s\n", req.seq, p)
         send(('respeval', resp,), to=p)
         # pick a worker
@@ -105,10 +107,11 @@ class Coordinator(process):
         log.info("RC - Incoming commit request: #seq=[%d] resource=[%s] sc=%s", req.seq, req.resource, p)
         resp = prepare_commitresp(req)
         if is_res_conflict(req):
-            #self.rcadmin.clean_res(req.id)
+            log.info('RC - Conflict found: #seq=[%d]', req.seq)
+            cleanup_admin_rc(req)
             resp.conflict = True
-            #restart(resp.id, sm.state())
         else:
+            log.info('RC - No conflict found, commit resource updates to db: #seq=[%d]', req.seq)
             commit_res_to_db(req)
             resp.conflict = False
         log.info("RC - Send commit response to SC: #seq=[%d] sc=%s\n", req.seq, p)
@@ -180,13 +183,16 @@ class Coordinator(process):
         sm.complete()
         self.scadmin.commit_sub(resp.subject)
 
-    def commit_res_to_db(resp):
-        sm = self.rcadmin.state(resp.id)
+    def commit_res_to_db(req):
+        sm = self.rcadmin.state(req.id)
         sm.complete()
-        self.rcadmin.commit_res(resp.resource)
+        #self.rcadmin.commit_res(req.reswattr)
 
     def cleanup_admin_sc(resp):
         self.scadmin.clean_state(resp.id)
+
+    def cleanup_admin_rc(req):
+        self.rcadmin.clean_state(req.id)
 
     def delay(seq, method):
         key = 'req' + str(seq) + '.delay.' + method

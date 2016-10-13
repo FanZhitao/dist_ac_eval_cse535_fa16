@@ -15,9 +15,9 @@ class Application(process):
         for i in range(1, int(cfg['reqno']) + 1):
             req = EvalReq()
             req.seq = i
-            req.subject = "subject1"
-            req.resource= "resource1"
-            req.action = "read"
+            req.subject = cfg['req' + str(i) + '.subject']
+            req.resource= cfg['req' + str(i) + '.resource']
+            req.action = cfg['req' + str(i) + '.action']
 
             sc = router.getSC(req.subject)
             log.info("App - Send request to SC %s", sc)

@@ -34,8 +34,8 @@ class Cache:
     def commit_tattr(self, subid):
         import pprint
         log.info(pprint.pformat(self.tattrs))
-        for attr, (val, ts, reqid) in self.tattrs[subid].items():
-            self.subcache[subid][attr] = (val, ts, reqid)
+        for attr, (newval, ts, reqid) in self.tattrs[subid].items():
+            self.subcache[subid][attr] = (newval, ts, reqid)
 
     def query_rescache(self, resid):
         if resid not in self.rescache:
@@ -46,7 +46,7 @@ class Cache:
                 self.rescache[resid][attr] = (val, time.time())
         return self.rescache[resid]
 
-    def commit_rescache(self, resid):
-        #for attr, (val, ts) in self.rescache[resid]:
-        pass
+    def commit_rescache(self, attrs):
+        for attr, (newval, ts) in attrs.items():
+            self.rescache[resid][attr] = (newval, ts)
 

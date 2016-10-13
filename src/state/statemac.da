@@ -35,14 +35,12 @@ class StateMac:
         log.info('Subject attr dependency: %s', pprint.pformat(self.subdep))
 
     def respeval(self, resp, deps, tattrs):
-        log.info('Before check, tattr cache is: %s', pprint.pformat(tattrs))
+        log.info('Checking... tattr cache is: %s', pprint.pformat(tattrs))
         # 1.Tentative update dependency check
         for attr in resp.subrattr:
             depid = self.subdep[attr][ID]
             if depid is None:
                 continue
-
-            log.info(pprint.pformat(deps[depid].state))
 
             depstate = deps[depid].state
             if depstate == State.restart:
@@ -50,7 +48,7 @@ class StateMac:
                 self.state = State.restart
                 return False
 
-            while depstate != State.complete: 
+            while depstate != State.complete:
                 log.warn("***** Conflict *****: Req-[%s] wait for Req-[%s] complete on attr-[%s]", resp.id, depid, attr)
                 time.sleep(5)
 
@@ -69,8 +67,10 @@ class StateMac:
         log.info('Resource attr dependency: %s', pprint.pformat(self.resdep))
 
     def reqcommit(self, resp, attrs):
+        log.info('Checking... resource cache is: %s', pprint.pformat(attrs))
         for attr in resp.resrattr:
             if self.resdep[attr][TS] != attrs[attr][TS]:
+                log.warn("***** Conflict *****: Req-[%s] resource-update conflict on attr-[%s]", resp.id, attr)
                 self.state = State.restart
                 return False
         self.state = State.reqcommit
