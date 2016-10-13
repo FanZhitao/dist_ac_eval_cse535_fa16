@@ -12,15 +12,31 @@ class Router:
         co = list(coordinators)
         total = len(co)
 
+        free = total
+        occupy = [False] * total
         for sub in subjects:
             idx = hash(sub) % total
+            if occupy[idx] is True and free > 0:
+                idx = search_free_co(free, occupy)
+                free -= 1
             log.info("Assign subject=[%s] to coordinator=[%s]", sub, co[idx]) 
-            self.scmap[sub] = co[idx] 
+            self.scmap[sub] = co[idx]
 
+        free = total
+        occupy = [False] * total
         for res in resources:
             idx = hash(res) % total
+            if occupy[idx] is True and free > 0:
+                idx = search_free_co(free, occupy)
+                free -= 1
             log.info("Assign resource=[%s] to coordinator=[%s]", res, co[idx]) 
             self.rcmap[res] = co[idx]
+
+    def search_free_co(self, free, occupy):
+        for i in range(occupy):
+            if occupy[i] is False:
+                occupy[i] = True
+                return i
 
     def getSC(self, sub):
         #log.info(pprint.pformat(self.scmap))

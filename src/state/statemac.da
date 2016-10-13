@@ -104,6 +104,6 @@ class StateMac:
                     break
 
             if issafe:
-                log.info('Rollback attr val from [%s] to [%s]', tattr[attr], subcache[attr])
+                log.info('SC - Rollback attr val from [%s] to [%s]', tattr[attr], subcache[attr])
                 tattr[attr] = subcache[attr] # no copy, since tuple is immutable
 
