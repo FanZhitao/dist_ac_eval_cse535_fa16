@@ -15,7 +15,6 @@ class Admin:
         states: <reqid, StateMachine>
         queue: [reqid1, reqid2...]
         """
-        self.lock = threading.Lock()
         self.db = db
         self.cache = Cache()
         self.states = dict()
@@ -24,14 +23,10 @@ class Admin:
     def setup(self, req):
         self.states[req.id] = StateMac(req)
 
-    def clean_state(self, reqid):
-        self.states[reqid] = None
-
-    def state(self, reqid):
-        return self.states[reqid]
-
-    def all_state(self):
-        return self.states
+    def clean_state(self, reqid): # keep state for dependency check and restart
+        self.states[reqid].subdep = None
+        self.states[reqid].resdep = None
+        self.states[reqid].subrattr = None
 
     def tattr_cache(self, subid):
         return self.cache.query_tattr(subid)
@@ -40,8 +35,8 @@ class Admin:
         return self.cache.query_rescache(resid)
 
     def is_tattr_or_sub_conflict(self, reqid, subrattr):
-        sm = self.state(reqid)
-        deps = self.all_state()
+        sm = self.states[reqid]
+        deps = self.states
         tattr = self.tattr_cache(sm.subid)
         return sm.respeval(subrattr, deps, tattr)
 
@@ -61,10 +56,8 @@ class Admin:
         self.cache.commit_rescache(resid, attrs)
 
     def rollback_tattr(self, reqid):
-        #self.lock.acquire()
         sm = self.states[reqid]
         tattr = self.cache.query_tattr(sm.subid)
         subcache = self.cache.query_subcache(sm.subid)
         sm.rollback(tattr, subcache, self.q)
-        #self.lock.release()
 

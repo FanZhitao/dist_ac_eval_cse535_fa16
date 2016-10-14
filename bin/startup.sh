@@ -3,7 +3,11 @@
 if [ $# -eq 1 ]; then
     workload="$1"
     level="info"
-    config="config/test.config"
+    if [ "$workload" = "workload5" ]; then
+        config="config/stresstest.config"
+    else
+        config="config/test.config"
+    fi
 elif [ $# -eq 2 ]; then
     workload="$1"
     level="$2"

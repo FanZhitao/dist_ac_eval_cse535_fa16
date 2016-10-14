@@ -19,7 +19,7 @@ class Cache:
         if subid not in self.tattrs: # TODO: need locking here?
             # load data of specific subject from DB
             log.info("SC - Subject [%s] doesn't exist in cache, load from DB", subid)
-            data = {'attr1': 1, 'attr2': 2}
+            data = {'attr1': 1, 'attr2': 0}
             self.tattrs[subid] = dict()
             self.subcache[subid] = dict()
             for attr, val in data.items():
@@ -38,6 +38,8 @@ class Cache:
     def commit_tattr(self, subid):
         for attr, (newval, ts, reqid) in self.tattrs[subid].items():
             self.subcache[subid][attr] = (newval, ts, reqid)
+        import pprint
+        log.info('##### Subcache: %s', pprint.pformat(self.subcache))
 
     def query_rescache(self, resid):
         if resid not in self.rescache:

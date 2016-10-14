@@ -24,6 +24,7 @@ class StateMac:
                 <attr, (val, ts)>
         """
         self.state = State.init
+        self.seq = req.seq
         self.id = req.id
         self.subid = req.subject
         self.resid = req.resource
@@ -35,7 +36,7 @@ class StateMac:
         for attr, (reqid, val, ts) in tattrs.items():
             self.subdep[attr] = (reqid, val, ts)
         self.state = State.reqapp
-        log.info('SC - Subject attr dependency: %s', pprint.pformat(self.subdep))
+        log.info('SC - Subject attr dependency of #seq-[%d]: %s', self.seq, pprint.pformat(self.subdep))
 
     def respeval(self, subrattr, deps, tattrs):
         log.info('SC - Checking... tattr cache is: %s', pprint.pformat(tattrs))
@@ -47,12 +48,12 @@ class StateMac:
 
             depstate = deps[depid].state
             if depstate == State.restart:
-                log.warn("***** Conflict *****: Req-[%s] rely on tentative-update Req-[%s] which failed on attr-[%s]", self.id, depid, attr)
+                log.warn("***** Conflict *****: Request #seq-[%d] depends on tentative-update #seq-[%d] which failed on attr-[%s]", self.seq, deps[depid].seq, attr)
                 self.state = State.restart
                 return Conflict.yes, None
 
             if depstate != State.complete:
-                log.warn("***** Conflict *****: Req-[%s] wait for Req-[%s] complete on attr-[%s]", self.id, depid, attr)
+                log.warn("***** Conflict *****: Request #seq-[%d] wait for #seq-[%d] complete on attr-[%s]", self.seq, deps[depid].seq, attr)
                 depstate = deps[depid].state
                 #time.sleep(5) #cause dependent request blocked
                 return Conflict.delay, depid
@@ -60,7 +61,7 @@ class StateMac:
         # 2.Subject update conflict check
         for attr in subrattr:
             if self.subdep[attr][TS] != tattrs[attr][TS]:
-                log.warn("***** Conflict *****: Req-[%s] subject-update conflict with Req-[%s] on attr-[%s]", self.id, tattrs[attr][ID], attr)
+                log.warn("***** Conflict *****: Request #seq-[%d] subject-update conflict with #seq-[%d] on attr-[%s]", self.seq, deps[tattrs[attr][ID]].seq, attr)
                 self.state = State.restart
                 return Conflict.yes, None
 
@@ -72,22 +73,21 @@ class StateMac:
         for attr, (val, ts) in attrs.items():
             self.resdep[attr] = (val, ts)
         self.state = State.reqeval
-        log.info('RC - Resource attr dependency: %s', pprint.pformat(self.resdep))
+        log.info('RC - Resource attr dependency of #seq-[%d]: %s', self.seq, pprint.pformat(self.resdep))
 
     def reqcommit(self, resp, attrs):
         log.info('RC - Checking... resource cache is: %s', pprint.pformat(attrs))
         for attr in resp.resrattr:
             if self.resdep[attr][TS] != attrs[attr][TS]:
-                log.warn("***** Conflict *****: Req-[%s] resource-update conflict on attr-[%s]", resp.id, attr)
+                log.warn("***** Conflict *****: Request #seq-[%d] resource-update conflict on attr-[%s]", resp.seq, attr)
                 self.state = State.restart
                 return False
         self.state = State.reqcommit
         return True
 
-    def complete(self):
-        self.state = State.complete
-
     def rollback(self, tattr, subcache, q):
+        log.info('SC - Check if update in tentative cache could be rollback')
+
         # Find attr updated by current request
         for attr, (_, _, reqid) in tattr.items():
             if reqid != self.id:
@@ -96,6 +96,7 @@ class StateMac:
             # Check active request (come after current) in queue:
             # If any request has read attr updated by current request
             issafe = True
+            """
             for i in range(q.qsize()-1, 0, -1):
                 sm = q[i]
                 if sm.id == self.id:
@@ -103,8 +104,9 @@ class StateMac:
                 if self.id in sm.subrattr:
                     issafe = False
                     break
+            """
 
             if issafe:
-                log.info('SC - Rollback attr val from [%s] to [%s]', tattr[attr], subcache[attr])
+                log.info('SC - Rollback attribute value from [%s] to [%s]', tattr[attr], subcache[attr])
                 tattr[attr] = subcache[attr] # no copy, since tuple is immutable
 

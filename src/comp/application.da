@@ -41,10 +41,8 @@ class Application(process):
             if 'reqinterval' in cfg:
                 time.sleep(float(cfg['reqinterval']))
 
-        #clk = logical_clock()
-        #await(some(received(('done',), clk=rclk), has=(rclk > clk)))
         log.info("App - Waiting for response")
         await(received('done'))
 
-    def receive(msg=('respapp', result,), from_=sc):
-        log.info("Received request result: %s from subject coordinator %s", result, sc)
+    def receive(msg=('respapp', seq, result,), from_=sc):
+        log.info("App - Received request #seq-[%d] result: %s from SC %s", seq, result, sc)
