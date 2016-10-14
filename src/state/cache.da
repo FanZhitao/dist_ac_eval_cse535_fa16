@@ -39,7 +39,7 @@ class Cache:
         for attr, (newval, ts, reqid) in self.tattrs[subid].items():
             self.subcache[subid][attr] = (newval, ts, reqid)
         import pprint
-        log.info('##### Subcache: %s', pprint.pformat(self.subcache))
+        log.info('##### Subject [%s] cache: %s', subid, pprint.pformat(self.subcache))
 
     def query_rescache(self, resid):
         if resid not in self.rescache:

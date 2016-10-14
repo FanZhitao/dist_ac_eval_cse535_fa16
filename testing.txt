@@ -1,15 +1,7 @@
 
-===== Normal Test =====
-
-Case 1:
-
-===== Stress Test =====
-
-Case 2:
-
 ===== Conflict Test =====
 
-== Case 3.1: Subject Update Conflict ==
+== Case 1: Subject Update Conflict ==
 
 1) Target:
 
@@ -30,7 +22,7 @@ Case 2:
 6) Outcome: One of the request would detect a conflict before updating tentative cache. 
             Then the "loser" would be simply restarted and try again.
 
-== Case 3.2: Resource Update Conflict ==
+== Case 2: Resource Update Conflict ==
 
 1) Target: Test when resource update conflict found, program can detect and restart the request correctly.
 
@@ -53,7 +45,7 @@ Case 2:
 6) Outcome: One of the request would detect a conflict caused by the update of the other. 
             The "loser" has to be rollback (tentative cache) and restarted to try again. 
 
-== Case 3.3: Tentative Update Conflict ==
+== Case 3: Tentative Update Conflict ==
 
 1) Target: Test when the tentative update that current request depends on is invalid, program can detect and restart the request correctly.
 
@@ -76,6 +68,26 @@ Case 2:
 6) Outcome: One of the request would detect a conflict caused by the update of the other. 
             The "loser" has to be rollback (tentative cache) and restarted to try again. 
 
-== Case 3.4: Tentative Update Delay ==
+== Case 4: Tentative Update Delay ==
 
+===== Normal Test =====
 
+Case 1:
+
+===== Stress Test =====
+
+Case 2:
+
+1) Test program could correctly handle a number of request concurrently.
+
+2) Workload/Scenario:
+
+ Request #1 ~ 100: Carry subject and resource randomly chosen from list
+
+3) Configuration: [workload5] section in config/stresstest.config.
+
+4) Other information: Execute bin/startup.sh workload5 > stress.log 2>&1
+
+5) Log file: 
+
+6) Outcome: No error in log and attributes value in database should equal total request

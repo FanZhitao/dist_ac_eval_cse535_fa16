@@ -3,18 +3,17 @@
 if [ $# -eq 1 ]; then
     workload="$1"
     level="info"
-    if [ "$workload" = "workload5" ]; then
-        config="config/stresstest.config"
-    else
-        config="config/test.config"
-    fi
-elif [ $# -eq 2 ]; then
+elif [ $# -ge 2 ]; then
     workload="$1"
     level="$2"
-    config="config/test.config"
 else
     workload="workload1"
     level="info"
+fi
+
+if [ "$workload" = "workload5" ]; then
+    config="config/stresstest.config"
+else
     config="config/test.config"
 fi
 
