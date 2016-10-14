@@ -35,54 +35,36 @@ class DB(process):
         send(('policy', self.rules), to=p)
 
     def receive(msg=('writesubattr', tattr), from_=p):
-        # taatr format: {subid, [{attr, (val, ts, _)},]}
+        # tattr format: {subid, [{attr, (val, ts, _)},]}
         log.info("Received write attribute messages from subject coordinator [%s]", p)
-        subject_id = next(iter(tattr))
-        record_in_db = self.subattrs.get(subject_id)
-        record_received = tattr.get(subject_id)
-        log.info("Trying to write subject [%s] with attributes %s if necessary.", subject_id, record_received)
+        handle_write_message(tattr, self.subattrs) 
+        send(('writefinish', True), to=p) # TODO: distinguish SC/RC confirmation?
+
+    def receive(msg=('writeresattr', rescache), from_=p):
+        # rescache format: {resid, [{attr, (val, ts)},]}
+        handle_write_message(rescache, self.resattrs) 
+        send(('writefinish', True), to=p) # TODO: distinguish SC/RC confirmation?
+
+    def handle_write_message(attrs_recved, attrs_in_db):
+        id = next(iter(attrs_recved))
+        record_in_db = attrs_in_db.get(id)
+        record_received = attrs_recved.get(id)
+        log.info("Trying to write (id=%s) with attributes %s if necessary.", id, record_received)
         # Write if 1. no such record exists currently,
         #       or 2. received record is newer then current in database.
         if record_in_db == None:
-            self.subattrs['subject_id'] = record_received
+            write(attrs_in_db, 'id', record_received)
         else:
-            value_in_db, ts_in_db, _ = next(iter(record_in_db.values()))
-            value_received, ts_received, _ = next(iter(record_received.values()))
+            value_in_db, ts_in_db = next(iter(record_in_db.values()))
+            value_received, ts_received = next(iter(record_received.values()))
             if ts_in_db < ts_received:
-                self.subattrs['subject_id'] = record_received
+                write(attrs_in_db, 'id', record_received)
 
         # delay the visibility of updates
         l = random.randrange(minDBlatency, maxDBlatency, 1)
         log.info("Delay %d seconds...", l)
-        time.sleep(l)
-        
-        send(('writefinish', True), to=p) # TODO: distinguish SC/RC confirmation?
+        #time.sleep(l)
 
-    def receive(msg=('writeresattr', tattr), from_=p):
-        # taatr format: {subid, [{attr, (val, ts, _)},]}
-        log.info("Received write attribute messages from subject coordinator [%s]", p)
-        subject_id = next(iter(tattr))
-        record_in_db = self.subattrs.get(subject_id)
-        record_received = tattr.get(subject_id)
-        log.info("Trying to write subject [%s] with attributes %s if necessary.", subject_id, record_received)
-        # Write if 1. no such record exists currently,
-        #       or 2. received record is newer then current in database.
-        if record_in_db == None:
-            self.subattrs['subject_id'] = record_received
-        else:
-            value_in_db, ts_in_db, _ = next(iter(record_in_db.values()))
-            value_received, ts_received, _ = next(iter(record_received.values()))
-            if ts_in_db < ts_received:
-                self.subattrs['subject_id'] = record_received
-
-        # delay the visibility of updates
-        l = random.randrange(minDBlatency, maxDBlatency, 1)
-        log.info("Delay %d seconds...", l)
-        time.sleep(l)
-        
-        send(('writefinish', True), to=p) # TODO: distinguish SC/RC confirmation?
-
-    def write(attribute, key:str, value):
-        attr = getattr(self, attribute)
-        attr[key] = value
-        log.info("Wrote %s with (%s, %s)", attribute, str, value)
+    def write(attributes, key:str, value):
+        attributes[key] = value
+        log.info("Writing (%s, %s) finished.", str, value)
