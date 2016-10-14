@@ -103,11 +103,19 @@ class Coordinator(process):
         setup_admin_rc(req)
         prepare_evalreq_rc(req, p)
 
+        resp = EvalResp(req)
+        resp.subrattr = ['attr1', 'attr2']  # subject update conflict
+        resp.subwattr = {'attr2': 10}
+        resp.resrattr = ['attr3']           # resource update conflict
+        resp.reswattr = {'attr3': 20}
+        log.info("RC - Send evaluation response to SC: #seq=[%d] worker=%s\n", req.seq, p)
+        send(('respeval', resp,), to=p)
+
         # pick a worker
         # round robin style
-        worker = next(iter(workers))
-        send(('assigneval', req), to=worker)
-        log.info("RC - Assign evalution request: #seq=[%d] to worker=[%s]\n", req.seq, worker)
+        #worker = next(iter(workers))
+        #send(('assigneval', req), to=worker)
+        #log.info("RC - Assign evalution request: #seq=[%d] to worker=[%s]\n", req.seq, worker)
 
         #log.info("RC - Send evaluation response to SC: #seq=[%d] worker=%s\n", req.seq, p)
         #send(('respeval', resp,), to=p)

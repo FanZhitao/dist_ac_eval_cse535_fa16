@@ -1,5 +1,6 @@
 import logging
 import time
+import random
 
 from msg.evalreq import EvalReq
 from util.router import Router
@@ -8,22 +9,37 @@ log = logging.getLogger("Application")
 
 class Application(process):
 
-    def setup(router:Router, cfg):
+    def setup(router:Router, seqfrom:int, seqto:int, cfg, subjects, resources):
         pass
 
     def run():
-        log.info("Application is up")
-        for i in range(1, int(cfg['reqno']) + 1):
+        log.info("Application is up: ready to send request from [%d] to [%d]", seqfrom, seqto - 1)
+        for i in range(seqfrom, seqto):
             req = EvalReq()
             req.seq = i
-            req.subject = cfg['req' + str(i) + '.subject']
-            req.resource= cfg['req' + str(i) + '.resource']
-            req.action = cfg['req' + str(i) + '.action']
+
+            prefix = 'req' + str(i)
+            if prefix + '.subject' in cfg:
+                req.subject = cfg[prefix + '.subject']
+            else:
+                req.subject = random.choice(subjects)
+
+            if prefix + '.resource' in cfg:
+                req.resource= cfg[prefix + '.resource']
+            else:
+                req.resource = random.choice(resources)
+
+            if prefix + '.action' in cfg:
+                req.action = cfg[prefix + '.action']
+            else:
+                req.action = 'read'
 
             sc = router.getSC(req.subject)
             log.info("App - Send request #seq [%d] to SC %s", i, sc)
             send(('reqapp', req,), to=sc)
-            time.sleep(float(cfg['reqinterval']))
+
+            if 'reqinterval' in cfg:
+                time.sleep(float(cfg['reqinterval']))
 
         #clk = logical_clock()
         #await(some(received(('done',), clk=rclk), has=(rclk > clk)))
