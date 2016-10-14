@@ -39,6 +39,12 @@ class Admin:
     def res_cache(self, resid):
         return self.cache.query_rescache(resid)
 
+    def is_tattr_or_sub_conflict(self, reqid, subrattr):
+        sm = self.state(reqid)
+        deps = self.all_state()
+        tattr = self.tattr_cache(sm.subid)
+        return sm.respeval(subrattr, deps, tattr)
+
     def update_tattr(self, subid, attrs, reqid):
         self.cache.update_tattr(subid, attrs, reqid)
 

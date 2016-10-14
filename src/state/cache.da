@@ -36,8 +36,6 @@ class Cache:
             self.tattrs[subid][attr] = (newval, time.time(), reqid)
 
     def commit_tattr(self, subid):
-        import pprint
-        log.info(pprint.pformat(self.tattrs))
         for attr, (newval, ts, reqid) in self.tattrs[subid].items():
             self.subcache[subid][attr] = (newval, ts, reqid)
 

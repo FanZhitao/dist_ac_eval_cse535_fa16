@@ -8,6 +8,8 @@ log = logging.getLogger("Coordinator")
 State = Enum('State', 
         'init, reqapp, respeval, respcommit, reqeval, reqcommit, restart, complete') 
 
+Conflict = Enum('Conflict', 'yes no delay')
+
 VAL = 0
 TS = 1
 ID = 2
@@ -35,37 +37,36 @@ class StateMac:
         self.state = State.reqapp
         log.info('SC - Subject attr dependency: %s', pprint.pformat(self.subdep))
 
-    def respeval(self, resp, deps, tattrs):
+    def respeval(self, subrattr, deps, tattrs):
         log.info('SC - Checking... tattr cache is: %s', pprint.pformat(tattrs))
-        log.info(pprint.pformat(deps))
         # 1.Tentative update dependency check
-        for attr in resp.subrattr:
+        for attr in subrattr:
             depid = self.subdep[attr][ID]
             if depid is None:
                 continue
 
             depstate = deps[depid].state
             if depstate == State.restart:
-                log.warn("***** Conflict *****: Req-[%s] rely on tentative-update Req-[%s] which failed on attr-[%s]", resp.id, depid, attr)
+                log.warn("***** Conflict *****: Req-[%s] rely on tentative-update Req-[%s] which failed on attr-[%s]", self.id, depid, attr)
                 self.state = State.restart
-                return False
+                return Conflict.yes, None
 
-            while depstate != State.complete:
-                log.warn("***** Conflict *****: Req-[%s] wait for Req-[%s] complete on attr-[%s]", resp.id, depid, attr)
+            if depstate != State.complete:
+                log.warn("***** Conflict *****: Req-[%s] wait for Req-[%s] complete on attr-[%s]", self.id, depid, attr)
                 depstate = deps[depid].state
-                log.info('State is: %s', depstate)
-                time.sleep(5)
+                #time.sleep(5) #cause dependent request blocked
+                return Conflict.delay, depid
 
         # 2.Subject update conflict check
-        for attr in resp.subrattr:
+        for attr in subrattr:
             if self.subdep[attr][TS] != tattrs[attr][TS]:
-                log.warn("***** Conflict *****: Req-[%s] subject-update conflict with Req-[%s] on attr-[%s]", resp.id, tattrs[attr][ID], attr)
+                log.warn("***** Conflict *****: Req-[%s] subject-update conflict with Req-[%s] on attr-[%s]", self.id, tattrs[attr][ID], attr)
                 self.state = State.restart
-                return False
+                return Conflict.yes, None
 
         # Save subject read attributes in case of rollback
-        self.subrattr = set(resp.subrattr)
-        return True
+        self.subrattr = set(subrattr)
+        return Conflict.no, None
 
     def reqeval(self, attrs):
         for attr, (val, ts) in attrs.items():

@@ -3,6 +3,7 @@ import time
 
 from db.db import DB
 from state.admin import Admin
+from state.statemac import Conflict
 from util.router import Router
 from util.idgen import IdGen
 from msg.evalreq import EvalReq
@@ -30,7 +31,7 @@ class Coordinator(process):
         """
         SC/RC: Receive route table from master process
         """
-        log.info("Received route table")
+        log.debug("Received route table")
         self.router = router
 
     def receive(msg=('reqapp', req,), from_=p):
@@ -55,7 +56,14 @@ class Coordinator(process):
         """
         log.info("SC - Incoming evaluation response from RC: #seq=[%d]", resp.seq)
         delay(resp.seq, 'respeval')
-        if is_tattr_or_sub_conflict(resp):
+
+        while True:
+            result, depid = is_tattr_or_sub_conflict(resp)
+            if result != Conflict.delay:
+                break
+            await(some(received(('respcommit', depresp)), has= depresp.id==depid))
+
+        if result == Conflict.yes:
             log.info('SC - Conflict found, restart: #seq=[%d]', resp.seq)
             dequeue(resp.id)
             cleanup_admin_sc(resp)
@@ -177,10 +185,7 @@ class Coordinator(process):
         self.scadmin.remove_from_queue(reqid)
 
     def is_tattr_or_sub_conflict(resp):
-        sm = self.scadmin.state(resp.id)
-        deps = self.scadmin.all_state()
-        tattr = self.scadmin.tattr_cache(resp.subject)
-        return sm.respeval(resp, deps, tattr) == False
+        return self.scadmin.is_tattr_or_sub_conflict(resp.id, resp.subrattr)
 
     def is_res_conflict(req):
         sm = self.rcadmin.state(req.id)

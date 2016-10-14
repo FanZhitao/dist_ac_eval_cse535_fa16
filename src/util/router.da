@@ -11,29 +11,29 @@ class Router:
     def assign(self, subjects, resources, coordinators):
         co = list(coordinators)
         total = len(co)
-
         free = total
         occupy = [False] * total
+
         for sub in subjects:
             idx = hash(sub) % total
             if occupy[idx] is True and free > 0:
-                idx = search_free_co(free, occupy)
+                idx = self.search_free_co(free, occupy)
                 free -= 1
             log.info("Assign subject=[%s] to coordinator=[%s]", sub, co[idx]) 
             self.scmap[sub] = co[idx]
+            occupy[idx] = True
 
-        free = total
-        occupy = [False] * total
         for res in resources:
             idx = hash(res) % total
             if occupy[idx] is True and free > 0:
-                idx = search_free_co(free, occupy)
+                idx = self.search_free_co(free, occupy)
                 free -= 1
             log.info("Assign resource=[%s] to coordinator=[%s]", res, co[idx]) 
             self.rcmap[res] = co[idx]
+            occupy[idx] = True
 
     def search_free_co(self, free, occupy):
-        for i in range(occupy):
+        for i in range(len(occupy)):
             if occupy[i] is False:
                 occupy[i] = True
                 return i
