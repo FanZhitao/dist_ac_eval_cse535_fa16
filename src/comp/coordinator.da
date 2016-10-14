@@ -130,6 +130,12 @@ class Coordinator(process):
         log.info("RC - Send commit response to SC: #seq=[%d] sc=%s\n", req.seq, p)
         send(('respcommit', resp), to=p)
 
+    def receive(msg=('writefinish', success), from_=db):
+        log.info("Received write attributes finished message from database [%s]:", db)
+        if not success:
+            # TODO: resend?
+            pass
+
     def generate_global_id(req):
         if req.id is None: # reuse same id for rc track and cleanup
             req.id = self.idgen.next()
@@ -196,14 +202,14 @@ class Coordinator(process):
         sm.complete()
         self.scadmin.commit_sub(resp.subject)
         log.info("Send subject tentative update attributes to db [%s]", self.scadmin.db)
-        send(('writesubattr', self.cache.tattrs), to=self.scadmin.db)
+        send(('writesubattr', self.scadmin.cache.tattrs), to=self.scadmin.db)
 
     def commit_res_to_db(req):
         sm = self.rcadmin.state(req.id)
         sm.complete()
         self.rcadmin.commit_res(req.resource, req.reswattr)
         log.info("Send resource update attributes to db [%s]", self.rcadmin.db)
-        send(('writeresattr', self.rescache), to=self.rcadmin.db)
+        send(('writeresattr', self.rcadmin.cache), to=self.rcadmin.db)
 
     def rollback_tattr(resp):
         self.scadmin.rollback_tattr(resp.id)

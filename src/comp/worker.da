@@ -33,7 +33,8 @@ class Worker(process):
             # Add read and write attributes into
             # resq.{subrattr, subwattr, resrattr, reswattr}.
             resp = add_read_write_attributes(req, resp, rule)
-        #send(('respeval', resp,), to=resp.scAdm)
+        log.info("Send response to subject coordinator [%s]", req.sc)
+        send(('respeval', resp), to=req.sc)
 
     def receive(msg=('policy', policy), from_=p):
         log.info("Received policy data from database: %s", p)
