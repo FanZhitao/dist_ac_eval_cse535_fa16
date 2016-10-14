@@ -23,7 +23,7 @@ class Coordinator(process):
     def run():
         log.info("Coordinator is up")
         while True:
-            await(received(('done',)))
+            await(received(()))
 
     def receive(msg=('routetbl', router,)):
         """
@@ -90,8 +90,8 @@ class Coordinator(process):
         # pick a worker
         # round robin style
         worker = next(iter(workers))
-        send(('assigneval', req), to=worker)
         log.info("RC - Assign evalution request: #seq=[%d] to worker=[%s]\n", req.seq, worker)
+        send(('assigneval', req), to=worker)
 
         #log.info("RC - Send evaluation response to SC: #seq=[%d] worker=%s\n", req.seq, p)
         #send(('respeval', resp,), to=p)
@@ -177,11 +177,15 @@ class Coordinator(process):
         sm = self.scadmin.state(resp.id)
         sm.complete()
         self.scadmin.commit_sub(resp.subject)
+        log.info("Send subject tentative update attributes to db [%s]", self.scadmin.db)
+        send(('writesubattr', self.cache.tattrs), to=self.scadmin.db)
 
     def commit_res_to_db(req):
         sm = self.rcadmin.state(req.id)
         sm.complete()
         self.rcadmin.commit_res(req.resource, req.reswattr)
+        log.info("Send resource update attributes to db [%s]", self.rcadmin.db)
+        send(('writeresattr', self.rescache), to=self.rcadmin.db)
 
     def cleanup_admin_sc(resp):
         self.scadmin.clean_state(resp.id)

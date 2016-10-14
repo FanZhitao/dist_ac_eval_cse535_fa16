@@ -4,6 +4,8 @@ import random
 import logging
 import asyncio
 
+from msg.commitresp import CommitResp
+
 log = logging.getLogger('DB')
 
 class DB(process):
@@ -11,18 +13,10 @@ class DB(process):
         log.info("DB %s is setting up.", self)
         log.info("parsing policy file: %s", policy_filename)
         tree = ET.parse(policy_filename)
-        root = tree.getroot()
-        self.rules = {}
-        for rule in root.iter('rule'):
-            self.rules['subjectCondition'] = rule.find('subjectCondition')
-            self.rules['resourceCondition'] = rule.find('resourceCondition')
-            self.rules['action'] = rule.find('action')
-            self.rules['subjectUpdate'] = rule.find('subjectUpdate')
-            self.rules['resourceUpdate'] = rule.find('resourceUpdate')
+        self.rules = tree.getroot()
+        self.subattrs = {}
+        self.resattrs = {}
         log.info("min and max latency: %s, %s", minDBlatency, maxDBlatency)
-        log.info("creating initial records")
-        self.records = {}
-        # TODO: needs to know all subjects & resources here?
         log.info("DB setup finished.")
 
     def run():
@@ -34,38 +28,11 @@ class DB(process):
         log.info("DB received policy request message from worker %s", p)
         send(('policy', self.rules), to=p)
 
-    def receive(msg=('getrecords'), from_=p):
-        log.info("DB received records request message from worker %s", p)
-
-        # picks a latency l uniformly at random from
-        # the interval between the specified min and
-        # max, and makes the update visible to all
-        # workers after delay l
-        l = random.randrange(minDBlatency, maxDBlatency, 1)
-        log.info("picked random number: %d", l)
-		# await asyncio.sleep(latency)
-        # TODO: update records
-
-        log.info("making the update visible to all workers after delay %d", l)
-        send(('records', self.records), to=workers)
-        log.info("DB sent updated records to all workers.")
-
-
-def main():
-    tree = ET.parse('policy.xml')
-    root = tree.getroot()
-    for rule in root.iter('rule'):
-        print('rule', rule.attrib['name'])
-        sc=rule.find('subjectCondition')
-        print('subject condition', sc.attrib)
-        rc=rule.find('resourceCondition')
-        print('resource condition', rc.attrib)
-        act=rule.find('action')
-        print('action', act.attrib)
-        su=rule.find('subjectUpdate')
-        if su != None:
-            print('subject update', su.attrib)
-        ru=rule.find('resourceUpdate')
-        if ru != None:
-            print('resource update', ru.attrib)
-        print()
+    def receive(msg=('writesubattr', tattr:dict), from_=p):
+        # taatr format: {subid, [{attr, (val, ts, _)},]}
+        log.info("Received write attribute messages from subject coordinator [%s]", p)
+        subject_id = next(iter(tattr))
+        record_in_db = self.subattrs.get(subject_id)
+        record_received = tattr.get(subject_id)
+        log.info("Trying to update %s with %s if necessary.", record_in_db, record_received)
+        # Check if received record is newer then current in database.
