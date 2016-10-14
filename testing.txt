@@ -1,0 +1,81 @@
+
+===== Normal Test =====
+
+Case 1:
+
+===== Stress Test =====
+
+Case 2:
+
+===== Conflict Test =====
+
+== Case 3.1: Subject Update Conflict ==
+
+1) Target:
+
+2) Workload/Scenario:
+
+ Request #1: Carry subject1, resource1
+             Read subject1 and update subject1
+
+ Request #2: Carry subject1, resource2
+             Read subject1 and update subject1
+
+3) Configuration:
+
+4) Other information: No.
+
+5) Log file: 
+
+6) Outcome: One of the request would detect a conflict before updating tentative cache. 
+            Then the "loser" would be simply restarted and try again.
+
+== Case 3.2: Resource Update Conflict ==
+
+1) Target: Test when resource update conflict found, program can detect and restart the request correctly.
+
+2) Workload/Scenario:
+
+ Request #1: Carry subject1, resource1
+             Read resource1 and update resource1
+
+ Request #2: Carry subject2, resource1
+             Read resource1 and update resource1
+
+ Delay: Block #1 and #2 in each SC separately before sending commit request to same RC.
+
+3) Configuration: [workload2] section in config/test.config.
+
+4) Other information: No.
+
+5) Log file: 
+
+6) Outcome: One of the request would detect a conflict caused by the update of the other. 
+            The "loser" has to be rollback (tentative cache) and restarted to try again. 
+
+== Case 3.3: Tentative Update Conflict ==
+
+1) Target: Test when the tentative update that current request depends on is invalid, program can detect and restart the request correctly.
+
+2) Workload/Scenario:
+
+ Request #1: Carry subject1, resource1
+             Read subject1 and update subject1
+
+ Request #2: Carry subject1, resource2
+             Read subject1 and update subject1
+
+ Delay: Block #1 and #2 in each SC separately before sending commit request to same RC.
+
+3) Configuration: [workload3] section in config/test.config.
+
+4) Other information: No.
+
+5) Log file: 
+
+6) Outcome: One of the request would detect a conflict caused by the update of the other. 
+            The "loser" has to be rollback (tentative cache) and restarted to try again. 
+
+== Case 3.4: Tentative Update Delay ==
+
+

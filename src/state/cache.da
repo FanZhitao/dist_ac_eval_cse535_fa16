@@ -1,7 +1,7 @@
 import logging
 import time
 
-log = logging.getLogger("Cache")
+log = logging.getLogger("Coordinator")
 
 class Cache:
 
@@ -18,7 +18,7 @@ class Cache:
     def query_tattr(self, subid):
         if subid not in self.tattrs: # TODO: need locking here?
             # load data of specific subject from DB
-            log.info("Subject [%s] doesn't exist in cache, load from DB", subid)
+            log.info("SC - Subject [%s] doesn't exist in cache, load from DB", subid)
             data = {'attr1': 1, 'attr2': 2}
             self.tattrs[subid] = dict()
             self.subcache[subid] = dict()
@@ -28,19 +28,20 @@ class Cache:
                 self.subcache[subid][attr] = (val, ts, None)
         return self.tattrs[subid]
 
+    def query_subcache(self, subid): # only for rollback at final phase
+        return self.subcache[subid]
+
     def update_tattr(self, subid, attrs, reqid):
         for attr, newval in attrs.items():
             self.tattrs[subid][attr] = (newval, time.time(), reqid)
 
     def commit_tattr(self, subid):
-        import pprint
-        log.info(pprint.pformat(self.tattrs))
         for attr, (newval, ts, reqid) in self.tattrs[subid].items():
             self.subcache[subid][attr] = (newval, ts, reqid)
 
     def query_rescache(self, resid):
         if resid not in self.rescache:
-            log.info("Resource [%s] doesn't exist in cache, load from DB", resid)
+            log.info("RC - Resource [%s] doesn't exist in cache, load from DB", resid)
             data = {'attr3': 3}
             self.rescache[resid] = dict()
             for attr, val in data.items():

@@ -1,4 +1,5 @@
 import logging
+import time
 
 from msg.evalreq import EvalReq
 from util.router import Router
@@ -11,7 +12,7 @@ class Application(process):
         pass
 
     def run():
-        log.info("Client is up")
+        log.info("Application is up")
         for i in range(1, int(cfg['reqno']) + 1):
             req = EvalReq()
             req.seq = i
@@ -20,8 +21,9 @@ class Application(process):
             req.action = cfg['req' + str(i) + '.action']
 
             sc = router.getSC(req.subject)
-            log.info("App - Send request to SC %s", sc)
+            log.info("App - Send request #seq [%d] to SC %s", i, sc)
             send(('reqapp', req,), to=sc)
+            time.sleep(float(cfg['reqinterval']))
 
         #clk = logical_clock()
         #await(some(received(('done',), clk=rclk), has=(rclk > clk)))
