@@ -10,13 +10,24 @@ from msg.commitresp import CommitResp
 log = logging.getLogger('DB')
 
 class DB(process):
-    def setup(policy_filename:str, minDBlatency:int, maxDBlatency:int, workers:set):
-        log.info("DB %s is setting up.", self)
-        log.info("parsing policy file: %s", policy_filename)
+    def setup(policy_filename:str, record_filename:str, minDBlatency:str, maxDBlatency:str, workers:set):
+        log.info("%s is setting up.", self)
+        log.info("Parsing policy file: %s", policy_filename)
         tree = ET.parse(policy_filename)
         self.rules = tree.getroot()
+        log.info("Parsing record file: %s", record_filename)
+        tree = ET.parse(record_filename)
+        record = tree.getroot()
+
+        # convert record to attributes dict
+        self.subrecords = convert(record, 'subject')
+        self.resrecords = convert(record, 'resource')
+        log.info("Parsing finished.")
+        log.info("subject records: %s", self.subrecords)
+        log.info("resource records: %s", self.resrecords)
         self.subattrs = {}
         self.resattrs = {}
+
         log.info("min and max latency: %s, %s", minDBlatency, maxDBlatency)
         if not minDBlatency.isnumeric() or not maxDBlatency.isnumeric():
             # TODO: throw exception
@@ -31,19 +42,29 @@ class DB(process):
             await(received(()))
 
     def receive(msg=('getpolicy'), from_=p):
-        log.info("DB received policy request message from worker %s", p)
+        log.info("Received policy request message from worker %s", p)
         send(('policy', self.rules), to=p)
 
     def receive(msg=('writesubattr', tattr), from_=p):
         # tattr format: {subid, [{attr, (val, ts, _)},]}
         log.info("Received write attribute messages from subject coordinator [%s]", p)
         handle_write_message(tattr, self.subattrs) 
-        send(('writefinish', True), to=p) # TODO: distinguish SC/RC confirmation?
+        send(('writefinish', True), to=p)
 
     def receive(msg=('writeresattr', rescache), from_=p):
         # rescache format: {resid, [{attr, (val, ts)},]}
+        log.info("Received write attribute messages from resource coordinator [%s]", p)
         handle_write_message(rescache, self.resattrs) 
-        send(('writefinish', True), to=p) # TODO: distinguish SC/RC confirmation?
+        send(('writefinish', True), to=p)
+
+    def receive(msg=('getsubs'), from_=p):
+        log.info("Received subjects request from coordinator [%s]", p)
+        send(('subs', self.subrecords), to=p)
+
+    def receive(msg=('getresos'), from_=p):
+        log.info("Received resources request from coordinator [%s]", p)
+        log.info("Send resources back to coordinator [%s]", p)
+        send(('resos', self.resrecords), to=p)
 
     def handle_write_message(attrs_recved, attrs_in_db):
         id = next(iter(attrs_recved))
@@ -53,10 +74,16 @@ class DB(process):
         # Write if 1. no such record exists currently,
         #       or 2. received record is newer then current in database.
         if record_in_db == None:
+            log.info("Writing new record.")
             write(attrs_in_db, 'id', record_received)
         else:
-            value_in_db, ts_in_db = next(iter(record_in_db.values()))
-            value_received, ts_received = next(iter(record_received.values()))
+            tuple_temp = next(iter(record_in_db.values()))
+            value_in_db = tuple_temp[0]
+            ts_in_db = tuple_temp[1]
+            tuple_temp = next(iter(record_received.values()))
+            value_received = tuple_temp[0]
+            ts_received = tuple_temp[1]
+            log.info("Record existed, comparing timestamps (database: %f vs. attentive: %f)", ts_in_db, ts_received)
             if ts_in_db < ts_received:
                 write(attrs_in_db, 'id', record_received)
 
@@ -64,6 +91,18 @@ class DB(process):
         l = random.randrange(minDBlatency, maxDBlatency, 1)
         log.info("Delay %d seconds...", l)
         #time.sleep(l)
+
+    def convert(record:Element, key:str):
+        # convert {'id': id1, 'position': 'employee'}
+        # to {'id1': {'position': 'employee'}
+        result = {}
+        attributes = record.findall(key)
+        for element in attributes:
+            attr = element.attrib
+            if 'id' in attr:
+                result[attr['id']] = attr
+                result[attr['id']].pop('id')
+        return result
 
     def write(attributes, key:str, value):
         attributes[key] = value

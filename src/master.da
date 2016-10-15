@@ -1,5 +1,6 @@
 import sys
 import logging
+import pprint
 import configparser
 
 from comp.application import Application
@@ -16,7 +17,9 @@ log = logging.getLogger('Master')
 """
 class Master(process):
 
-    def setup(): pass
+    def setup():
+        self.subjects = None
+        self.resources = None
 
     def run():
         cfg = configparser.ConfigParser()
@@ -27,22 +30,29 @@ class Master(process):
 
         # 1.Create and start DB and workers
         db = new(DB, num=1)
-        # setup paramters
-        # 1st: policy filename
-        # 2nd: min latency
-        # 3rd: max latency
-        path = './src/db/' + cfg['db']['policy']
 
         # Start workers
         w = new(Worker, (db,), num=int(cfg['master']['workers']))
         start(w)
 
-        setup(db, (path, cfg['db']['minDBlatency'], cfg['db']['maxDBlatency'], w))
+        # database setup paramters
+        # 1st: policy filename
+        # 2nd: record filename
+        # 3nd: min latency
+        # 4rd: max latency
+        path_policy = './src/db/' + cfg['db']['policy']
+        path_record = './src/db/' + cfg['db']['record']
+        setup(db, (path_policy, path_record, cfg['db']['minDBlatency'], cfg['db']['maxDBlatency'], w))
         start(db)
 
         # 2.Create and start coordinators
         co = new(Coordinator, (w, db, cfg[workload],), num=int(cfg['master']['coordinators']))
         start(co)
+
+        log.info("Send request to prefetch subjects and resources from database [%s]", db)
+        send('getsubs', to=db)
+        send('getresos', to=db)
+        await(some(received(('subs', subs))) and some(received(('resos', resos))))
 
         # 3.Assign role to coordinators according to total number of subjects and resources
         router = Router()
@@ -60,10 +70,12 @@ class Master(process):
         start(apps)
 
     def get_subjects():
-        return ["subject1", "subject2"]
+        self.subjects = ["subject1", "subject2"] # temp
+        return self.subjects
 
     def get_resources():
-        return ["resource1", "resource2"]
+        self.resources = ["resource1", "resource2"] # temp
+        return self.resources
 
     def print_config(cfg, workload):
         log.info('=' * 20)
@@ -76,7 +88,17 @@ class Master(process):
             log.info('')
         log.info('=' * 20)
 
+    def receive(msg=('subs', subs), from_=db):
+        self.subjects = subs
+        log.info("Master - Received subjects list from database: [%s]", pprint.pformat(self.subjects))
+
+    def receive(msg=('resos', resos), from_=db):
+        self.resources = resos
+        log.info("Master - Received Resources list from database: [%s]", pprint.pformat(self.resources))
+
 def main():
-    config(channel= 'fifo', clock='lamport')
-    start(new(Master))
+    #config(channel= 'fifo')
+    m = new(Master)
+    setup(m)
+    start(m)
 
