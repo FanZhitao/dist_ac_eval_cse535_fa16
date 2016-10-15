@@ -8,7 +8,7 @@ Please run bin/startup.sh. This script makes all source file using Makefile firs
 
 The default workload is "workload1". Please run bin/startup.sh [workloadX] for other test cases. By now we have workload1 ~ workload5 which are described in testing.txt.  
 
-For example: To test stresstest which is workload5, please run bin/startup.sh workload5.
+For example: To perform stress test which is workload5, please run: bin/startup.sh workload5
 
 
 ## 2.MAIN FILES

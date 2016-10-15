@@ -46,7 +46,7 @@ class Coordinator(process):
         prepare_evalreq_sc(req, p)
         enqueue(req.id)
 
-        rc = router.getRC(req.resource)
+        rc = router.get_rc(req.resource)
         log.info("SC - Send evaluation request to RC: #seq=[%d], rc=%s\n",req.seq, rc)
         send(('reqeval', req), to=rc)
 
@@ -68,13 +68,13 @@ class Coordinator(process):
             log.info('SC - Conflict found, restart: #seq=[%d]', resp.seq)
             dequeue(resp.id)
             cleanup_admin_sc(resp)
-            send(('reqapp', EvalReq(resp)), to=router.getSC(resp.subject))
+            send(('reqapp', EvalReq(resp)), to=router.get_sc(resp.subject))
         else:
             log.info('SC - No conflict found, update tattr cache: #seq=[%d]', resp.seq)
             update_tattr(resp)
             req = prepare_commitreq(resp)
             log.info("SC - Send commit request to RC: #seq=[%d]\n", resp.seq)
-            send(('reqcommit', req), to=router.getRC(req.resource))
+            send(('reqcommit', req), to=router.get_rc(req.resource))
 
     def receive(msg=('respcommit', resp,), from_=p):
         """
@@ -88,7 +88,7 @@ class Coordinator(process):
             rollback_tattr(resp)
             set_state(resp.id, State.restart)
             cleanup_admin_sc(resp)
-            send(('reqapp', EvalReq(resp)), to=router.getSC(resp.subject))
+            send(('reqapp', EvalReq(resp)), to=router.get_sc(resp.subject))
         else:
             log.info('SC - No conflict found, commit subject updates to db: #seq=[%d]', resp.seq)
             dequeue(resp.id)
@@ -215,7 +215,7 @@ class Coordinator(process):
     def commit_sub_to_db(resp):
         self.scadmin.commit_sub(resp.subject)
         log.info("Send subject tentative update attributes to db [%s]", self.scadmin.db)
-        send(('writesubattr', self.scadmin.cache.tattrs), to=self.scadmin.db)
+        send(('writesubattr', self.scadmin.cache.subcache), to=self.scadmin.db)
 
     def commit_res_to_db(req):
         self.rcadmin.commit_res(req.resource, req.reswattr)

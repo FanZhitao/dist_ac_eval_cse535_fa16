@@ -1,33 +1,124 @@
 
 Name: Zhitao Fan, Chen Dai
 
--- (I) Application
--- Step 1: Determines the coordinator that is responsible for the subject in question 
-        -- based on the id of the subject and the list of coordinators
--- Step 2: Sends a policy evaluation request to this coordinator
+### (I) Data Structure
 
-forwardToSC(req):
-    sc = lookup(req.subject)     --step 1
-    send(sc, req)          --step 2
-    resp = await()
+Message
+
+### (II) Master
+
+Master is the bootstrap process of whole system which reads configuration file and starts all other processes to make system ready for testing.
+
+```
+# Master
+
+run():
+    cfg = readConfigFile(argv[1])
+    workload = argv[2]
+
+    # 1.Create and start DB and workers
+    db = create DB process
+    w = create Workers with specific number in config
+    setup(db, cfg['db'])
+    start(w)
+    start(db)
+
+    # 2.Create and start coordinators
+    co = create Coordinators with specific number in config
+    start(co)
+
+    # 3.Assign role to coordinators according to total number of subjects and resources
+    r = create Router
+    r.assign(get_subjects(), get_resources(), co)
+    for c in co:
+        send(('routetbl', router), to=c)
+
+    # 4.Create application as client and start testing
+    #   Divide total requests evenly and assign sequence number of request to each application
+    apps = create Applications with specific number in config
+    for each app in apps:
+        setup(app, router, seqfrom, seqto)
+    start(app)
+```
+
+Router assigns subject and resource onto coordinators in pool. The following algorithm tries to distribute uniformly. And if conflict, use linear probing simply to address that.
+
+```
+# Router
+
+scmap = <subjectID, coordinator>
+rcmap = <resourceID, coordinator>
+
+assign(subjects, resources, co):
+    total = length of co
+    free = total
+    occupy = array in free length with all false inside
+
+    # 1.Assign subject to coordinator
+    # If found conflict, find next free coordinator (linear probing)
+    for sub in subjects
+        idx = hash(sub) % total
+        if occupy[idx] is True and free > 0
+            idx = self.search_free_co(free, occupy)
+            free--
+        scmap[sub] = co[idx]
+        occupy[idx] = True
+
+    # 2.Assign resource to coordinator, same as above
+    for res in resources
+        idx = hash(res) % total
+        if occupy[idx] is True and free > 0:
+            idx = self.search_free_co(free, occupy)
+            free--
+        rcmap[res] = co[idx]
+        occupy[idx] = True
+
+# Search free list to find next one
+search_free_co(self, free, occupy):
+    for i in length of occupy
+        if occupy[i] is False
+            occupy[i] = True
+            return i
+```
 
 
--- (II) Subject Coordinator
--- Step 3: Assigns a globally unique id to this evaluation, 
-        -- Sets up the administration for the subject, 
-        -- Adds any tentatively updated attributes to the request, 
-        -- Determines the coordinator responsible for the resource in question
-		-- If it dectes a conflicting update of a subject attribute,
-		-- it immediately restarts the evaluation.
--- Step 4: Forwards the authorization request to that coordinator
--- Step 9: Checks whether the evaluation employed subject attributes 
-        -- that were updated in the mean while. 
-        -- If not, it tentatively executes the updates of subject attributes
--- Step 10: Asks the coordinator responsible for the resource 
-        -- whether there are conflicts for resource attributes
--- Step 13: Executes the tentative attribute updates, 
-        -- Clears its administration for this evaluation
--- Step 14: Passes the decision along to the application
+### (III) Application
+
+Now the system is ready for testing. Each application process will start sending request to correspendent coordinator immediately upon running up. The requests carry payload which is described in the configuration file.
+
+```
+# parameters passed from Master
+
+1.router: route table of all coordinators
+2.seqfrom: the starting sequence number of request that current application should send
+3.seqno: the ending sequence number of request that current application should send
+4.subjects: all subject ID
+5.resources: all resource ID
+
+def run():
+    for i from seqfrom to seqto
+        # 1.Generate specific or random payload
+        req = EvalReq()
+        req.seq = i
+        prefix = 'req' + i
+        req.subject = cfg[prefix + '.subject'] or if not configured, choose one from subject list randomly
+        req.resource = cfg[prefix + '.resource'] or if not configured, choose one from resource list randomly
+        req.action = cfg[prefix + '.action']
+
+        # 2.Send to correspondent subject coordinator
+        sc = router.scmap[req.subject]
+        send(('reqapp', req,), to=sc)
+
+    # 3.Wait for exit command
+    await(received('done'))
+
+# Wait for receiving request
+def receive(msg=('respapp', seq, result,), from_=sc):
+    log.info("App - Received request #seq-[%d] result: %s from SC %s", seq, result, sc)
+```
+
+
+### (IV) Coordinator
 
 forwardToRC(req):
     assignId(req)               --step 3

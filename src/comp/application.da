@@ -7,6 +7,10 @@ from util.router import Router
 
 log = logging.getLogger("Application")
 
+"""
+ Each application process will start sending request to correspendent coordinator immediately upon running up. 
+ The requests carry payload which is described in the configuration file.
+"""
 class Application(process):
 
     def setup(router:Router, seqfrom:int, seqto:int, cfg, subjects, resources):
@@ -18,6 +22,7 @@ class Application(process):
             req = EvalReq()
             req.seq = i
 
+            # 1.Generate specific or random payload
             prefix = 'req' + str(i)
             if prefix + '.subject' in cfg:
                 req.subject = cfg[prefix + '.subject']
@@ -34,13 +39,15 @@ class Application(process):
             else:
                 req.action = 'read'
 
-            sc = router.getSC(req.subject)
+            # 2.Send to correspondent subject coordinator
+            sc = router.get_sc(req.subject)
             log.info("App - Send request #seq [%d] to SC %s", i, sc)
             send(('reqapp', req,), to=sc)
 
             if 'reqinterval' in cfg:
                 time.sleep(float(cfg['reqinterval']))
 
+        # 3.Wait for exit command
         log.info("App - Waiting for response")
         await(received('done'))
 

@@ -19,5 +19,6 @@ fi
 
 make
 
-dar -L $level -F $level -f --logdir `pwd`/logs/ --logfilename master.`date +"%y-%m-%d"`.log src/master.da $config $workload
+#dar -L $level -F $level -f --logdir `pwd`/logs/ --logfilename master.`date +"%y-%m-%d"`.log src/master.da $config $workload
+dar -L $level -F $level -f --logdir logs/ --logfilename master.`date +"%y-%m-%d"`.log src/master.da $config $workload
 

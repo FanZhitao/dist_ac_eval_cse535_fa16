@@ -10,6 +10,10 @@ from util.router import Router
 
 log = logging.getLogger('Master')
 
+"""
+ Master is the bootstrap process of whole system which reads configuration file 
+ and starts all other processes to make system ready for testing.
+"""
 class Master(process):
 
     def setup(): pass
@@ -21,6 +25,7 @@ class Master(process):
 
         print_config(cfg, workload)
 
+        # 1.Create and start DB and workers
         db = new(DB, num=1)
         # setup paramters
         # 1st: policy filename
@@ -35,17 +40,18 @@ class Master(process):
         setup(db, (path, cfg['db']['minDBlatency'], cfg['db']['maxDBlatency'], w))
         start(db)
 
-        # Start coordinators
+        # 2.Create and start coordinators
         co = new(Coordinator, (w, db, cfg[workload],), num=int(cfg['master']['coordinators']))
         start(co)
 
-        # Distribute subjects/resource to coordinator pool uniformly
+        # 3.Assign role to coordinators according to total number of subjects and resources
         router = Router()
         router.assign(get_subjects(), get_resources(), co)
         for c in co:
             send(('routetbl', router,), to=c)
 
-        # Start application to test: divide total request into each App
+        # 4.Create application as client and start testing
+        #   Divide total requests evenly and assign sequence number of request to each application
         appno = int(cfg['master']['clients'])
         reqno = int(int(cfg[workload]['reqno']) / appno)
         apps = new(Application, num=appno)
