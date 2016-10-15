@@ -15,6 +15,7 @@ class DB(process):
         log.info("parsing policy file: %s", policy_filename)
         tree = ET.parse(policy_filename)
         self.rules = tree.getroot()
+        self.data = {}
         self.subattrs = {}
         self.resattrs = {}
         log.info("min and max latency: %s, %s", minDBlatency, maxDBlatency)
@@ -23,6 +24,7 @@ class DB(process):
             pass
         minDBlatency = int(minDBlatency)
         maxDBlatency = int(maxDBlatency)
+        read('./src/db/data.xml')
         log.info("DB setup finished.")
 
     def run():
@@ -31,19 +33,34 @@ class DB(process):
             await(received(()))
 
     def receive(msg=('getpolicy'), from_=p):
-        log.info("DB received policy request message from worker %s", p)
+        log.info("Received policy request message from worker %s", p)
         send(('policy', self.rules), to=p)
 
     def receive(msg=('writesubattr', tattr), from_=p):
         # tattr format: {subid, [{attr, (val, ts, _)},]}
         log.info("Received write attribute messages from subject coordinator [%s]", p)
         handle_write_message(tattr, self.subattrs) 
-        send(('writefinish', True), to=p) # TODO: distinguish SC/RC confirmation?
+        send(('writefinish', True), to=p)
 
     def receive(msg=('writeresattr', rescache), from_=p):
         # rescache format: {resid, [{attr, (val, ts)},]}
+        log.info("Received write attribute messages from resource coordinator [%s]", p)
         handle_write_message(rescache, self.resattrs) 
-        send(('writefinish', True), to=p) # TODO: distinguish SC/RC confirmation?
+        send(('writefinish', True), to=p)
+
+    def receive(msg=('getsubs'), from_=p):
+        log.info("Received subjects request from coordinator [%s]", p)
+        #send(('subs', list(self.subattrs)), to=p)
+        log.info("Send subjects back to coordinator [%s]", p)
+        fake_sub_list = {'subject1':{'attr1':1, 'attr2':2}, 'subject2':{'attr1':1, 'attr2':2}}
+        send(('subs', fake_sub_list), to=p)
+
+    def receive(msg=('getresos'), from_=p):
+        log.info("Received resources request from coordinator [%s]", p)
+        log.info("Send resources back to coordinator [%s]", p)
+        #send(('resos', list(self.resattrs)), to=p)
+        fake_res_list = {'resource1':{'attr3':3}, 'resource2':{'attr3':3}}
+        send(('resos', fake_res_list), to=p)
 
     def handle_write_message(attrs_recved, attrs_in_db):
         id = next(iter(attrs_recved))
@@ -64,6 +81,11 @@ class DB(process):
         l = random.randrange(minDBlatency, maxDBlatency, 1)
         log.info("Delay %d seconds...", l)
         #time.sleep(l)
+
+    def read(filename:str):
+        tree = ET.parse(filename)
+        self.data = tree.getroot()
+        log.info("Data read finished. %s", self.data.attrib)
 
     def write(attributes, key:str, value):
         attributes[key] = value

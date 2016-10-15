@@ -12,7 +12,9 @@ log = logging.getLogger('Master')
 
 class Master(process):
 
-    def setup(): pass
+    def setup():
+        self.subjects = None
+        self.resources = None
 
     def run():
         cfg = configparser.ConfigParser()
@@ -40,6 +42,11 @@ class Master(process):
         start(co)
 
         # Distribute subjects/resource to coordinator pool uniformly
+        log.info("Send get subjects request to database [%s]", db)
+        send('getsubs', to=db)
+        log.info("Send get resources request to database [%s]", db)
+        send('getresos', to=db)
+        #await((self.subjects != None and self.resources != None)) # not working
         router = Router()
         router.assign(get_subjects(), get_resources(), co)
         for c in co:
@@ -54,10 +61,12 @@ class Master(process):
         start(apps)
 
     def get_subjects():
-        return ["subject1", "subject2"]
+        self.subjects = ["subject1", "subject2"] # temp
+        return self.subjects
 
     def get_resources():
-        return ["resource1", "resource2"]
+        self.resources = ["resource1", "resource2"] # temp
+        return self.resources
 
     def print_config(cfg, workload):
         log.info('=' * 20)
@@ -70,7 +79,18 @@ class Master(process):
             log.info('')
         log.info('=' * 20)
 
+    def receive(msg=('subs', subs), from_=db):
+        log.info("Received subjects from database [%s]", db)
+        self.subjects = subs
+        log.info("subjects: %s", subs)
+
+    def receive(msg=('resos', resos), from_=db):
+        log.info("Received resources from database [%s]", db)
+        self.resources = resos
+        log.info("resources: %s", resos)
+
 def main():
-    config(channel= 'fifo', clock='lamport')
+    #config(channel= 'fifo')
+    setup()
     start(new(Master))
 
