@@ -10,21 +10,30 @@ from msg.commitresp import CommitResp
 log = logging.getLogger('DB')
 
 class DB(process):
-    def setup(policy_filename:str, minDBlatency:int, maxDBlatency:int, workers:set):
-        log.info("DB %s is setting up.", self)
-        log.info("parsing policy file: %s", policy_filename)
+    def setup(policy_filename:str, record_filename:str, minDBlatency:str, maxDBlatency:str, workers:set):
+        log.info("%s is setting up.", self)
+        log.info("Parsing policy file: %s", policy_filename)
         tree = ET.parse(policy_filename)
         self.rules = tree.getroot()
-        self.data = {}
+        log.info("Parsing record file: %s", record_filename)
+        tree = ET.parse(record_filename)
+        record = tree.getroot()
+
+        # convert record to attributes dict
+        self.subrecords = convert(record, 'subject')
+        self.resrecords = convert(record, 'resource')
+        log.info("Parsing finished.")
+        log.info("subject records: %s", self.subrecords)
+        log.info("resource records: %s", self.resrecords)
         self.subattrs = {}
         self.resattrs = {}
+
         log.info("min and max latency: %s, %s", minDBlatency, maxDBlatency)
         if not minDBlatency.isnumeric() or not maxDBlatency.isnumeric():
             # TODO: throw exception
             pass
         minDBlatency = int(minDBlatency)
         maxDBlatency = int(maxDBlatency)
-        read('./src/db/data.xml')
         log.info("DB setup finished.")
 
     def run():
@@ -50,17 +59,12 @@ class DB(process):
 
     def receive(msg=('getsubs'), from_=p):
         log.info("Received subjects request from coordinator [%s]", p)
-        #send(('subs', list(self.subattrs)), to=p)
-        log.info("Send subjects back to coordinator [%s]", p)
-        fake_sub_list = {'subject1':{'attr1':1, 'attr2':2}, 'subject2':{'attr1':1, 'attr2':2}}
-        send(('subs', fake_sub_list), to=p)
+        send(('subs', self.subrecords), to=p)
 
     def receive(msg=('getresos'), from_=p):
         log.info("Received resources request from coordinator [%s]", p)
         log.info("Send resources back to coordinator [%s]", p)
-        #send(('resos', list(self.resattrs)), to=p)
-        fake_res_list = {'resource1':{'attr3':3}, 'resource2':{'attr3':3}}
-        send(('resos', fake_res_list), to=p)
+        send(('resos', self.resrecords), to=p)
 
     def handle_write_message(attrs_recved, attrs_in_db):
         id = next(iter(attrs_recved))
@@ -70,10 +74,16 @@ class DB(process):
         # Write if 1. no such record exists currently,
         #       or 2. received record is newer then current in database.
         if record_in_db == None:
+            log.info("Writing new record.")
             write(attrs_in_db, 'id', record_received)
         else:
-            value_in_db, ts_in_db = next(iter(record_in_db.values()))
-            value_received, ts_received = next(iter(record_received.values()))
+            tuple_temp = next(iter(record_in_db.values()))
+            value_in_db = tuple_temp[0]
+            ts_in_db = tuple_temp[1]
+            tuple_temp = next(iter(record_received.values()))
+            value_received = tuple_temp[0]
+            ts_received = tuple_temp[1]
+            log.info("Record existed, comparing timestamps (database: %f vs. attentive: %f)", ts_in_db, ts_received)
             if ts_in_db < ts_received:
                 write(attrs_in_db, 'id', record_received)
 
@@ -82,10 +92,17 @@ class DB(process):
         log.info("Delay %d seconds...", l)
         #time.sleep(l)
 
-    def read(filename:str):
-        tree = ET.parse(filename)
-        self.data = tree.getroot()
-        log.info("Data read finished. %s", self.data.attrib)
+    def convert(record:Element, key:str):
+        # convert {'id': id1, 'position': 'employee'}
+        # to {'id1': {'position': 'employee'}
+        result = {}
+        attributes = record.findall(key)
+        for element in attributes:
+            attr = element.attrib
+            if 'id' in attr:
+                result[attr['id']] = attr
+                result[attr['id']].pop('id')
+        return result
 
     def write(attributes, key:str, value):
         attributes[key] = value

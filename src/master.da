@@ -24,17 +24,19 @@ class Master(process):
         print_config(cfg, workload)
 
         db = new(DB, num=1)
-        # setup paramters
-        # 1st: policy filename
-        # 2nd: min latency
-        # 3rd: max latency
-        path = './src/db/' + cfg['db']['policy']
 
         # Start workers
         w = new(Worker, (db,), num=int(cfg['master']['workers']))
         start(w)
 
-        setup(db, (path, cfg['db']['minDBlatency'], cfg['db']['maxDBlatency'], w))
+        # database setup paramters
+        # 1st: policy filename
+        # 2nd: record filename
+        # 3nd: min latency
+        # 4rd: max latency
+        path_policy = './src/db/' + cfg['db']['policy']
+        path_record = './src/db/' + cfg['db']['record']
+        setup(db, (path_policy, path_record, cfg['db']['minDBlatency'], cfg['db']['maxDBlatency'], w))
         start(db)
 
         # Start coordinators
