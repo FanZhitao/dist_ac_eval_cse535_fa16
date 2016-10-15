@@ -23,6 +23,14 @@ class Admin:
     def setup(self, req):
         self.states[req.id] = StateMac(req)
 
+    def init_subcache(self, subattrs):
+        if subattrs is not None:
+            self.cache.init_subcache(subattrs)
+
+    def init_rescache(self, resattrs):
+        if resattrs is not None:
+            self.cache.init_rescache(resattrs)
+
     def clean_state(self, reqid): # keep state for dependency check and restart
         self.states[reqid].subdep = None
         self.states[reqid].resdep = None

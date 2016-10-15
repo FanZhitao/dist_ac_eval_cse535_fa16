@@ -27,12 +27,14 @@ class Coordinator(process):
         while True:
             await(received(()))
 
-    def receive(msg=('routetbl', router,)):
+    def receive(msg=('prepare', router, subattrs, resattrs)):
         """
         SC/RC: Receive route table from master process
         """
         log.debug("Received route table")
         self.router = router
+        self.scadmin.init_subcache(subattrs)
+        self.rcadmin.init_rescache(resattrs)
 
     def receive(msg=('reqapp', req,), from_=p):
         """

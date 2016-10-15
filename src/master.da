@@ -49,33 +49,35 @@ class Master(process):
         co = new(Coordinator, (w, db, cfg[workload],), num=int(cfg['master']['coordinators']))
         start(co)
 
-        log.info("Send request to prefetch subjects and resources from database [%s]", db)
+        # 3.Prefetch subject and resource list from database
         send('getsubs', to=db)
         send('getresos', to=db)
+        log.info("Send request to prefetch subjects and resources from database [%s]", db)
         await(some(received(('subs', subs))) and some(received(('resos', resos))))
 
-        # 3.Assign role to coordinators according to total number of subjects and resources
+        # 4.Assign role to coordinators according to total number of subjects and resources
         router = Router()
-        router.assign(get_subjects(), get_resources(), co)
-        for c in co:
-            send(('routetbl', router,), to=c)
+        router.assign(self.subjects, self.resources, co)
 
-        # 4.Create application as client and start testing
+        # 5.Prepare coordinator with router table and subject/resource list
+        submap = { c : sub for sub, c in router.scmap.items() }
+        resmap = { c : res for res, c in router.rcmap.items() }
+        for c in co:
+            subattrs, resattrs = None, None
+            if c in submap:
+                subattrs = (submap[c], self.subjects[submap[c]])
+            elif c in resmap:
+                resattrs = (resmap[c], self.resources[resmap[c]])
+            send(('prepare', router, subattrs, resattrs), to=c)
+
+        # 6.Create application as client and start testing
         #   Divide total requests evenly and assign sequence number of request to each application
         appno = int(cfg['master']['clients'])
         reqno = int(int(cfg[workload]['reqno']) / appno)
         apps = new(Application, num=appno)
         for i, app in zip(range(0, appno), apps):
-            setup(app, (router, i * reqno + 1, (i + 1) * reqno + 1, cfg[workload], get_subjects(), get_resources()))
+            setup(app, (router, i * reqno + 1, (i + 1) * reqno + 1, cfg[workload], self.subjects, self.resources))
         start(apps)
-
-    def get_subjects():
-        self.subjects = ["subject1", "subject2"] # temp
-        return self.subjects
-
-    def get_resources():
-        self.resources = ["resource1", "resource2"] # temp
-        return self.resources
 
     def print_config(cfg, workload):
         log.info('=' * 20)

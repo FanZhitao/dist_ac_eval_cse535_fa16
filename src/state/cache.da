@@ -1,4 +1,5 @@
 import logging
+import pprint
 import time
 
 log = logging.getLogger("Coordinator")
@@ -15,17 +16,31 @@ class Cache:
         self.subcache = dict()
         self.rescache = dict()
 
+    def init_subcache(self, subattrs):
+        #data = {'attr1': 1, 'attr2': 0}
+        subid = subattrs[0]
+        data = subattrs[1]
+        self.tattrs[subid] = dict()
+        self.subcache[subid] = dict()
+        for attr, val in data.items():
+            ts = time.time()
+            self.tattrs[subid][attr] = (val, ts, None)
+            self.subcache[subid][attr] = (val, ts, None)
+        log.info('SC - Init tentative and subject cache [%s]', pprint.pformat(self.tattrs))
+
+    def init_rescache(self, resattrs):
+        #data = {'attr3': 3}
+        resid = resattrs[0]
+        data = resattrs[1]
+        self.rescache[resid] = dict()
+        for attr, val in data.items():
+            self.rescache[resid][attr] = (val, time.time())
+        log.info('RC - Init resource cache [%s]', pprint.pformat(self.rescache))
+
     def query_tattr(self, subid):
         if subid not in self.tattrs: # TODO: need locking here?
             # load data of specific subject from DB
-            log.info("SC - Subject [%s] doesn't exist in cache, load from DB", subid)
-            data = {'attr1': 1, 'attr2': 0}
-            self.tattrs[subid] = dict()
-            self.subcache[subid] = dict()
-            for attr, val in data.items():
-                ts = time.time()
-                self.tattrs[subid][attr] = (val, ts, None)
-                self.subcache[subid][attr] = (val, ts, None)
+            log.warn("SC - Subject [%s] doesn't exist in cache", subid)
         return self.tattrs[subid]
 
     def query_subcache(self, subid): # only for rollback at final phase
@@ -38,16 +53,11 @@ class Cache:
     def commit_tattr(self, subid):
         for attr, (newval, ts, reqid) in self.tattrs[subid].items():
             self.subcache[subid][attr] = (newval, ts, reqid)
-        import pprint
         log.info('##### Subject [%s] cache: %s', subid, pprint.pformat(self.subcache))
 
     def query_rescache(self, resid):
         if resid not in self.rescache:
-            log.info("RC - Resource [%s] doesn't exist in cache, load from DB", resid)
-            data = {'attr3': 3}
-            self.rescache[resid] = dict()
-            for attr, val in data.items():
-                self.rescache[resid][attr] = (val, time.time())
+            log.warn("RC - Resource [%s] doesn't exist in cache", resid)
         return self.rescache[resid]
 
     def commit_rescache(self, resid, attrs):
