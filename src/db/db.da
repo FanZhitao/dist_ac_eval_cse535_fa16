@@ -12,30 +12,39 @@ log = logging.getLogger('DB')
 
 class DB(process):
     def setup(policy_filename:str, record_filename:str, minDBlatency:str, maxDBlatency:str, workers:set):
-        log.info("%s is setting up.", self)
-        log.info("Parsing policy file: %s", policy_filename)
+        log.debug("%s is setting up.", self)
+        log.debug("Parsing policy file: %s", policy_filename)
         tree = ET.parse(policy_filename)
         self.rules = tree.getroot()
-        log.info("Parsing record file: %s", record_filename)
+        log.debug("Parsing record file: %s", record_filename)
         tree = ET.parse(record_filename)
         record = tree.getroot()
 
         # convert record to attributes dict
         self.subrecords = convert(record, 'subject')
         self.resrecords = convert(record, 'resource')
-        log.info("Parsing finished.")
-        log.info("subject records: %s", self.subrecords)
-        log.info("resource records: %s", self.resrecords)
+
+        self.actions = []
+        # save possible actions
+        for rule in self.rules.iter('rule'):
+            action_element = rule.find('action')
+            action = action_element.attrib.get('name')
+            if action != None:
+                self.actions.append(action)
+  
+        log.debug("Parsing finished.")
+        log.debug("subject records: %s", self.subrecords)
+        log.debug("resource records: %s", self.resrecords)
         self.subattrs = {}
         self.resattrs = {}
 
-        log.info("min and max latency: %s, %s", minDBlatency, maxDBlatency)
+        log.debug("min and max latency: %s, %s", minDBlatency, maxDBlatency)
         if not minDBlatency.isnumeric() or not maxDBlatency.isnumeric():
             # TODO: throw exception
             pass
         minDBlatency = int(minDBlatency)
         maxDBlatency = int(maxDBlatency)
-        log.info("DB setup finished.")
+        log.debug("DB setup finished.")
 
     def run():
         log.info("%s is up.", self)
@@ -66,6 +75,11 @@ class DB(process):
         log.info("Received resources request from coordinator [%s]", p)
         log.info("Send resources back to coordinator [%s]", p)
         send(('resos', self.resrecords), to=p)
+
+    def receive(msg=('getacts'), from_=p):
+        log.info("Received actions request from coordinator [%s]", p)
+        log.info("Send actions back to coordinator [%s]", p)
+        send(('acts', self.actions), to=p)
 
     def receive(msg=('dumpdb'), from_=p):
         log.info("\n" + "=" * 10 + " Database Data " + "=" * 10 
