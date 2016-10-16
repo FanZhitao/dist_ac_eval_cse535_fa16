@@ -227,7 +227,7 @@ receive(msg=('reqapp', req,), from_=p)
     enqueue(req.id)
     send(('reqeval', req), to=router.get_rc(req.resource))
 
-# Generate global ID via IdGen utility
+# Generate global ID via IdGen utility which use current process ID and an increment counter value as global ID
 generate_global_id(req)
     req.id = idgen.next()
 

@@ -15,9 +15,10 @@ class Application(process):
 
     def setup(router:Router, seqfrom:int, seqto:int, cfg, subjects, resources):
         pass
+        log.info('Application [%s] is up', self)
 
     def run():
-        log.info("Application is up: ready to send request from [%d] to [%d]", seqfrom, seqto - 1)
+        log.info("App - [%s] get ready to send request from [%d] to [%d]", self, seqfrom, seqto - 1)
         for i in range(seqfrom, seqto):
             req = EvalReq()
             req.seq = i
@@ -44,7 +45,9 @@ class Application(process):
             log.info("App - Send request #seq [%d] to SC %s", i, sc)
             send(('reqapp', req,), to=sc)
 
-            if 'reqinterval' in cfg:
+            if prefix + 'interval' in cfg:
+                time.sleep(float(cfg[prefix + 'interval']))
+            elif 'reqinterval' in cfg:
                 time.sleep(float(cfg['reqinterval']))
 
         # 3.Wait for exit command

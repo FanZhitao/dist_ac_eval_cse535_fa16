@@ -23,9 +23,9 @@ class Coordinator(process):
         self.idgen = IdGen()
 
     def run():
-        log.info("Coordinator is up")
+        log.info("Coordinator [%s] is up", self)
         while True:
-            await(received(()))
+            await(received(('done')))
 
     def receive(msg=('prepare', router, subattrs, resattrs)):
         """
@@ -43,6 +43,7 @@ class Coordinator(process):
         log.info("SC - Incoming application request: #seq=[%d] subject=[%s]", req.seq, req.subject)
         delay(req.seq, 'reqapp')
 
+        # Create context for current request
         generate_global_id(req)
         setup_admin_sc(req)
         prepare_evalreq_sc(req, p)
@@ -56,16 +57,18 @@ class Coordinator(process):
         """
         SC: Receive evaluation result from worker
         """
-        log.info("SC - Incoming evaluation response from RC: #seq=[%d]", resp.seq)
+        log.info("SC - Incoming evaluation response from RC: #seq=[%d], subrattr=[%s], subwattr=[%s], resrattr=[%s], reswattr=[%s]", resp.seq, resp.subrattr, resp.subwattr, resp.resrattr, resp.reswattr)
         delay(resp.seq, 'respeval')
 
+        # If delay is necessary, wait for dependent request complete
         while True:
             result, depid = is_tattr_or_sub_conflict(resp)
             if result != Conflict.delay:
                 break
             await(some(received(('respcommit', depresp)), has= depresp.id==depid))
-            time.sleep(2)
+            log.info('SC - Dependency [%s] complete, current request [%s] can continue!', depid, resp.id)
 
+        # Request RC to commit or restart current request if conflict found
         if result == Conflict.yes:
             log.info('SC - Conflict found, restart: #seq=[%d]', resp.seq)
             dequeue(resp.id)
@@ -84,6 +87,8 @@ class Coordinator(process):
         """
         log.info("SC - Incoming commit response from RC: #seq=[%d]", resp.seq)
         delay(resp.seq, 'respcommit')
+
+        # Commit then respond application or rollback and restart if RC failed to commit due to conflict
         if resp.conflict:
             log.info('SC - Commit conflict found: #seq=[%d], cleanup, rollback and restart', resp.seq)
             dequeue(resp.id)
@@ -106,27 +111,12 @@ class Coordinator(process):
         log.info("RC - Incoming evaluation request: #seq=[%d] resource=[%s] sc=%s", req.seq, req.resource, p)
         delay(req.seq, 'reqeval')
 
+        # Prepare request then send to work which is chosen in Round-Robin style
         setup_admin_rc(req)
         prepare_evalreq_rc(req, p)
-
-        """
-        resp = EvalResp(req)
-        resp.subrattr = ['attr1', 'attr2']  # subject update conflict
-        resp.subwattr = {'attr2': req.subattr['attr2'] + 1}
-        resp.resrattr = ['attr3']           # resource update conflict
-        resp.reswattr = {'attr3': req.resattr['attr3'] + 1}
-        log.info("RC - Send evaluation response to SC: #seq=[%d] worker=%s\n", req.seq, p)
-        send(('respeval', resp,), to=p)
-        """
-
-        # pick a worker
-        # round robin style
         worker = next(iter(workers))
         log.info("RC - Assign evalution request: #seq=[%d] to worker=[%s]\n", req.seq, worker)
         send(('assigneval', req), to=worker)
-
-        #log.info("RC - Send evaluation response to SC: #seq=[%d] worker=%s\n", req.seq, p)
-        #send(('respeval', resp,), to=p)
 
     def receive(msg=('reqcommit', req,), from_=p):
         """
@@ -134,6 +124,8 @@ class Coordinator(process):
         """
         log.info("RC - Incoming commit request: #seq=[%d] resource=[%s] sc=%s", req.seq, req.resource, p)
         delay(req.seq, 'reqcommit')
+
+        # Commit to database or report failure to SC to make current request restart
         resp = prepare_commitresp(req)
         if is_res_conflict(req):
             log.info('RC - Conflict found: #seq=[%d], cleanup and send back to SC to handle', req.seq)
@@ -146,12 +138,6 @@ class Coordinator(process):
             resp.conflict = False
         log.info("RC - Send commit response to SC: #seq=[%d] sc=%s\n", req.seq, p)
         send(('respcommit', resp), to=p)
-
-    def receive(msg=('writefinish', success), from_=db):
-        log.info("Received write attributes finished message from database [%s]:", db)
-        if not success:
-            # TODO: resend?
-            pass
 
     def generate_global_id(req):
         """
@@ -223,12 +209,12 @@ class Coordinator(process):
 
     def commit_sub_to_db(resp):
         self.scadmin.commit_sub(resp.subject)
-        log.info("Send subject tentative update attributes to db [%s]", self.scadmin.db)
+        log.info("SC - Send subject tentative update attributes to db [%s]", self.scadmin.db)
         send(('writesubattr', self.scadmin.cache.subcache), to=self.scadmin.db)
 
     def commit_res_to_db(req):
         self.rcadmin.commit_res(req.resource, req.reswattr)
-        log.info("Send resource update attributes to db [%s]", self.rcadmin.db)
+        log.info("RC - Send resource update attributes to db [%s]", self.rcadmin.db)
         send(('writeresattr', self.rcadmin.cache.rescache), to=self.rcadmin.db)
 
     def set_state(reqid, state):

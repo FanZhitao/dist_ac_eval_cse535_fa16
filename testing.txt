@@ -1,9 +1,11 @@
 
+Please note the subject1, subject2, resource1 and resource2 refer to Leo, LeBron, Bank A and Bank B in real data. Here we keep the name for better explaination.
+
 ===== Conflict Test =====
 
 == Case 1: Subject Update Conflict ==
 
-1) Target:
+1) Target: Test when subject attribute update conflict found, program can detect and restart the request correctly.
 
 2) Workload/Scenario:
 
@@ -13,18 +15,19 @@
  Request #2: Carry subject1, resource2
              Read subject1 and update subject1
 
-3) Configuration:
+3) Configuration: [workload1] section in config/test.config.
 
-4) Other information: No.
+4) Other information: Execute bin/startup.sh workload1
 
-5) Log file: 
+5) Log file: logs/workload1-subject-conflict.txt
 
 6) Outcome: One of the request would detect a conflict before updating tentative cache. 
             Then the "loser" would be simply restarted and try again.
 
+
 == Case 2: Resource Update Conflict ==
 
-1) Target: Test when resource update conflict found, program can detect and restart the request correctly.
+1) Target: Test when resource attribute update conflict found, program can detect and restart the request correctly.
 
 2) Workload/Scenario:
 
@@ -34,16 +37,17 @@
  Request #2: Carry subject2, resource1
              Read resource1 and update resource1
 
- Delay: Block #1 and #2 in each SC separately before sending commit request to same RC.
+ Delay: Block request #1 and #2 in each SC separately before sending commit request to the same RC.
 
 3) Configuration: [workload2] section in config/test.config.
 
-4) Other information: No.
+4) Other information: Execute bin/startup.sh workload2
 
-5) Log file: 
+5) Log file: logs/workload1-resource-conflict.txt
 
 6) Outcome: One of the request would detect a conflict caused by the update of the other. 
             The "loser" has to be rollback (tentative cache) and restarted to try again. 
+
 
 == Case 3: Tentative Update Conflict ==
 
@@ -61,22 +65,40 @@
 
 3) Configuration: [workload3] section in config/test.config.
 
-4) Other information: No.
+4) Other information: Execute bin/startup.sh workload3
 
-5) Log file: 
+5) Log file: logs/workload1-tentative-conflict-restart.txt
 
 6) Outcome: One of the request would detect a conflict caused by the update of the other. 
             The "loser" has to be rollback (tentative cache) and restarted to try again. 
 
+
 == Case 4: Tentative Update Delay ==
 
-===== Normal Test =====
+1) Target: Test when the tentative update that current request depends on is invalid, program can detect and restart the request correctly.
 
-Case 1:
+2) Workload/Scenario:
+
+ Request #1: Carry subject1, resource1
+             Read subject1 and update subject1
+
+ Request #2: Carry subject1, resource2
+             Read subject1 and update subject1
+
+ Delay: Send request #2 after #1 at interval 1 second to force #2 read #1 tentative update.
+        Block #1 before sending commit request to RC to make #2 wait.
+
+3) Configuration: [workload4] section in config/test.config.
+
+4) Other information: Execute bin/startup.sh workload4
+
+5) Log file: logs/workload1-tentative-conflict-delay.txt
+
+6) Outcome: The subsequent request #2 would detect a conflict caused by the update of the #1 which isn't complete. 
+            Request #2 will wait until #1 complete, then #2 continue. 
+
 
 ===== Stress Test =====
-
-Case 2:
 
 1) Test program could correctly handle a number of request concurrently.
 
@@ -91,3 +113,4 @@ Case 2:
 5) Log file: 
 
 6) Outcome: No error in log and attributes value in database should equal total request
+
