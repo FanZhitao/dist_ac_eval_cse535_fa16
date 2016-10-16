@@ -156,9 +156,9 @@ class Worker(process):
         return resp
 
     def fulfill_obligation(rule:Element, sub_or_res:str, attrs_to_update:dict):
-        if sub_or_res in rule:
-            attribute_element = rule.find(sub_or_res)
-            attributes = attribute_element.attrib
+        obligation_element = rule.find(sub_or_res)
+        if obligation_element != None:
+            attributes = obligation_element.attrib
             for attribute_name in attributes:
                 value_to_update = attributes[attribute_name]
                 # different update value forms
