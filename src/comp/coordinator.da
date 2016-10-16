@@ -29,9 +29,9 @@ class Coordinator(process):
 
     def receive(msg=('prepare', router, subattrs, resattrs)):
         """
-        SC/RC: Receive route table from master process
+        SC/RC: Receive route table and subject/resource attribute list from master process
         """
-        log.debug("Received route table")
+        log.debug("Received route table and subject/resource attribute list")
         self.router = router
         self.scadmin.init_subcache(subattrs)
         self.rcadmin.init_rescache(resattrs)
@@ -154,16 +154,20 @@ class Coordinator(process):
             pass
 
     def generate_global_id(req):
-        #if req.id is None: # reuse same id for rc track and cleanup
+        """
+        Generate global ID via IdGen utility
+        """
         req.id = self.idgen.next()
         log.info('SC - Assign globalID=[%s] to #seq=[%s]', req.id, req.seq)
 
     def setup_admin_sc(req):
+        """
+        Setup state machine in Admin and transit state to 'reqapp'
+        """
         self.scadmin.setup(req)
         tattrs = self.scadmin.tattr_cache(req.subject)
         sm = self.scadmin.states[req.id]
         sm.reqapp(tattrs)
-        self.scadmin.push_into_queue(req.id)
 
     def setup_admin_rc(req):
         if req.id in self.rcadmin.states:
@@ -174,6 +178,9 @@ class Coordinator(process):
         sm.reqeval(attrs)
 
     def prepare_evalreq_sc(req, p):
+        """
+        Prepare parameter in evaluation request
+        """
         if req.app is None: # app isn't None if request from restart
             req.app = p
         req.subattr = dict()

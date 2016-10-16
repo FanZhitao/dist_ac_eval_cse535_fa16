@@ -8,6 +8,9 @@ from state.statemac import StateMac
 
 log = logging.getLogger("Admin")
 
+"""
+ A Facade to access low-level class such as Cache and State Machine.
+"""
 class Admin:
 
     def __init__(self, db):
@@ -24,6 +27,8 @@ class Admin:
         self.states[req.id] = StateMac(req)
 
     def init_subcache(self, subattrs):
+        # subattrs is None means current Coordinator has no SC/RC role
+        # So there is no need to preload data into cache
         if subattrs is not None:
             self.cache.init_subcache(subattrs)
 
@@ -31,7 +36,8 @@ class Admin:
         if resattrs is not None:
             self.cache.init_rescache(resattrs)
 
-    def clean_state(self, reqid): # keep state for dependency check and restart
+    def clean_state(self, reqid):
+        # keep state for dependency check and restart
         self.states[reqid].subdep = None
         self.states[reqid].resdep = None
         self.states[reqid].subrattr = None

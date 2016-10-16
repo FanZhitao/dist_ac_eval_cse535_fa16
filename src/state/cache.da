@@ -4,6 +4,9 @@ import time
 
 log = logging.getLogger("Coordinator")
 
+"""
+ Cache manager of the tentative cache, subject database cache and resource database cache.
+"""
 class Cache:
 
     def __init__(self):
@@ -38,7 +41,7 @@ class Cache:
         log.info('RC - Init resource cache [%s]', pprint.pformat(self.rescache))
 
     def query_tattr(self, subid):
-        if subid not in self.tattrs: # TODO: need locking here?
+        if subid not in self.tattrs:
             # load data of specific subject from DB
             log.warn("SC - Subject [%s] doesn't exist in cache", subid)
         return self.tattrs[subid]
