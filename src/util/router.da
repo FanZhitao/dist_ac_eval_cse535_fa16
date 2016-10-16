@@ -45,7 +45,7 @@ class Router:
         log.debug('Router table of resource %s', pprint.pformat(self.rcmap))
 
     def search_free_co(self, free, occupy):
-        log.info('free=%d occupy=%s', free, pprint.pformat(occupy))
+        log.debug('free=%d occupy=%s', free, pprint.pformat(occupy))
         for i in range(len(occupy)):
             if occupy[i] is False:
                 occupy[i] = True

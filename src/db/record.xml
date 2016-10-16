@@ -3,4 +3,5 @@
     <subject id="LeBron" position="employee" history="empty"/>
     <resource id="bank A"/>
     <resource id="bank B"/>
+    <resource id="bank C"/>
 </data>

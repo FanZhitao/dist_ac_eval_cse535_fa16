@@ -49,6 +49,7 @@ class StateMac:
             if depid is None:
                 continue
 
+            #log.info('##### dep %s', pprint.pformat(deps[depid].state))
             depstate = deps[depid].state
             if depstate == State.restart:
                 log.warn("***** Conflict *****: Request #seq-[%d] depends on tentative-update #seq-[%d] which failed on attr-[%s]", self.seq, deps[depid].seq, attr)
@@ -116,5 +117,5 @@ class StateMac:
 
             if issafe:
                 log.info('SC - Rollback attribute value from [%s] to [%s]', tattr.get(attr), subcache.get(attr))
-                tattr[attr] = subcache.get(attr) # no copy, since tuple is immutable
+                tattr[attr] = subcache[attr] # no copy, since tuple is immutable
 

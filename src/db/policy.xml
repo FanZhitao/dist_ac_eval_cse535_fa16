@@ -22,6 +22,12 @@
 		<resourceCondition id="bank B"/>
 		<action name="read"/>
 	</rule>
+    <rule name="access bank C after bank A">
+		<subjectCondition position="employee" history="bank A"/>
+		<resourceCondition id="bank C"/>
+		<action name="read"/>
+		<subjectUpdate history="bank C"/>
+	</rule>
 	<rule name="customers collectively can view each movie at most 5 times">
 		<subjectCondition position="customer"/>
 		<resourceCondition type="movie" viewCount="&lt;5"/>
