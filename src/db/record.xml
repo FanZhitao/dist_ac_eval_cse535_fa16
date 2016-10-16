@@ -1,6 +1,6 @@
 <data>
-    <subject id="Leo" position="employee"/>
-    <subject id="LeBron" position="employee"/>
+    <subject id="Leo" position="employee" history="empty"/>
+    <subject id="LeBron" position="employee" history="empty"/>
     <resource id="bank A"/>
     <resource id="bank B"/>
 </data>

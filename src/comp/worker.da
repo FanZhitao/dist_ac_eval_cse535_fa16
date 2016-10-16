@@ -48,24 +48,29 @@ class Worker(process):
         matchedRule = None
 
         for rule in policy.iter('rule'): # rule is an ElementTree instance
-            log.info("Checking rule [%s]", rule.attrib['name'])
+            #log.info("Trying to match rule [%s]", rule.attrib['name'])
             # check if conditions satisfy the current rule
             should_try_next_rule = False # flag used to continue outter for loop
 
             # subject
-            should_try_next_rule = not doAttributesMatch(rule.find('subjectCondition'), req.subattr, req)
+            should_try_next_rule = not do_attributes_match(rule.find('subjectCondition'), req.subattr, req)
             if should_try_next_rule == True:
                 continue
+            #log.info("Subject condition satisfied.")
 
             # resource
-            should_try_next_rule = not doAttributesMatch(rule.find('resourceCondition'), req.resattr, req)
+            should_try_next_rule = not do_attributes_match(rule.find('resourceCondition'), req.resattr, req)
             if should_try_next_rule == True:
                 continue
+            #log.info("Resource condition satisfied.")
 
             # action
             action_rule = rule.find('action')
+            action_rule = action_rule.attrib['name']
+            #log.info("Comparing action in rule: %s with %s", action_rule, req.action)
             if action_rule == req.action:
                 # all subject, resource, and action satisfied
+                #log.info("Action matched.")
                 log.info("Corresponding rule found: [%s]. granting access...", rule.attrib['name'])
                 resp.decision = True
                 matchedRule = rule
@@ -73,14 +78,16 @@ class Worker(process):
 
         return (resp, matchedRule)
 
-    def doAttributesMatch(condition:dict, attributes:dict, req:EvalReq):
-        log.info("Comparing [%s] with [%s]", condition.attrib, attributes)
+    def do_attributes_match(condition:dict, attributes:dict, req:EvalReq):
+        #log.info("Comparing rule %s with %s", condition.attrib, attributes)
         for attribute_name in iter(condition.attrib):
-            if attribute_name not in attributes:
+            if attribute_name not in attributes.keys():
                 # keys do not match
+                #log.info('Key "%s" not found', attribute_name)
                 return False
 
             # keys match, then check values
+            #log.info('Key "%s" mathced, comparing values.', attribute_name)
             value_condition = condition.attrib[attribute_name]
             value_attribute = attributes[attribute_name]
             # need to deal with different value forms
@@ -146,6 +153,7 @@ class Worker(process):
         fulfill_obligation(rule, 'subjectUpdate', resp.subwattr)
         # resource attributes update
         fulfill_obligation(rule, 'resourceUpdate', resp.reswattr)
+        return resp
 
     def fulfill_obligation(rule:Element, sub_or_res:str, attrs_to_update:dict):
         if sub_or_res in rule:
@@ -161,10 +169,12 @@ class Worker(process):
                     if not attribute_name in attrs_to_update:
                         attrs_to_update[attribute_name] = 0
                     attrs_to_update[attribute_name] += 1
+                    log.info("Obligation: %s=%s. New value: %d", attribute_name, value_to_update, attrs_to_update[attribute_name])
                     continue
 
                 # case 2: constant -> write (or overwrite) the value
                 attrs_to_update[attribute_name] = value_to_update
+                log.info("Obligation: %s=%s. New value: %s", attribute_name, value_to_update, attrs_to_update[attribute_name])
 
 def main():
     # test cases to simlulate messages from resource coordinators
