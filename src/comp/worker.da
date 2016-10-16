@@ -45,7 +45,7 @@ class Worker(process):
         log.info("Start to evaluate req: [%d]", req.seq)
         resp = EvalResp(req) # construct response based on request
         resp.decision = False
-        matchedRule = None
+        matched_rule = None
 
         for rule in policy.iter('rule'): # rule is an ElementTree instance
             log.debug("Trying to match rule [%s]", rule.attrib['name'])
@@ -73,10 +73,10 @@ class Worker(process):
                 log.debug("Action matched.")
                 log.info("Corresponding rule found: [%s]. granting access...", rule.attrib['name'])
                 resp.decision = True
-                matchedRule = rule
+                matched_rule = rule
                 break
 
-        return (resp, matchedRule)
+        return (resp, matched_rule)
 
     def do_attributes_match(condition:Element, attributes_record:dict, req:EvalReq):
         log.debug("Comparing rule %s with %s", condition.attrib, attributes_record)
@@ -143,11 +143,11 @@ class Worker(process):
         # subject attributes
         for attribute_name in req.subattr:
             resp.subrattr.append(attribute_name) # read attributes
-            resp.subwattr[attribute_name] = req.subattr[attribute_name] # write attributes with initial values from request
+            resp.subwattr[attribute_name] = req.subattr.get(attribute_name) # write attributes with initial values from request
         # resource attributes
         for attribute_name in req.resattr:
             resp.resrattr.append(attribute_name) # read attributes
-            resp.reswattr[attribute_name] = req.resattr[attribute_name] # write attributes
+            resp.reswattr[attribute_name] = req.resattr.get(attribute_name) # write attributes
 
         # Modify write attributes according to obligation
         # subject attributes update
@@ -157,11 +157,14 @@ class Worker(process):
         return resp
 
     def fulfill_obligation(rule:Element, sub_or_res:str, attrs_to_update:dict):
+        log.debug('Checking if %s obligation exists in rule:%s.', sub_or_res, rule) 
         obligation_element = rule.find(sub_or_res)
         if obligation_element != None:
+            log.debug("Fulfilling obligation.")
             attributes = obligation_element.attrib
             for attribute_name in attributes:
                 value_to_update = attributes[attribute_name]
+                log.debug("rule: %s=%s", attribute_name, value_to_update)
                 # different update value forms
                 # case 1: ++ or --
                 if value_to_update == '++' or value_to_update == '--':

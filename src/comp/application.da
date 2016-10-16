@@ -13,7 +13,7 @@ log = logging.getLogger("Application")
 """
 class Application(process):
 
-    def setup(router:Router, seqfrom:int, seqto:int, cfg, subjects, resources):
+    def setup(router:Router, seqfrom:int, seqto:int, cfg, subjects, resources, actions):
         pass
         log.info('Application [%s] is up', self)
 
@@ -38,7 +38,7 @@ class Application(process):
             if prefix + '.action' in cfg:
                 req.action = cfg[prefix + '.action']
             else:
-                req.action = 'read'
+                req.action = random.choice(actions)
 
             # 2.Send to correspondent subject coordinator
             sc = router.get_sc(req.subject)
