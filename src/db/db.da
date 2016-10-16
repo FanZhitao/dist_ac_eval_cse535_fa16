@@ -69,6 +69,7 @@ class DB(process):
 
     def receive(msg=('getsubs'), from_=p):
         log.info("Received subjects request from coordinator [%s]", p)
+        log.info("Send subjects back to coordinator [%s]", p)
         send(('subs', self.subrecords), to=p)
 
     def receive(msg=('getresos'), from_=p):
@@ -90,12 +91,12 @@ class DB(process):
         id = next(iter(attrs_recved))
         record_in_db = attrs_in_db.get(id)
         record_received = attrs_recved.get(id)
-        log.info("Trying to write (id=%s) with attributes %s if necessary.", id, record_received)
+        log.debug("Trying to write (id=%s) with attributes %s if necessary.", id, record_received)
         # Write if 1. no such record exists currently,
         #       or 2. received record is newer then current in database.
         if record_in_db == None:
-            log.info("Writing new record.")
-            write(attrs_in_db, 'id', record_received)
+            log.debug("Writing new record.")
+            write(attrs_in_db, id, record_received)
         else:
             tuple_temp = next(iter(record_in_db.values()))
             value_in_db = tuple_temp[0]
@@ -103,13 +104,13 @@ class DB(process):
             tuple_temp = next(iter(record_received.values()))
             value_received = tuple_temp[0]
             ts_received = tuple_temp[1]
-            log.info("Record existed, comparing timestamps (database: %f vs. attentive: %f)", ts_in_db, ts_received)
+            log.debug("Record existed, comparing timestamps (database: %f vs. attentive: %f)", ts_in_db, ts_received)
             if ts_in_db < ts_received:
-                write(attrs_in_db, 'id', record_received)
+                write(attrs_in_db, id, record_received)
 
         # delay the visibility of updates
         l = random.randrange(minDBlatency, maxDBlatency, 1)
-        log.info("Delay %d seconds...", l)
+        #log.debug("Delay %d seconds...", l)
         #time.sleep(l)
 
     def convert(record:Element, key:str):
@@ -126,4 +127,4 @@ class DB(process):
 
     def write(attributes, key:str, value):
         attributes[key] = value
-        log.info("Writing (%s, %s) finished.", str, value)
+        log.debug("Writing (%s, %s) finished.", str, value)
