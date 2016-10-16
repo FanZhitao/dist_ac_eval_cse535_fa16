@@ -26,7 +26,7 @@ class Cache:
         self.subcache[subid] = dict()
         for attr, val in data.items():
             ts = time.time()
-            self.tattrs[subid][attr] = (val, ts, None)
+            self.tattrs[subid][attr] = (val, ts, None) # Initially, reqid field are all None
             self.subcache[subid][attr] = (val, ts, None)
         log.info('SC - \nInit tentative and subject cache \n%s', pprint.pformat(subattrs))
 

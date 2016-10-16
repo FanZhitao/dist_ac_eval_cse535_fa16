@@ -90,14 +90,17 @@ run()
     r.assign(subjects, resources, co)
 
     # 5.Prepare coordinator with router table and subject/resource list
-    submap, resmap = <subid,co> and <resid,co> which invert key and value in router.scmap and rcmap
-    for c in co list
-        subattrs, resattrs = None, None
-        if c in submap
-            subattrs = (submap[c], subjects[submap[c]])
-        elif c in resmap
-            resattrs = (resmap[c], resources[resmap[c]])
+    for c in co
+        subattrs = dict of <subid, <attr, val>>
+        resattrs = dict of <resid, <attr, val>>
+        for sub, c2 in router.scmap
+            if c == c2
+                subattrs[sub] = subjects[sub]
+        for res, c2 in router.rcmap
+            if c == c2
+                resattrs[res] = resources[res]
         send(('prepare', router, subattrs, resattrs), to=c)
+    wait shortly for all coordinators to get ready
 
     # 6.Create application as client and start testing
     apps = create Applications with specific number in config
@@ -132,18 +135,18 @@ assign(subjects, resources, co)
         idx = hash(sub) % total
         if occupy[idx] is True and free > 0
             idx = search_free_co(free, occupy)
-            free--
         scmap[sub] = co[idx]
         occupy[idx] = True
+        free--
 
     # 2.Assign resource to coordinator, same as above
     for res in resources
         idx = hash(res) % total
         if occupy[idx] is True and free > 0
             idx = search_free_co(free, occupy)
-            free--
         rcmap[res] = co[idx]
         occupy[idx] = True
+        free--
 
 # Search free list to find next one
 search_free_co(free, occupy)
@@ -315,7 +318,8 @@ set_state(reqid, state)
 
 commit_sub_to_db(resp)
     scadmin.commit_sub(resp.subject)
-    send(('writesubattr', scadmin.cache.subcache), to=scadmin.db)
+    subcommit = copy from scadmin.cache.subcache without reqid
+    send(('writesubattr', subcommit), to=scadmin.db)
 ```
 
 Resource Coordinator
@@ -386,12 +390,12 @@ setup(req)
 # subattrs is None means current Coordinator has no SC/RC role
 # So there is no need to preload data into cache
 init_subcache(subattrs)
-    if subattrs is not None
-        cache.init_subcache(subattrs)
+    for sub, attrs in subattrs
+        cache.init_subcache((sub, attrs))
 
 init_rescache(resattrs)
-    if resattrs is not None
-        cache.init_rescache(resattrs)
+    for res, attrs in resattrs
+        cache.init_rescache((res, attrs))
 
 clean_state(reqid)
     states[reqid].subdep = None
@@ -439,6 +443,7 @@ tattr: Tentative update cache - <subid, <attr, (val, ts, reqid)>>
 subcache: Subject DB cache - <subid, <attr, (val, ts, reqid)>>
 rescache: Resource DB cache - <resid, <attr, (val, ts)>>
 
+# Initially, reqid field are all None
 init_subcache(subattrs)
     subid = subattrs[0]
     data = subattrs[1]
