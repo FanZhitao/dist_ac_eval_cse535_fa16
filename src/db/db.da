@@ -37,7 +37,7 @@ class DB(process):
         log.info("DB setup finished.")
 
     def run():
-        log.info("DB %s is up.", self)
+        log.info("%s is up.", self)
         while True:
             await(received(()))
 
@@ -101,7 +101,7 @@ class DB(process):
             attr = element.attrib
             if 'id' in attr:
                 result[attr['id']] = attr
-                result[attr['id']].pop('id')
+                #result[attr['id']].pop('id')
         return result
 
     def write(attributes, key:str, value):

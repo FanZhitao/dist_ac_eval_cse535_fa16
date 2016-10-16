@@ -6,7 +6,7 @@ class EvalResp(Response):
     def __init__(self, req = None):
         Response.__init__(self, req)
         self.decision = True
-        self.subrattr = dict()
+        self.subrattr = list()
         self.subwattr = dict()
-        self.resrattr = dict()
+        self.resrattr = list()
         self.reswattr = dict()
