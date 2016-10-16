@@ -541,16 +541,94 @@ rollback(tattr, subcache, q)
 
 
 ### (V) Worker
--- Step 7: Evaluates the policy for this request
--- Step 8: Sends the result to the coordinator responsible for the subject
 
-evaluatePolicy(sc, req):
-    decision = doEvaluate(DB, req)
-    rAttr = getReadAttr(DB, req)
-    wAttr = getUpdateAttr(DB, req)
-    resp = createResponse(req, decision, rAttr, wAttr)   --step 7
-    send(sc, resp)                                       --step 8
+## Major task: evaluation request.
 
+init():
+    send('get_policy', to=database)
+
+## message handlers
+
+# policy response
+receive(msg=('policy', p), from=database):
+    policy = p 
+
+# resource coordinator assigning evaluation message
+receive(msg=('assign_evalutaion', request), from=rc):
+    response, matched_rule = evaluate(request)
+    if response.decision == True:
+        # udpate write attributes per obligation in matched rule
+        fulfill_obligation(matched_rule, response)
+    # send evaluation result to corresponding subject coordinator
+    send(msg=('evaluation_result', response), to=request.sc)
+
+## helper functions
+
+evaluate(EvalReq request):
+    response = new EvalResp()
+    for rule in policy.getAll('rule'):
+        result = try_to_match(rule, request.attributes)
+        if result:
+            matched_rule = rule
+            break # found the corresponding rule and no need to continue the loop
+
+    if matched_rule == null:
+        # no corresponding rule found
+        # therefore, request will be denied
+        # no obligation will be fulfilled, either.
+        response.decision = False
+    else:
+        response.decision = True
+
+    return response, matched_rule
+
+bool try_to_match(dict attrs_in_rule, dict attrs_in_req):
+    for (key, value) in attrs_in_rule:
+        if attrs_in_req.find(key, value) == failed:
+            return False
+    # if reaches this line, it means that all subject, resource,
+    # and action condition satisfied
+    return True
+
+fulfill_obligation(dict rule, dict write_attributes):
+    if rule.contains('subjectUpdate' or 'resourceUpdate'):
+        for entry in rule:
+            # format [which_attribute]=['++' / '--']
+            update(write_attributes[entry.key], entry.value)
 
 ### (VI) Database Emulator
 
+## Dealing with reads and writes requested by coodinators
+## and read policy and records requests from workers
+
+init():
+    rules = parse(policy_filename)
+    sub_records, res_records, action_list = parse(init_data_filename)
+    minDBlatency, maxDBlatency = load(config_filename)
+
+run():
+    # listen to read and write record messages from coordinators and workers
+    await(received((message))
+
+# read message handlers
+receive(msg='read_subject', sub_id):
+    return sub_records[sub_id]
+
+receive(msg='read_resource', res_id):
+    return res_records[res_id]
+
+# write message handlers
+receive(msg='write_subject', new_record):
+    l = random(minDBlatency, maxDBlatency)
+    delay(l)
+    # ensure record received is newer than that in database
+    id = new_record.get('id')
+    if new_record.get('timestamp') > sub_records[id].get('timestamp'):
+        sub_records[id] = new_record
+
+receive(msg='write_resource', new_record):
+    l = random(minDBlatency, maxDBlatency)
+    delay(l)
+    id = new_record.get('id')
+    if new_record.get('timestamp') > res_records[id].get('timestamp'):
+        res_records[id] = new_record
