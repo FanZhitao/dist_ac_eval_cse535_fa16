@@ -1,7 +1,13 @@
 <policy>
-	<rule name="shoot">
+	<rule name="shoot1">
 		<subjectCondition position="forward"/>
-		<resourceCondition id="goal"/>
+		<resourceCondition id="goal1"/>
+		<action name="shoot"/>
+		<subjectCondition goals="++"/>
+	</rule>
+	<rule name="shoot2">
+		<subjectCondition position="forward"/>
+		<resourceCondition id="goal2"/>
 		<action name="shoot"/>
 		<subjectCondition goals="++"/>
 	</rule>

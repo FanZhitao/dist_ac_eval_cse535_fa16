@@ -6,9 +6,9 @@ Here is the instructions to build and run your system:
 
 Please run bin/startup.sh. This script makes all source file using Makefile first and then run Master using DistAlgo runtime with parameters such as log location, log level, workload and program configuration file.
 
-The default workload is "workload1". Please run bin/startup.sh [workloadX] for other test cases. By now we have workload1 ~ workload5 which are described in testing.txt.  
+The default workload is "workload1". Please run bin/startup.sh [workloadX] for other test cases. By now we have workload1 ~ workload7 which are described in testing.txt.  
 
-For example: To perform stress test which is workload5, please run: bin/startup.sh workload5
+For example: To perform functional test which is workload1, please run: bin/startup.sh workload1
 
 
 ## 2.MAIN FILES
@@ -22,6 +22,8 @@ src/
 │   └── worker.da      : Worker process with evaluation engine inside.
 ├── db                 : Database emulator, record initial file and policy file.
 │   ├── db.da
+│   ├── stress_test_record.xml
+│   ├── stress_test_policy.xml
 │   ├── record.xml
 │   └── policy.xml
 ├── master.da          : The bootstrap process which read configuration file and start up all other processes to make whole system ready for test.

@@ -1,4 +1,5 @@
 import logging
+import pprint
 import queue
 import threading
 #from collections import deque
@@ -27,14 +28,12 @@ class Admin:
         self.states[req.id] = StateMac(req)
 
     def init_subcache(self, subattrs):
-        # subattrs is None means current Coordinator has no SC/RC role
-        # So there is no need to preload data into cache
-        if subattrs is not None:
-            self.cache.init_subcache(subattrs)
+        for sub, attrs in subattrs.items():
+            self.cache.init_subcache((sub, attrs))
 
     def init_rescache(self, resattrs):
-        if resattrs is not None:
-            self.cache.init_rescache(resattrs)
+        for res, attrs in resattrs.items():
+            self.cache.init_rescache((res, attrs))
 
     def clean_state(self, reqid):
         # keep state for dependency check and restart

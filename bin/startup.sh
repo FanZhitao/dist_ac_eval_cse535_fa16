@@ -11,7 +11,7 @@ else
     level="info"
 fi
 
-if [ "$workload" = "workload5" ]; then
+if [ "$workload" = "workload7" ]; then
     config="config/stresstest.config"
 else
     config="config/test.config"

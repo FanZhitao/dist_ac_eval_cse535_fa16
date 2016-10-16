@@ -4,5 +4,6 @@
     <subject id="Suarez" position="forward"/>
     <subject id="Ronaldino" position="forward"/>
     <subject id="Eto'o" position="forward"/>
-    <resource id="goal"/>
+    <resource id="goal1"/>
+    <resource id="goal2"/>
 </data>

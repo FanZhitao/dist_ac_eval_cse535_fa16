@@ -1,7 +1,46 @@
 
-Please note the subject1, subject2, resource1 and resource2 refer to Leo, LeBron, Bank A and Bank B in real data. Here we keep the name for better explaination.
+Please note that: subject1, subject2, resource1 and resource2 refer to Leo, LeBron, Bank A and Bank B in real data. 
+                  Here we keep the name for better explaination.
 
-===== Conflict Test =====
+
+===== Functional Test =====
+
+== Case 1: Evaluation Succeed ==
+
+1) Test program could correctly evaluate policy.
+
+2) Workload/Scenario:
+
+ Request #1: Carry subject1 and resource1
+
+3) Configuration: [workload1] section in config/test.config.
+
+4) Other information: Execute bin/startup.sh workload1
+
+5) Log file: logs/workload1-evaluation-succeed.log 
+
+6) Outcome: No conflict or failure happened. The evaluation result is supposed to be True.
+
+
+== Case 2: Evaluation Failed ==
+
+1) Test program could correctly evaluate policy with history.
+
+2) Workload/Scenario:
+
+ Request #1: Carry subject1 and resource2 (which only succeed if resource1 access happened per policy rule)
+
+3) Configuration: [workload2] section in config/test.config.
+
+4) Other information: Execute bin/startup.sh workload2
+
+5) Log file: logs/workload1-evaluation-failed.log 
+
+6) Outcome: No conflict happened. But due to constraint in policy, the evaluation result is supposed to be False.
+
+
+
+===== Conflict Handle Test =====
 
 == Case 1: Subject Update Conflict ==
 
@@ -15,11 +54,11 @@ Please note the subject1, subject2, resource1 and resource2 refer to Leo, LeBron
  Request #2: Carry subject1, resource2
              Read subject1 and update subject1
 
-3) Configuration: [workload1] section in config/test.config.
+3) Configuration: [workload3] section in config/test.config.
 
-4) Other information: Execute bin/startup.sh workload1
+4) Other information: Execute bin/startup.sh workload3
 
-5) Log file: logs/workload1-subject-conflict.txt
+5) Log file: logs/workload3-subject-conflict.log
 
 6) Outcome: One of the request would detect a conflict before updating tentative cache. 
             Then the "loser" would be simply restarted and try again.
@@ -39,11 +78,11 @@ Please note the subject1, subject2, resource1 and resource2 refer to Leo, LeBron
 
  Delay: Block request #1 and #2 in each SC separately before sending commit request to the same RC.
 
-3) Configuration: [workload2] section in config/test.config.
+3) Configuration: [workload4] section in config/test.config.
 
-4) Other information: Execute bin/startup.sh workload2
+4) Other information: Execute bin/startup.sh workload4
 
-5) Log file: logs/workload1-resource-conflict.txt
+5) Log file: logs/workload4-resource-conflict.log
 
 6) Outcome: One of the request would detect a conflict caused by the update of the other. 
             The "loser" has to be rollback (tentative cache) and restarted to try again. 
@@ -63,11 +102,11 @@ Please note the subject1, subject2, resource1 and resource2 refer to Leo, LeBron
 
  Delay: Block #1 and #2 in each SC separately before sending commit request to same RC.
 
-3) Configuration: [workload3] section in config/test.config.
+3) Configuration: [workload5] section in config/test.config.
 
-4) Other information: Execute bin/startup.sh workload3
+4) Other information: Execute bin/startup.sh workload5
 
-5) Log file: logs/workload1-tentative-conflict-restart.txt
+5) Log file: logs/workload5-tentative-conflict-restart.log
 
 6) Outcome: One of the request would detect a conflict caused by the update of the other. 
             The "loser" has to be rollback (tentative cache) and restarted to try again. 
@@ -88,14 +127,15 @@ Please note the subject1, subject2, resource1 and resource2 refer to Leo, LeBron
  Delay: Send request #2 after #1 at interval 1 second to force #2 read #1 tentative update.
         Block #1 before sending commit request to RC to make #2 wait.
 
-3) Configuration: [workload4] section in config/test.config.
+3) Configuration: [workload6] section in config/test.config.
 
-4) Other information: Execute bin/startup.sh workload4
+4) Other information: Execute bin/startup.sh workload6
 
-5) Log file: logs/workload1-tentative-conflict-delay.txt
+5) Log file: logs/workload6-tentative-conflict-delay.log
 
 6) Outcome: The subsequent request #2 would detect a conflict caused by the update of the #1 which isn't complete. 
             Request #2 will wait until #1 complete, then #2 continue. 
+
 
 
 ===== Stress Test =====
@@ -106,7 +146,7 @@ Please note the subject1, subject2, resource1 and resource2 refer to Leo, LeBron
 
  Request #1 ~ 100: Carry subject and resource randomly chosen from list
 
-3) Configuration: [workload5] section in config/stresstest.config.
+3) Configuration: [workload7] section in config/stresstest.config.
 
 4) Other information: Execute bin/startup.sh workload5 > stress.log 2>&1
 

@@ -26,25 +26,26 @@ class Router:
             idx = hash(sub) % total
             if occupy[idx] is True and free > 0:
                 idx = self.search_free_co(free, occupy)
-                free -= 1
             log.info("Assign subject=[%s] to coordinator=[%s]", sub, co[idx]) 
             self.scmap[sub] = co[idx]
             occupy[idx] = True
+            free -= 1
 
         # 2.Assign resource to coordinator, same as above if conflict
         for res in resources:
             idx = hash(res) % total
             if occupy[idx] is True and free > 0:
                 idx = self.search_free_co(free, occupy)
-                free -= 1
             log.info("Assign resource=[%s] to coordinator=[%s]", res, co[idx]) 
             self.rcmap[res] = co[idx]
             occupy[idx] = True
+            free -= 1
 
         log.debug('Router table of subject %s', pprint.pformat(self.scmap))
         log.debug('Router table of resource %s', pprint.pformat(self.rcmap))
 
     def search_free_co(self, free, occupy):
+        log.info('free=%d occupy=%s', free, pprint.pformat(occupy))
         for i in range(len(occupy)):
             if occupy[i] is False:
                 occupy[i] = True

@@ -20,7 +20,6 @@ class Cache:
         self.rescache = dict()
 
     def init_subcache(self, subattrs):
-        #data = {'attr1': 1, 'attr2': 0}
         subid = subattrs[0]
         data = subattrs[1]
         self.tattrs[subid] = dict()
@@ -29,20 +28,18 @@ class Cache:
             ts = time.time()
             self.tattrs[subid][attr] = (val, ts, None)
             self.subcache[subid][attr] = (val, ts, None)
-        log.info('SC - Init tentative and subject cache [%s]', pprint.pformat(self.tattrs))
+        log.info('SC - \nInit tentative and subject cache \n%s', pprint.pformat(subattrs))
 
     def init_rescache(self, resattrs):
-        #data = {'attr3': 3}
         resid = resattrs[0]
         data = resattrs[1]
         self.rescache[resid] = dict()
         for attr, val in data.items():
             self.rescache[resid][attr] = (val, time.time())
-        log.info('RC - Init resource cache [%s]', pprint.pformat(self.rescache))
+        log.info('RC - \nInit resource cache \n%s', pprint.pformat(resattrs))
 
     def query_tattr(self, subid):
         if subid not in self.tattrs:
-            # load data of specific subject from DB
             log.warn("SC - Subject [%s] doesn't exist in cache", subid)
         return self.tattrs[subid]
 
@@ -56,7 +53,7 @@ class Cache:
     def commit_tattr(self, subid):
         for attr, (newval, ts, reqid) in self.tattrs[subid].items():
             self.subcache[subid][attr] = (newval, ts, reqid)
-        log.info('##### Subject [%s] cache: %s', subid, pprint.pformat(self.subcache))
+        #log.info('##### Subject [%s] cache: %s', subid, pprint.pformat(self.subcache))
 
     def query_rescache(self, resid):
         if resid not in self.rescache:

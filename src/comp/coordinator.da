@@ -210,7 +210,12 @@ class Coordinator(process):
     def commit_sub_to_db(resp):
         self.scadmin.commit_sub(resp.subject)
         log.info("SC - Send subject tentative update attributes to db [%s]", self.scadmin.db)
-        send(('writesubattr', self.scadmin.cache.subcache), to=self.scadmin.db)
+        subcommit = dict()
+        for sub, attrs in self.scadmin.cache.subcache.items():
+            subcommit[sub] = dict()
+            for attr, (val, ts, _) in attrs.items():
+                subcommit[sub][attr] = (val, ts)
+        send(('writesubattr', subcommit), to=self.scadmin.db)
 
     def commit_res_to_db(req):
         self.rcadmin.commit_res(req.resource, req.reswattr)

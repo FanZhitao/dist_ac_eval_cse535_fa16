@@ -4,6 +4,7 @@ import random
 import logging
 import asyncio
 import time
+import pprint
 
 from msg.commitresp import CommitResp
 
@@ -65,6 +66,11 @@ class DB(process):
         log.info("Received resources request from coordinator [%s]", p)
         log.info("Send resources back to coordinator [%s]", p)
         send(('resos', self.resrecords), to=p)
+
+    def receive(msg=('dumpdb'), from_=p):
+        log.info("\n" + "=" * 10 + " Database Data " + "=" * 10 
+                    + "\n Subject %s\n Resource %s\n", 
+                        pprint.pformat(self.subattrs), pprint.pformat(self.resattrs))
 
     def handle_write_message(attrs_recved, attrs_in_db):
         id = next(iter(attrs_recved))
