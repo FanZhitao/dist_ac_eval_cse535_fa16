@@ -57,7 +57,7 @@ class Coordinator(process):
         """
         SC: Receive evaluation result from worker
         """
-        log.info("SC - Incoming evaluation response from RC: #seq=[%d], subrattr=[%s], subwattr=[%s], resrattr=[%s], reswattr=[%s]", resp.seq, resp.subrattr, resp.subwattr, resp.resrattr, resp.reswattr)
+        log.info("SC - Incoming evaluation response from worker: #seq=[%d], subrattr=[%s], subwattr=[%s], resrattr=[%s], reswattr=[%s]", resp.seq, resp.subrattr, resp.subwattr, resp.resrattr, resp.reswattr)
         delay(resp.seq, 'respeval')
 
         # If delay is necessary, wait for dependent request complete
@@ -75,11 +75,16 @@ class Coordinator(process):
             cleanup_admin_sc(resp)
             send(('reqapp', EvalReq(resp)), to=router.get_sc(resp.subject))
         else:
-            log.info('SC - No conflict found, update tattr cache: #seq=[%d]', resp.seq)
-            update_tattr(resp)
-            req = prepare_commitreq(resp)
-            log.info("SC - Send commit request to RC: #seq=[%d]\n", resp.seq)
-            send(('reqcommit', req), to=router.get_rc(req.resource))
+            log.info('SC - No conflict found.')
+            if resp.decision == True:
+                log.info('update tattr cache if the decision is True: #seq=[%d]', resp.seq)
+                update_tattr(resp)
+                req = prepare_commitreq(resp)
+                log.info("SC - Send commit request to RC: #seq=[%d]\n", resp.seq)
+                send(('reqcommit', req), to=router.get_rc(req.resource))
+            else:
+                log.info("No rule matched, send deny response to application.")
+                send(('respapp', resp.seq, False,), to=resp.app) 
 
     def receive(msg=('respcommit', resp,), from_=p):
         """
