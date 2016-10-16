@@ -60,7 +60,16 @@ class Coordinator(process):
         log.info("SC - Incoming evaluation response from worker: #seq=[%d], subrattr=[%s], subwattr=[%s], resrattr=[%s], reswattr=[%s]", resp.seq, resp.subrattr, resp.subwattr, resp.resrattr, resp.reswattr)
         delay(resp.seq, 'respeval')
 
-        # If delay is necessary, wait for dependent request complete
+        # 1.Policy doesn't explictly deny, so return immediately if no rule matched
+        if resp.decision == False:
+            log.info("No rule matched, send deny response to application.")
+            dequeue(resp.id)
+            cleanup_admin_sc(resp)
+            set_state(resp.id, State.complete)
+            send(('respapp', resp.seq, False,), to=resp.app) 
+            return
+
+        # 2.If delay is necessary, wait for dependent request complete
         while True:
             result, depid = is_tattr_or_sub_conflict(resp)
             if result != Conflict.delay:
@@ -68,23 +77,18 @@ class Coordinator(process):
             await(some(received(('respcommit', depresp)), has= depresp.id==depid))
             log.info('SC - Dependency [%s] complete, current request [%s] can continue!', depid, resp.id)
 
-        # Request RC to commit or restart current request if conflict found
+        # 3.Request RC to commit. Restart current request if RC report conflict
         if result == Conflict.yes:
             log.info('SC - Conflict found, restart: #seq=[%d]', resp.seq)
             dequeue(resp.id)
             cleanup_admin_sc(resp)
             send(('reqapp', EvalReq(resp)), to=router.get_sc(resp.subject))
         else:
-            log.info('SC - No conflict found.')
-            if resp.decision == True:
-                log.info('update tattr cache if the decision is True: #seq=[%d]', resp.seq)
-                update_tattr(resp)
-                req = prepare_commitreq(resp)
-                log.info("SC - Send commit request to RC: #seq=[%d]\n", resp.seq)
-                send(('reqcommit', req), to=router.get_rc(req.resource))
-            else:
-                log.info("No rule matched, send deny response to application.")
-                send(('respapp', resp.seq, False,), to=resp.app) 
+            log.info('SC - No conflict found, update tattr cache: #seq=[%d]', resp.seq)
+            update_tattr(resp)
+            req = prepare_commitreq(resp)
+            log.info("SC - Send commit request to RC: #seq=[%d]\n", resp.seq)
+            send(('reqcommit', req), to=router.get_rc(req.resource))
 
     def receive(msg=('respcommit', resp,), from_=p):
         """
