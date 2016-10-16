@@ -3,12 +3,12 @@
 		<subjectCondition position="forward"/>
 		<resourceCondition id="goal1"/>
 		<action name="shoot"/>
-		<subjectCondition goals="++"/>
+		<subjectUpdate goals="++"/>
 	</rule>
 	<rule name="shoot2">
 		<subjectCondition position="forward"/>
 		<resourceCondition id="goal2"/>
 		<action name="shoot"/>
-		<subjectCondition goals="++"/>
+		<subjectUpdate goals="++"/>
 	</rule>
 </policy>
