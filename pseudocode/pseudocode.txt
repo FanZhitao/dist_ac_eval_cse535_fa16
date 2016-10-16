@@ -220,6 +220,7 @@ Subject Coordinator: As the core process, Coordinator handles only high-level wo
 
 ```
 # 1.Handle request message from Application
+# Create context for current request
 receive(msg=('reqapp', req,), from_=p)
     generate_global_id(req)
     setup_admin_sc(req)
@@ -254,12 +255,14 @@ enqueue(reqid)
 
 # 2.Handle evaluation response from worker
 receive(msg=('respeval', resp), from_=p)
+    # If delay is necessary, wait for dependent request complete
     while True
         result, depid = is_tattr_or_sub_conflict(resp)
         if result != delay
             break
         await(some(received(('respcommit', depresp)), has= depresp.id==depid))
 
+    # Request RC to commit or restart current request if conflict found
     if result is yes which means conflict
         dequeue(resp.id)
         cleanup_admin_sc(resp)
@@ -286,6 +289,7 @@ prepare_commitresp(req)
     return CommitResp(req)
 
 # 3.Receive commit response from Resource Coordinator
+# Commit then respond application or rollback and restart if RC failed to commit due to conflict
 receive(msg=('respcommit', resp,), from_=p)
     if resp.conflict
         dequeue(resp.id)
@@ -318,15 +322,15 @@ Resource Coordinator
 
 ```
 # 1.Receive evaluation request from Subject Coordinator
+# Prepare request then send to work which is chosen in Round-Robin style
 receive(msg=('reqeval', req,), from_=p)
     setup_admin_rc(req)
     prepare_evalreq_rc(req, p)
-
-    # pick a worker in round robin style
     worker = next(iter(workers))
     send(('assigneval', req), to=worker)
 
 # 2.Receive commit request from Subject Coordinator
+# Commit then respond application or rollback and restart if RC failed to commit due to conflict
 receive(msg=('reqcommit', req,), from_=p)
     resp = prepare_commitresp(req)
     if is_res_conflict(req)
