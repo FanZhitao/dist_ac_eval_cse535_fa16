@@ -23,7 +23,7 @@ class Worker(process):
 
         # In case not received policy from database yet.
         if self.policy == None:
-            log.info("No policy received yet. Waiting for response from database.")
+            log.debug("No policy received yet. Waiting for response from database.")
             await(received(('records')))
 
         # Evaluate request and send the result back to subject coordinator.
@@ -33,12 +33,12 @@ class Worker(process):
             # Add read and write attributes into
             # resq.{subrattr, subwattr, resrattr, reswattr}.
             resp = add_read_write_attributes(req, resp, rule)
-        log.info("Send response to subject coordinator [%s]", req.sc)
+        log.info("Send response to subject coordinator [%s] (Decision=%s)", req.sc, resp.decision)
         send(('respeval', resp), to=req.sc)
 
     def receive(msg=('policy', policy), from_=p):
         log.info("Received policy data from database: %s", p)
-        log.info("policy: %s", policy)
+        log.debug("policy: %s", policy)
         self.policy = policy
 
     def evaluate(req:EvalReq):
@@ -48,7 +48,7 @@ class Worker(process):
         matchedRule = None
 
         for rule in policy.iter('rule'): # rule is an ElementTree instance
-            #log.info("Trying to match rule [%s]", rule.attrib['name'])
+            log.debug("Trying to match rule [%s]", rule.attrib['name'])
             # check if conditions satisfy the current rule
             should_try_next_rule = False # flag used to continue outter for loop
 
@@ -56,21 +56,21 @@ class Worker(process):
             should_try_next_rule = not do_attributes_match(rule.find('subjectCondition'), req.subattr, req)
             if should_try_next_rule == True:
                 continue
-            #log.info("Subject condition satisfied.")
+            log.debug("Subject condition satisfied.")
 
             # resource
             should_try_next_rule = not do_attributes_match(rule.find('resourceCondition'), req.resattr, req)
             if should_try_next_rule == True:
                 continue
-            #log.info("Resource condition satisfied.")
+            log.debug("Resource condition satisfied.")
 
             # action
             action_rule = rule.find('action')
             action_rule = action_rule.attrib['name']
-            #log.info("Comparing action in rule: %s with %s", action_rule, req.action)
+            log.debug("Comparing action in rule: %s with %s", action_rule, req.action)
             if action_rule == req.action:
                 # all subject, resource, and action satisfied
-                #log.info("Action matched.")
+                log.debug("Action matched.")
                 log.info("Corresponding rule found: [%s]. granting access...", rule.attrib['name'])
                 resp.decision = True
                 matchedRule = rule
@@ -78,18 +78,19 @@ class Worker(process):
 
         return (resp, matchedRule)
 
-    def do_attributes_match(condition:dict, attributes:dict, req:EvalReq):
-        #log.info("Comparing rule %s with %s", condition.attrib, attributes)
+    def do_attributes_match(condition:Element, attributes_record:dict, req:EvalReq):
+        log.debug("Comparing rule %s with %s", condition.attrib, attributes_record)
         for attribute_name in iter(condition.attrib):
-            if attribute_name not in attributes.keys():
+            if attribute_name not in attributes_record.keys():
                 # keys do not match
-                #log.info('Key "%s" not found', attribute_name)
+                log.debug('Key "%s" not found', attribute_name)
                 return False
 
             # keys match, then check values
-            #log.info('Key "%s" mathced, comparing values.', attribute_name)
+            log.debug('Key "%s" mathced, comparing values.', attribute_name)
             value_condition = condition.attrib[attribute_name]
-            value_attribute = attributes[attribute_name]
+            value_record = attributes_record.get(attribute_name)
+            log.debug('rule:%s vs record:%s', value_condition, value_record)
             # need to deal with different value forms
             # case 1: $subject.ATTRIBUTE or $resource.ATTRIBUTE
             if value_condition.startswith("$"):
@@ -104,7 +105,7 @@ class Worker(process):
                     # TODO: Throw invalid policy exception
                     pass
 
-                if value != value_attribute:
+                if value != value_record:
                     return False
 
             # case 2: <constant or >constant
@@ -116,7 +117,7 @@ class Worker(process):
 
                 # valid, then compare them
                 num_condition = int(num_str)
-                if value_attribute >= num_condition:
+                if value_record >= num_condition:
                     return False
 
             elif value_condition.startswith(">"):
@@ -127,11 +128,11 @@ class Worker(process):
 
                 # valid, then compare them
                 num_condition = int(num_str)
-                if value_attribute <= num_condition:
+                if value_record <= num_condition:
                     return False
 
             # case 3: constant
-            elif value_condition != value_attribute:
+            elif value_condition != value_record:
                 return False
 
         # all passed
@@ -169,12 +170,12 @@ class Worker(process):
                     if not attribute_name in attrs_to_update:
                         attrs_to_update[attribute_name] = 0
                     attrs_to_update[attribute_name] += 1
-                    log.info("Obligation: %s=%s. New value: %d", attribute_name, value_to_update, attrs_to_update[attribute_name])
+                    log.debug("Obligation: %s=%s. New value: %d", attribute_name, value_to_update, attrs_to_update[attribute_name])
                     continue
 
                 # case 2: constant -> write (or overwrite) the value
                 attrs_to_update[attribute_name] = value_to_update
-                log.info("Obligation: %s=%s. New value: %s", attribute_name, value_to_update, attrs_to_update[attribute_name])
+                log.debug("Obligation: %s=%s. New value: %s", attribute_name, value_to_update, attrs_to_update[attribute_name])
 
 def main():
     # test cases to simlulate messages from resource coordinators
