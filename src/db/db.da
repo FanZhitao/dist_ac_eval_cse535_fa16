@@ -42,8 +42,8 @@ class DB(process):
         if not minDBlatency.isnumeric() or not maxDBlatency.isnumeric():
             # TODO: throw exception
             pass
-        minDBlatency = float(minDBlatency)
-        maxDBlatency = float(maxDBlatency)
+        minDBlatency = int(minDBlatency)
+        maxDBlatency = int(maxDBlatency)
         log.debug("DB setup finished.")
 
     def run():
@@ -111,7 +111,7 @@ class DB(process):
         # delay the visibility of updates
         l = random.randrange(minDBlatency, maxDBlatency, 1)
         log.debug("Delay %d seconds...", l)
-        time.sleep(l)
+        time.sleep(l / 100)
 
     def convert(record:Element, key:str):
         # convert {'id': id1, 'position': 'employee'}

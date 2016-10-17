@@ -114,7 +114,6 @@ class Master(process):
         log.info("Master - Recevied actions list form database: [%s]", pprint.pformat(self.actions))
 
 def main():
-    #config(channel= 'fifo')
     m = new(Master)
     setup(m)
     start(m)
