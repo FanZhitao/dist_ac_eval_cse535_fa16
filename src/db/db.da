@@ -42,8 +42,8 @@ class DB(process):
         if not minDBlatency.isnumeric() or not maxDBlatency.isnumeric():
             # TODO: throw exception
             pass
-        minDBlatency = int(minDBlatency)
-        maxDBlatency = int(maxDBlatency)
+        minDBlatency = float(minDBlatency)
+        maxDBlatency = float(maxDBlatency)
         log.debug("DB setup finished.")
 
     def run():
