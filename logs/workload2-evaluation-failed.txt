@@ -1,0 +1,160 @@
++ '[' 1 -eq 1 ']'
++ workload=workload2
++ level=info
++ '[' workload2 = workload7 ']'
++ '[' workload2 = workload8 ']'
++ config=config/test.config
++ make
+make: 'src/master.py' is up to date.
+++ date +%y-%m-%d
++ dar -L info -F info -f --logfilename logs/master.16-10-16.log src/master.da config/test.config workload2
+[2016-10-16 22:09:40,500]da.api:INFO: Running iteration 1 ...
+[2016-10-16 22:09:40,516]da.common:ERROR: missing a required argument: 'args'
+[2016-10-16 22:09:40,517]da.api:INFO: Terminating...
+Waiting for remaining child processes to terminate...(Press "Ctrl-C" to force kill)
+[2016-10-16 22:09:40,520]Master:INFO: ====================
+[2016-10-16 22:09:40,520]Master:INFO: [DEFAULT]
+[2016-10-16 22:09:40,520]Master:INFO: 
+[2016-10-16 22:09:40,520]Master:INFO: [master]
+[2016-10-16 22:09:40,521]Master:INFO: clients=1
+[2016-10-16 22:09:40,521]Master:INFO: coordinators=4
+[2016-10-16 22:09:40,521]Master:INFO: workers=2
+[2016-10-16 22:09:40,521]Master:INFO: 
+[2016-10-16 22:09:40,521]Master:INFO: [client]
+[2016-10-16 22:09:40,521]Master:INFO: workload=1
+[2016-10-16 22:09:40,522]Master:INFO: 
+[2016-10-16 22:09:40,522]Master:INFO: [db]
+[2016-10-16 22:09:40,522]Master:INFO: policy=policy.xml
+[2016-10-16 22:09:40,522]Master:INFO: record=record.xml
+[2016-10-16 22:09:40,522]Master:INFO: mindblatency=0
+[2016-10-16 22:09:40,522]Master:INFO: maxdblatency=2
+[2016-10-16 22:09:40,522]Master:INFO: 
+[2016-10-16 22:09:40,523]Master:INFO: [workload2]
+[2016-10-16 22:09:40,523]Master:INFO: reqno=2
+[2016-10-16 22:09:40,523]Master:INFO: reqinterval=5
+[2016-10-16 22:09:40,523]Master:INFO: req1.subject=Leo
+[2016-10-16 22:09:40,523]Master:INFO: req1.resource=bank A
+[2016-10-16 22:09:40,523]Master:INFO: req1.action=read
+[2016-10-16 22:09:40,524]Master:INFO: req2.subject=Leo
+[2016-10-16 22:09:40,524]Master:INFO: req2.resource=bank B
+[2016-10-16 22:09:40,524]Master:INFO: req2.action=read
+[2016-10-16 22:09:40,524]Master:INFO: 
+[2016-10-16 22:09:40,524]Master:INFO: ====================
+[2016-10-16 22:09:40,535]Worker:INFO: Worker Worker[('localhost', 11989)] is up.
+[2016-10-16 22:09:40,535]Worker:INFO: Worker Worker[('localhost', 34386)] is up.
+[2016-10-16 22:09:40,537]Worker:INFO: Sending message to database {<DB('localhost', 32056)>} to fetch policy and waiting for response.
+[2016-10-16 22:09:40,537]Worker:INFO: Sending message to database {<DB('localhost', 32056)>} to fetch policy and waiting for response.
+[2016-10-16 22:09:40,541]DB:INFO: DB[('localhost', 32056)] is up.
+[2016-10-16 22:09:40,542]DB:INFO: Received policy request message from worker ('localhost', 11989)
+[2016-10-16 22:09:40,546]Worker:INFO: Received policy data from database: ('localhost', 32056)
+[2016-10-16 22:09:40,546]DB:INFO: Received policy request message from worker ('localhost', 34386)
+[2016-10-16 22:09:40,550]Worker:INFO: Received policy data from database: ('localhost', 32056)
+[2016-10-16 22:09:40,556]Coordinator:INFO: Coordinator [Coordinator[('localhost', 36717)]] is up
+[2016-10-16 22:09:40,557]DB:INFO: Received subjects request from coordinator [('localhost', 16616)]
+[2016-10-16 22:09:40,557]Master:INFO: Send request to prefetch subjects, resources, and actions from database [{<DB('localhost', 32056)>}]
+[2016-10-16 22:09:40,558]DB:INFO: Send subjects back to coordinator [('localhost', 16616)]
+[2016-10-16 22:09:40,560]DB:INFO: Received resources request from coordinator [('localhost', 16616)]
+[2016-10-16 22:09:40,560]DB:INFO: Send resources back to coordinator [('localhost', 16616)]
+[2016-10-16 22:09:40,560]Coordinator:INFO: Coordinator [Coordinator[('localhost', 27364)]] is up
+[2016-10-16 22:09:40,561]Coordinator:INFO: Coordinator [Coordinator[('localhost', 35578)]] is up
+[2016-10-16 22:09:40,562]DB:INFO: Received actions request from coordinator [('localhost', 16616)]
+[2016-10-16 22:09:40,562]DB:INFO: Send actions back to coordinator [('localhost', 16616)]
+[2016-10-16 22:09:40,564]Coordinator:INFO: Coordinator [Coordinator[('localhost', 18622)]] is up
+[2016-10-16 22:09:40,566]Master:INFO: Master - Received subjects list from database: [{'LeBron': {'history': 'empty', 'id': 'LeBron', 'position': 'employee'},
+ 'Leo': {'history': 'empty', 'id': 'Leo', 'position': 'employee'}}]
+[2016-10-16 22:09:40,567]Master:INFO: Master - Received Resources list from database: [{'bank A': {'id': 'bank A'},
+ 'bank B': {'id': 'bank B'},
+ 'bank C': {'id': 'bank C'}}]
+[2016-10-16 22:09:40,569]Master:INFO: Master - Recevied actions list form database: [['read', 'read', 'read', 'read', 'read', 'view']]
+[2016-10-16 22:09:40,570]Router:INFO: Assign subject=[Leo] to coordinator=[('localhost', 35578)]
+[2016-10-16 22:09:40,570]Router:INFO: Assign subject=[LeBron] to coordinator=[('localhost', 27364)]
+[2016-10-16 22:09:40,571]Router:INFO: Assign resource=[bank A] to coordinator=[('localhost', 18622)]
+[2016-10-16 22:09:40,571]Router:INFO: Assign resource=[bank C] to coordinator=[('localhost', 36717)]
+[2016-10-16 22:09:40,571]Router:INFO: Assign resource=[bank B] to coordinator=[('localhost', 36717)]
+[2016-10-16 22:09:40,574]Coordinator:INFO: SC - Init tentative and subject cache 
+('Leo', {'history': 'empty', 'id': 'Leo', 'position': 'employee'})
+[2016-10-16 22:09:40,575]Coordinator:INFO: SC - Init tentative and subject cache 
+('LeBron', {'history': 'empty', 'id': 'LeBron', 'position': 'employee'})
+[2016-10-16 22:09:40,577]Coordinator:INFO: RC - Init resource cache 
+('bank A', {'id': 'bank A'})
+[2016-10-16 22:09:40,577]Master:INFO: Wait for all coordinators to start serving
+[2016-10-16 22:09:40,577]Coordinator:INFO: RC - Init resource cache 
+('bank C', {'id': 'bank C'})
+[2016-10-16 22:09:40,578]Coordinator:INFO: RC - Init resource cache 
+('bank B', {'id': 'bank B'})
+[2016-10-16 22:09:42,591]Application:INFO: Application [Application[('localhost', 28766)]] is up
+[2016-10-16 22:09:42,592]Application:INFO: App - [Application[('localhost', 28766)]] get ready to send request from [1] to [2]
+[2016-10-16 22:09:42,592]Application:INFO: App - Send request #seq [1] to SC ('localhost', 35578)
+[2016-10-16 22:09:42,594]Coordinator:INFO: SC - Incoming application request: #seq=[1] subject=[Leo]
+[2016-10-16 22:09:42,595]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:5@1] to #seq=[1]
+[2016-10-16 22:09:42,595]Coordinator:INFO: SC - Subject attr dependency of #seq-[1]:
+ {'history': ('empty', 1476670180.5742817, None),
+ 'id': ('Leo', 1476670180.5742853, None),
+ 'position': ('employee', 1476670180.5742838, None)}
+[2016-10-16 22:09:42,596]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[1], rc=('localhost', 18622)
+
+[2016-10-16 22:09:42,598]Coordinator:INFO: RC - Incoming evaluation request: #seq=[1] resource=[bank A] sc=('localhost', 35578)
+[2016-10-16 22:09:42,598]Coordinator:INFO: RC - Resource attr dependency of #seq-[1]:
+ {'id': ('bank A', 1476670180.577155)}
+[2016-10-16 22:09:42,599]Coordinator:INFO: RC - Assign evalution request: #seq=[1] to worker=[('localhost', 34386)]
+
+[2016-10-16 22:09:42,601]Worker:INFO: Received evaluation request from resource coodinator: ('localhost', 18622)
+[2016-10-16 22:09:42,601]Worker:INFO: Start to evaluate req: [1]
+[2016-10-16 22:09:42,603]Worker:INFO: Corresponding rule found: [access bank A first time]. granting access...
+[2016-10-16 22:09:42,603]Worker:INFO: Send response to subject coordinator [('localhost', 35578)] (Decision=True)
+[2016-10-16 22:09:42,606]Coordinator:INFO: SC - Incoming evaluation response from worker: #seq=[1], subrattr=[['history', 'position', 'id']], subwattr=[{'history': 'bank A', 'position': 'employee', 'id': 'Leo'}], resrattr=[['id']], reswattr=[{'id': 'bank A'}]
+[2016-10-16 22:09:42,607]Coordinator:INFO: SC - Checking... tattr cache is: {'history': ('empty', 1476670180.5742817, None),
+ 'id': ('Leo', 1476670180.5742853, None),
+ 'position': ('employee', 1476670180.5742838, None)}
+[2016-10-16 22:09:42,607]Coordinator:INFO: SC - No conflict found, update tattr cache: #seq=[1]
+[2016-10-16 22:09:42,608]Coordinator:INFO: SC - Send commit request to RC: #seq=[1]
+
+[2016-10-16 22:09:42,610]Coordinator:INFO: RC - Incoming commit request: #seq=[1] resource=[bank A] sc=('localhost', 35578)
+[2016-10-16 22:09:42,610]Coordinator:INFO: RC - Checking... resource cache is: {'id': ('bank A', 1476670180.577155)}
+[2016-10-16 22:09:42,611]Coordinator:INFO: RC - No conflict found, commit resource updates to db: #seq=[1]
+[2016-10-16 22:09:42,611]Coordinator:INFO: RC - Send resource update attributes to db [{<DB('localhost', 32056)>}]
+[2016-10-16 22:09:42,613]Coordinator:INFO: RC - Send commit response to SC: #seq=[1] sc=('localhost', 35578)
+
+[2016-10-16 22:09:42,613]DB:INFO: Received write attribute messages from resource coordinator [('localhost', 18622)]
+[2016-10-16 22:09:42,616]Coordinator:INFO: SC - Incoming commit response from RC: #seq=[1]
+[2016-10-16 22:09:42,616]Coordinator:INFO: SC - No conflict found, commit subject updates to db: #seq=[1]
+[2016-10-16 22:09:42,616]Coordinator:INFO: SC - Send subject tentative update attributes to db [{<DB('localhost', 32056)>}]
+[2016-10-16 22:09:42,619]Coordinator:INFO: SC - Send application response: #seq=[1]
+
+[2016-10-16 22:09:43,618]DB:INFO: Received write attribute messages from subject coordinator [('localhost', 35578)]
+[2016-10-16 22:09:47,592]DB:INFO: 
+========== Database Data ==========
+ Subject {'Leo': {'history': ('bank A', 1476670182.608205),
+         'id': ('Leo', 1476670182.6082098),
+         'position': ('employee', 1476670182.6082087)}}
+ Resource {'bank A': {'id': ('bank A', 1476670182.611723)}}
+
+[2016-10-16 22:09:47,599]Application:INFO: App - Send request #seq [2] to SC ('localhost', 35578)
+[2016-10-16 22:09:47,603]Coordinator:INFO: SC - Incoming application request: #seq=[2] subject=[Leo]
+[2016-10-16 22:09:47,604]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:5@2] to #seq=[2]
+[2016-10-16 22:09:47,605]Coordinator:INFO: SC - Subject attr dependency of #seq-[2]:
+ {'history': ('bank A', 1476670182.608205, 'Coordinator-1:5@1'),
+ 'id': ('Leo', 1476670182.6082098, 'Coordinator-1:5@1'),
+ 'position': ('employee', 1476670182.6082087, 'Coordinator-1:5@1')}
+[2016-10-16 22:09:47,606]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[2], rc=('localhost', 36717)
+
+[2016-10-16 22:09:47,611]Coordinator:INFO: RC - Incoming evaluation request: #seq=[2] resource=[bank B] sc=('localhost', 35578)
+[2016-10-16 22:09:47,612]Coordinator:INFO: RC - Resource attr dependency of #seq-[2]:
+ {'id': ('bank B', 1476670180.5782096)}
+[2016-10-16 22:09:47,612]Coordinator:INFO: RC - Assign evalution request: #seq=[2] to worker=[('localhost', 34386)]
+
+[2016-10-16 22:09:47,615]Worker:INFO: Received evaluation request from resource coodinator: ('localhost', 36717)
+[2016-10-16 22:09:47,616]Worker:INFO: Start to evaluate req: [2]
+[2016-10-16 22:09:47,620]Worker:INFO: Send response to subject coordinator [('localhost', 35578)] (Decision=False)
+[2016-10-16 22:09:47,623]Coordinator:INFO: SC - Incoming evaluation response from worker: #seq=[2], subrattr=[[]], subwattr=[{}], resrattr=[[]], reswattr=[{}]
+[2016-10-16 22:09:47,624]Coordinator:INFO: No rule matched, send deny response to application.
+[2016-10-16 22:09:52,598]DB:INFO: 
+========== Database Data ==========
+ Subject {'Leo': {'history': ('bank A', 1476670182.608205),
+         'id': ('Leo', 1476670182.6082098),
+         'position': ('employee', 1476670182.6082087)}}
+ Resource {'bank A': {'id': ('bank A', 1476670182.611723)}}
+
+[2016-10-16 22:09:52,606]Application:INFO: App - Waiting for response
+[2016-10-16 22:09:52,608]Application:INFO: App - Received request #seq-[1] result: True from SC ('localhost', 35578)
+[2016-10-16 22:09:52,609]Application:INFO: App - Received request #seq-[2] result: False from SC ('localhost', 35578)

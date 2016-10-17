@@ -28,7 +28,7 @@ class Cache:
             ts = time.time()
             self.tattrs[subid][attr] = (val, ts, None) # Initially, reqid field are all None
             self.subcache[subid][attr] = (val, ts, None)
-        log.info('SC - \nInit tentative and subject cache \n%s', pprint.pformat(subattrs))
+        log.info('SC - Init tentative and subject cache \n%s', pprint.pformat(subattrs))
 
     def init_rescache(self, resattrs):
         resid = resattrs[0]
@@ -36,7 +36,7 @@ class Cache:
         self.rescache[resid] = dict()
         for attr, val in data.items():
             self.rescache[resid][attr] = (val, time.time())
-        log.info('RC - \nInit resource cache \n%s', pprint.pformat(resattrs))
+        log.info('RC - Init resource cache \n%s', pprint.pformat(resattrs))
 
     def query_tattr(self, subid):
         if subid not in self.tattrs:

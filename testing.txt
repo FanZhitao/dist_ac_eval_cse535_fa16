@@ -17,7 +17,7 @@ Please note that: subject1, subject2, resource1 and resource2 refer to Leo, LeBr
 
 4) Other information: Execute bin/startup.sh workload1
 
-5) Log file: logs/workload1-evaluation-succeed.log 
+5) Log file: logs/workload1-evaluation-succeed.txt
 
 6) Outcome: No conflict or failure happened. The evaluation result is supposed to be True.
 
@@ -30,13 +30,14 @@ Please note that: subject1, subject2, resource1 and resource2 refer to Leo, LeBr
 2) Workload/Scenario:
 
  Request #1: Carry subject1 and resource1
+
  Request #2: Carry subject1 and resource2 (which succeed only if subject history is empty per policy rule)
 
 3) Configuration: [workload2] section in config/test.config.
 
 4) Other information: Execute bin/startup.sh workload2
 
-5) Log file: logs/workload2-evaluation-failed.log 
+5) Log file: logs/workload2-evaluation-failed.txt
 
 6) Outcome: No conflict happened. But due to rules in policy, the evaluation result of #2 is supposed to be False.
 
@@ -60,7 +61,7 @@ Please note that: subject1, subject2, resource1 and resource2 refer to Leo, LeBr
 
 4) Other information: Execute bin/startup.sh workload3
 
-5) Log file: logs/workload3-subject-conflict.log
+5) Log file: logs/workload3-subject-conflict.txt
 
 6) Outcome: One of the request would detect a conflict before updating tentative cache. 
             Then the "loser" would be simply restarted to try again and succeed on the second attempt.
@@ -84,7 +85,7 @@ Please note that: subject1, subject2, resource1 and resource2 refer to Leo, LeBr
 
 4) Other information: Execute bin/startup.sh workload4
 
-5) Log file: logs/workload4-resource-conflict.log
+5) Log file: logs/workload4-resource-conflict.txt
 
 6) Outcome: One of the request would detect a conflict caused by the update of the other. 
             The "loser" has to be rollback (tentative cache) and restarted to try again. 
@@ -109,7 +110,7 @@ Please note that: subject1, subject2, resource1 and resource2 refer to Leo, LeBr
 
 4) Other information: Execute bin/startup.sh workload5
 
-5) Log file: logs/workload5-tentative-conflict-restart.log
+5) Log file: logs/workload5-tentative-conflict-restart.txt
 
 6) Outcome: The subsequent request #3 would detect a conflict caused by the update of #2 and wait for it complete. 
             But unfortunately #2 failed, so the waiting request #3 has to be rollback (tentative cache) and restarted to try again. 
@@ -134,7 +135,7 @@ Please note that: subject1, subject2, resource1 and resource2 refer to Leo, LeBr
 
 4) Other information: Execute bin/startup.sh workload6
 
-5) Log file: logs/workload6-tentative-conflict-delay.log
+5) Log file: logs/workload6-tentative-conflict-delay.txt
 
 6) Outcome: The subsequent request #2 would detect a conflict caused by the update of the #1 which isn't complete. 
             Request #2 will wait until #1 complete, then #2 continue. 
@@ -153,6 +154,6 @@ Please note that: subject1, subject2, resource1 and resource2 refer to Leo, LeBr
 
 4) Other information: Execute bin/startup.sh workload5 > stress.log 2>&1
 
-5) Log file: 
+5) Log file: logs/workload7-stresstest.txt 
 
 6) Outcome: No error in log and attributes value in database should equal total request

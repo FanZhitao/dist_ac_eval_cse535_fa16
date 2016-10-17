@@ -1,0 +1,1879 @@
++ '[' 1 -eq 1 ']'
++ workload=workload7
++ level=info
++ '[' workload7 = workload7 ']'
++ config=config/stresstest.config
++ make
+make: 'src/master.py' is up to date.
+++ date +%y-%m-%d
++ dar -L info -F info -f --logfilename logs/master.16-10-16.log src/master.da config/stresstest.config workload7
+[2016-10-16 22:20:54,037]da.api:INFO: Running iteration 1 ...
+[2016-10-16 22:20:54,051]da.common:ERROR: missing a required argument: 'args'
+[2016-10-16 22:20:54,051]da.api:INFO: Terminating...
+Waiting for remaining child processes to terminate...(Press "Ctrl-C" to force kill)
+[2016-10-16 22:20:54,053]Master:INFO: ====================
+[2016-10-16 22:20:54,053]Master:INFO: [DEFAULT]
+[2016-10-16 22:20:54,053]Master:INFO: 
+[2016-10-16 22:20:54,053]Master:INFO: [master]
+[2016-10-16 22:20:54,054]Master:INFO: clients=10
+[2016-10-16 22:20:54,054]Master:INFO: coordinators=4
+[2016-10-16 22:20:54,054]Master:INFO: workers=5
+[2016-10-16 22:20:54,054]Master:INFO: 
+[2016-10-16 22:20:54,054]Master:INFO: [client]
+[2016-10-16 22:20:54,054]Master:INFO: workload=1
+[2016-10-16 22:20:54,054]Master:INFO: 
+[2016-10-16 22:20:54,055]Master:INFO: [db]
+[2016-10-16 22:20:54,055]Master:INFO: policy=stress_test_policy.xml
+[2016-10-16 22:20:54,055]Master:INFO: record=stress_test_record.xml
+[2016-10-16 22:20:54,055]Master:INFO: mindblatency=1
+[2016-10-16 22:20:54,055]Master:INFO: maxdblatency=10
+[2016-10-16 22:20:54,055]Master:INFO: 
+[2016-10-16 22:20:54,055]Master:INFO: [workload7]
+[2016-10-16 22:20:54,056]Master:INFO: reqno=100
+[2016-10-16 22:20:54,056]Master:INFO: reqinterval=0.1
+[2016-10-16 22:20:54,056]Master:INFO: 
+[2016-10-16 22:20:54,056]Master:INFO: ====================
+[2016-10-16 22:20:54,073]Worker:INFO: Worker Worker[('localhost', 36493)] is up.
+[2016-10-16 22:20:54,073]Worker:INFO: Worker Worker[('localhost', 11328)] is up.
+[2016-10-16 22:20:54,073]Worker:INFO: Worker Worker[('localhost', 33217)] is up.
+[2016-10-16 22:20:54,074]Worker:INFO: Sending message to database {<DB('localhost', 14264)>} to fetch policy and waiting for response.
+[2016-10-16 22:20:54,074]Worker:INFO: Sending message to database {<DB('localhost', 14264)>} to fetch policy and waiting for response.
+[2016-10-16 22:20:54,074]Worker:INFO: Sending message to database {<DB('localhost', 14264)>} to fetch policy and waiting for response.
+[2016-10-16 22:20:54,075]Worker:INFO: Worker Worker[('localhost', 19115)] is up.
+[2016-10-16 22:20:54,076]Worker:INFO: Worker Worker[('localhost', 24556)] is up.
+[2016-10-16 22:20:54,078]DB:INFO: DB[('localhost', 14264)] is up.
+[2016-10-16 22:20:54,078]Worker:INFO: Sending message to database {<DB('localhost', 14264)>} to fetch policy and waiting for response.
+[2016-10-16 22:20:54,079]DB:INFO: Received policy request message from worker ('localhost', 11328)
+[2016-10-16 22:20:54,082]DB:INFO: Received policy request message from worker ('localhost', 36493)
+[2016-10-16 22:20:54,084]Worker:INFO: Received policy data from database: ('localhost', 14264)
+[2016-10-16 22:20:54,085]Worker:INFO: Received policy data from database: ('localhost', 14264)
+[2016-10-16 22:20:54,087]DB:INFO: Received policy request message from worker ('localhost', 33217)
+[2016-10-16 22:20:54,089]Worker:INFO: Received policy data from database: ('localhost', 14264)
+[2016-10-16 22:20:54,090]DB:INFO: Received policy request message from worker ('localhost', 24556)
+[2016-10-16 22:20:54,091]Worker:INFO: Received policy data from database: ('localhost', 14264)
+[2016-10-16 22:20:54,095]Worker:INFO: Sending message to database {<DB('localhost', 14264)>} to fetch policy and waiting for response.
+[2016-10-16 22:20:54,096]DB:INFO: Received policy request message from worker ('localhost', 19115)
+[2016-10-16 22:20:54,099]Coordinator:INFO: Coordinator [Coordinator[('localhost', 20153)]] is up
+[2016-10-16 22:20:54,100]Coordinator:INFO: Coordinator [Coordinator[('localhost', 31594)]] is up
+[2016-10-16 22:20:54,100]Coordinator:INFO: Coordinator [Coordinator[('localhost', 16921)]] is up
+[2016-10-16 22:20:54,102]Coordinator:INFO: Coordinator [Coordinator[('localhost', 36640)]] is up
+[2016-10-16 22:20:54,103]Master:INFO: Send request to prefetch subjects, resources, and actions from database [{<DB('localhost', 14264)>}]
+[2016-10-16 22:20:54,104]DB:INFO: Received subjects request from coordinator [('localhost', 23888)]
+[2016-10-16 22:20:54,105]DB:INFO: Send subjects back to coordinator [('localhost', 23888)]
+[2016-10-16 22:20:54,106]DB:INFO: Received resources request from coordinator [('localhost', 23888)]
+[2016-10-16 22:20:54,107]DB:INFO: Send resources back to coordinator [('localhost', 23888)]
+[2016-10-16 22:20:54,107]Worker:INFO: Received policy data from database: ('localhost', 14264)
+[2016-10-16 22:20:54,108]DB:INFO: Received actions request from coordinator [('localhost', 23888)]
+[2016-10-16 22:20:54,109]DB:INFO: Send actions back to coordinator [('localhost', 23888)]
+[2016-10-16 22:20:54,111]Master:INFO: Master - Received subjects list from database: [{"Eto'o": {'id': "Eto'o", 'position': 'forward'},
+ 'Messi': {'id': 'Messi', 'position': 'forward'},
+ 'Neymar': {'id': 'Neymar', 'position': 'forward'},
+ 'Ronaldino': {'id': 'Ronaldino', 'position': 'forward'},
+ 'Suarez': {'id': 'Suarez', 'position': 'forward'}}]
+[2016-10-16 22:20:54,113]Master:INFO: Master - Received Resources list from database: [{'goal1': {'id': 'goal1'}, 'goal2': {'id': 'goal2'}}]
+[2016-10-16 22:20:54,114]Master:INFO: Master - Recevied actions list form database: [['shoot', 'shoot']]
+[2016-10-16 22:20:54,115]Router:INFO: Assign subject=[Suarez] to coordinator=[('localhost', 36640)]
+[2016-10-16 22:20:54,115]Router:INFO: Assign subject=[Ronaldino] to coordinator=[('localhost', 16921)]
+[2016-10-16 22:20:54,115]Router:INFO: Assign subject=[Eto'o] to coordinator=[('localhost', 31594)]
+[2016-10-16 22:20:54,115]Router:INFO: Assign subject=[Messi] to coordinator=[('localhost', 20153)]
+[2016-10-16 22:20:54,116]Router:INFO: Assign subject=[Neymar] to coordinator=[('localhost', 31594)]
+[2016-10-16 22:20:54,116]Router:INFO: Assign resource=[goal2] to coordinator=[('localhost', 31594)]
+[2016-10-16 22:20:54,116]Router:INFO: Assign resource=[goal1] to coordinator=[('localhost', 31594)]
+[2016-10-16 22:20:54,119]Coordinator:INFO: SC - Init tentative and subject cache 
+('Messi', {'id': 'Messi', 'position': 'forward'})
+[2016-10-16 22:20:54,121]Coordinator:INFO: SC - Init tentative and subject cache 
+('Ronaldino', {'id': 'Ronaldino', 'position': 'forward'})
+[2016-10-16 22:20:54,121]Master:INFO: Wait for all coordinators to start serving
+[2016-10-16 22:20:54,121]Coordinator:INFO: SC - Init tentative and subject cache 
+('Suarez', {'id': 'Suarez', 'position': 'forward'})
+[2016-10-16 22:20:54,121]Coordinator:INFO: SC - Init tentative and subject cache 
+("Eto'o", {'id': "Eto'o", 'position': 'forward'})
+[2016-10-16 22:20:54,122]Coordinator:INFO: SC - Init tentative and subject cache 
+('Neymar', {'id': 'Neymar', 'position': 'forward'})
+[2016-10-16 22:20:54,122]Coordinator:INFO: RC - Init resource cache 
+('goal2', {'id': 'goal2'})
+[2016-10-16 22:20:54,122]Coordinator:INFO: RC - Init resource cache 
+('goal1', {'id': 'goal1'})
+[2016-10-16 22:20:56,158]Application:INFO: Application [Application[('localhost', 24703)]] is up
+[2016-10-16 22:20:56,161]Application:INFO: Application [Application[('localhost', 30998)]] is up
+[2016-10-16 22:20:56,164]Application:INFO: Application [Application[('localhost', 29069)]] is up
+[2016-10-16 22:20:56,163]Application:INFO: Application [Application[('localhost', 10336)]] is up
+[2016-10-16 22:20:56,169]Application:INFO: Application [Application[('localhost', 20216)]] is up
+[2016-10-16 22:20:56,170]Application:INFO: App - [Application[('localhost', 10336)]] get ready to send request from [81] to [90]
+[2016-10-16 22:20:56,169]Application:INFO: Application [Application[('localhost', 22422)]] is up
+[2016-10-16 22:20:56,170]Application:INFO: App - [Application[('localhost', 20216)]] get ready to send request from [71] to [80]
+[2016-10-16 22:20:56,170]Application:INFO: App - Send request #seq [81] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,170]Application:INFO: App - [Application[('localhost', 22422)]] get ready to send request from [61] to [70]
+[2016-10-16 22:20:56,171]Application:INFO: App - [Application[('localhost', 30998)]] get ready to send request from [51] to [60]
+[2016-10-16 22:20:56,171]Application:INFO: App - Send request #seq [51] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,173]Coordinator:INFO: SC - Incoming application request: #seq=[81] subject=[Neymar]
+[2016-10-16 22:20:56,173]Application:INFO: Application [Application[('localhost', 29622)]] is up
+[2016-10-16 22:20:56,174]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@1] to #seq=[81]
+[2016-10-16 22:20:56,174]Application:INFO: App - [Application[('localhost', 29622)]] get ready to send request from [91] to [100]
+[2016-10-16 22:20:56,173]Application:INFO: Application [Application[('localhost', 28301)]] is up
+[2016-10-16 22:20:56,175]Application:INFO: App - Send request #seq [91] to SC ('localhost', 20153)
+[2016-10-16 22:20:56,166]Application:INFO: Application [Application[('localhost', 18472)]] is up
+[2016-10-16 22:20:56,175]Application:INFO: Application [Application[('localhost', 39044)]] is up
+[2016-10-16 22:20:56,176]Application:INFO: App - [Application[('localhost', 24703)]] get ready to send request from [1] to [10]
+[2016-10-16 22:20:56,176]Coordinator:INFO: SC - Subject attr dependency of #seq-[81]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,176]Application:INFO: App - [Application[('localhost', 28301)]] get ready to send request from [31] to [40]
+[2016-10-16 22:20:56,170]Application:INFO: App - Send request #seq [71] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,177]Application:INFO: App - [Application[('localhost', 29069)]] get ready to send request from [41] to [50]
+[2016-10-16 22:20:56,177]Application:INFO: App - Send request #seq [61] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,178]Application:INFO: App - [Application[('localhost', 18472)]] get ready to send request from [11] to [20]
+[2016-10-16 22:20:56,179]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[81], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,179]Application:INFO: App - Send request #seq [11] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,180]Coordinator:INFO: SC - Incoming application request: #seq=[91] subject=[Messi]
+[2016-10-16 22:20:56,180]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:10@1] to #seq=[91]
+[2016-10-16 22:20:56,181]Coordinator:INFO: SC - Subject attr dependency of #seq-[91]:
+ {'id': ('Messi', 1476670854.1196933, None),
+ 'position': ('forward', 1476670854.1196957, None)}
+[2016-10-16 22:20:56,181]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[91], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,181]Coordinator:INFO: SC - Incoming application request: #seq=[51] subject=[Eto'o]
+[2016-10-16 22:20:56,181]Coordinator:INFO: SC - Incoming application request: #seq=[11] subject=[Ronaldino]
+[2016-10-16 22:20:56,181]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@2] to #seq=[51]
+[2016-10-16 22:20:56,182]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@1] to #seq=[11]
+[2016-10-16 22:20:56,182]Coordinator:INFO: SC - Subject attr dependency of #seq-[51]:
+ {'id': ("Eto'o", 1476670854.1218448, None),
+ 'position': ('forward', 1476670854.1218462, None)}
+[2016-10-16 22:20:56,182]Coordinator:INFO: SC - Subject attr dependency of #seq-[11]:
+ {'id': ('Ronaldino', 1476670854.1208556, None),
+ 'position': ('forward', 1476670854.1208582, None)}
+[2016-10-16 22:20:56,182]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[51], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,182]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[11], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,182]Application:INFO: App - [Application[('localhost', 39044)]] get ready to send request from [21] to [30]
+[2016-10-16 22:20:56,183]Application:INFO: App - Send request #seq [21] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,184]Application:INFO: App - Send request #seq [1] to SC ('localhost', 20153)
+[2016-10-16 22:20:56,184]Application:INFO: App - Send request #seq [31] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,186]Coordinator:INFO: SC - Incoming application request: #seq=[31] subject=[Ronaldino]
+[2016-10-16 22:20:56,186]Coordinator:INFO: SC - Incoming application request: #seq=[1] subject=[Messi]
+[2016-10-16 22:20:56,186]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@2] to #seq=[31]
+[2016-10-16 22:20:56,186]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:10@2] to #seq=[1]
+[2016-10-16 22:20:56,186]Coordinator:INFO: SC - Subject attr dependency of #seq-[31]:
+ {'id': ('Ronaldino', 1476670854.1208556, None),
+ 'position': ('forward', 1476670854.1208582, None)}
+[2016-10-16 22:20:56,187]Coordinator:INFO: SC - Subject attr dependency of #seq-[1]:
+ {'id': ('Messi', 1476670854.1196933, None),
+ 'position': ('forward', 1476670854.1196957, None)}
+[2016-10-16 22:20:56,187]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[31], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,187]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[1], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,187]Application:INFO: App - Send request #seq [41] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,189]Coordinator:INFO: SC - Incoming application request: #seq=[41] subject=[Suarez]
+[2016-10-16 22:20:56,189]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@1] to #seq=[41]
+[2016-10-16 22:20:56,190]Coordinator:INFO: SC - Subject attr dependency of #seq-[41]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,190]Coordinator:INFO: RC - Incoming evaluation request: #seq=[81] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,190]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[41], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,190]Coordinator:INFO: RC - Resource attr dependency of #seq-[81]:
+ {'id': ('goal1', 1476670854.1225226)}
+[2016-10-16 22:20:56,191]Coordinator:INFO: RC - Assign evalution request: #seq=[81] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,192]Worker:INFO: Received evaluation request from resource coodinator: ('localhost', 31594)
+[2016-10-16 22:20:56,192]Worker:INFO: Start to evaluate req: [81]
+[2016-10-16 22:20:56,193]Worker:INFO: Corresponding rule found: [shoot1]. granting access...
+[2016-10-16 22:20:56,193]Worker:INFO: Send response to subject coordinator [('localhost', 31594)] (Decision=True)
+[2016-10-16 22:20:56,193]Coordinator:INFO: RC - Incoming evaluation request: #seq=[91] resource=[goal1] sc=('localhost', 20153)
+[2016-10-16 22:20:56,194]Coordinator:INFO: RC - Resource attr dependency of #seq-[91]:
+ {'id': ('goal1', 1476670854.1225226)}
+[2016-10-16 22:20:56,194]Coordinator:INFO: RC - Assign evalution request: #seq=[91] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,196]Worker:INFO: Received evaluation request from resource coodinator: ('localhost', 31594)
+[2016-10-16 22:20:56,196]Coordinator:INFO: RC - Incoming evaluation request: #seq=[11] resource=[goal2] sc=('localhost', 16921)
+[2016-10-16 22:20:56,196]Worker:INFO: Start to evaluate req: [91]
+[2016-10-16 22:20:56,196]Coordinator:INFO: RC - Resource attr dependency of #seq-[11]:
+ {'id': ('goal2', 1476670854.1223297)}
+[2016-10-16 22:20:56,197]Coordinator:INFO: RC - Assign evalution request: #seq=[11] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,197]Worker:INFO: Corresponding rule found: [shoot1]. granting access...
+[2016-10-16 22:20:56,198]Coordinator:INFO: SC - Incoming application request: #seq=[21] subject=[Eto'o]
+[2016-10-16 22:20:56,198]Worker:INFO: Send response to subject coordinator [('localhost', 20153)] (Decision=True)
+[2016-10-16 22:20:56,198]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@3] to #seq=[21]
+[2016-10-16 22:20:56,199]Coordinator:INFO: SC - Subject attr dependency of #seq-[21]:
+ {'id': ("Eto'o", 1476670854.1218448, None),
+ 'position': ('forward', 1476670854.1218462, None)}
+[2016-10-16 22:20:56,199]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[21], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,200]Worker:INFO: Received evaluation request from resource coodinator: ('localhost', 31594)
+[2016-10-16 22:20:56,200]Coordinator:INFO: SC - Incoming evaluation response from worker: #seq=[91], subrattr=[['id', 'position']], subwattr=[{'goals': 1, 'id': 'Messi', 'position': 'forward'}], resrattr=[['id']], reswattr=[{'id': 'goal1'}]
+[2016-10-16 22:20:56,200]Worker:INFO: Start to evaluate req: [11]
+[2016-10-16 22:20:56,201]Coordinator:INFO: SC - Checking... tattr cache is: {'id': ('Messi', 1476670854.1196933, None),
+ 'position': ('forward', 1476670854.1196957, None)}
+[2016-10-16 22:20:56,201]Coordinator:INFO: SC - No conflict found, update tattr cache: #seq=[91]
+[2016-10-16 22:20:56,201]Coordinator:INFO: SC - Send commit request to RC: #seq=[91]
+
+[2016-10-16 22:20:56,202]Worker:INFO: Corresponding rule found: [shoot2]. granting access...
+[2016-10-16 22:20:56,202]Coordinator:INFO: RC - Incoming evaluation request: #seq=[51] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,202]Coordinator:INFO: RC - Resource attr dependency of #seq-[51]:
+ {'id': ('goal1', 1476670854.1225226)}
+[2016-10-16 22:20:56,202]Worker:INFO: Send response to subject coordinator [('localhost', 16921)] (Decision=True)
+[2016-10-16 22:20:56,203]Coordinator:INFO: RC - Assign evalution request: #seq=[51] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,205]Worker:INFO: Received evaluation request from resource coodinator: ('localhost', 31594)
+[2016-10-16 22:20:56,205]Coordinator:INFO: SC - Incoming application request: #seq=[71] subject=[Neymar]
+[2016-10-16 22:20:56,205]Worker:INFO: Start to evaluate req: [51]
+[2016-10-16 22:20:56,205]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@4] to #seq=[71]
+[2016-10-16 22:20:56,205]Coordinator:INFO: SC - Subject attr dependency of #seq-[71]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,206]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[71], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,206]Worker:INFO: Corresponding rule found: [shoot1]. granting access...
+[2016-10-16 22:20:56,207]Worker:INFO: Send response to subject coordinator [('localhost', 31594)] (Decision=True)
+[2016-10-16 22:20:56,207]Coordinator:INFO: SC - Incoming evaluation response from worker: #seq=[11], subrattr=[['id', 'position']], subwattr=[{'goals': 1, 'id': 'Ronaldino', 'position': 'forward'}], resrattr=[['id']], reswattr=[{'id': 'goal2'}]
+[2016-10-16 22:20:56,208]Coordinator:INFO: SC - Checking... tattr cache is: {'id': ('Ronaldino', 1476670854.1208556, None),
+ 'position': ('forward', 1476670854.1208582, None)}
+[2016-10-16 22:20:56,208]Coordinator:INFO: SC - Incoming application request: #seq=[61] subject=[Eto'o]
+[2016-10-16 22:20:56,208]Coordinator:INFO: SC - No conflict found, update tattr cache: #seq=[11]
+[2016-10-16 22:20:56,208]Coordinator:INFO: SC - Send commit request to RC: #seq=[11]
+
+[2016-10-16 22:20:56,208]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@5] to #seq=[61]
+[2016-10-16 22:20:56,209]Coordinator:INFO: SC - Subject attr dependency of #seq-[61]:
+ {'id': ("Eto'o", 1476670854.1218448, None),
+ 'position': ('forward', 1476670854.1218462, None)}
+[2016-10-16 22:20:56,209]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[61], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,211]Coordinator:INFO: RC - Incoming evaluation request: #seq=[31] resource=[goal2] sc=('localhost', 16921)
+[2016-10-16 22:20:56,212]Coordinator:INFO: RC - Resource attr dependency of #seq-[31]:
+ {'id': ('goal2', 1476670854.1223297)}
+[2016-10-16 22:20:56,212]Coordinator:INFO: RC - Assign evalution request: #seq=[31] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,213]Worker:INFO: Received evaluation request from resource coodinator: ('localhost', 31594)
+[2016-10-16 22:20:56,213]Worker:INFO: Start to evaluate req: [31]
+[2016-10-16 22:20:56,214]Coordinator:INFO: RC - Incoming evaluation request: #seq=[1] resource=[goal2] sc=('localhost', 20153)
+[2016-10-16 22:20:56,214]Coordinator:INFO: RC - Resource attr dependency of #seq-[1]:
+ {'id': ('goal2', 1476670854.1223297)}
+[2016-10-16 22:20:56,215]Worker:INFO: Corresponding rule found: [shoot2]. granting access...
+[2016-10-16 22:20:56,215]Coordinator:INFO: RC - Assign evalution request: #seq=[1] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,215]Worker:INFO: Send response to subject coordinator [('localhost', 16921)] (Decision=True)
+[2016-10-16 22:20:56,217]Coordinator:INFO: RC - Incoming evaluation request: #seq=[41] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:56,217]Coordinator:INFO: SC - Incoming evaluation response from worker: #seq=[31], subrattr=[['id', 'position']], subwattr=[{'goals': 1, 'id': 'Ronaldino', 'position': 'forward'}], resrattr=[['id']], reswattr=[{'id': 'goal2'}]
+[2016-10-16 22:20:56,217]Coordinator:INFO: RC - Resource attr dependency of #seq-[41]:
+ {'id': ('goal2', 1476670854.1223297)}
+[2016-10-16 22:20:56,217]Worker:INFO: Received evaluation request from resource coodinator: ('localhost', 31594)
+[2016-10-16 22:20:56,217]Coordinator:INFO: RC - Assign evalution request: #seq=[41] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,218]Worker:INFO: Start to evaluate req: [1]
+[2016-10-16 22:20:56,218]Coordinator:INFO: SC - Checking... tattr cache is: {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,218]Coordinator:WARNING: ***** Conflict *****: Request #seq-[31] subject-update conflict with #seq-[11] on attr-[id]
+[2016-10-16 22:20:56,219]Coordinator:INFO: SC - Conflict found, restart: #seq=[31]
+[2016-10-16 22:20:56,219]Worker:INFO: Corresponding rule found: [shoot2]. granting access...
+[2016-10-16 22:20:56,220]Worker:INFO: Send response to subject coordinator [('localhost', 20153)] (Decision=True)
+[2016-10-16 22:20:56,220]Coordinator:INFO: SC - Incoming evaluation response from worker: #seq=[81], subrattr=[['id', 'position']], subwattr=[{'goals': 1, 'id': 'Neymar', 'position': 'forward'}], resrattr=[['id']], reswattr=[{'id': 'goal1'}]
+[2016-10-16 22:20:56,220]Coordinator:INFO: SC - Checking... tattr cache is: {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,221]Coordinator:INFO: SC - No conflict found, update tattr cache: #seq=[81]
+[2016-10-16 22:20:56,221]Coordinator:INFO: SC - Send commit request to RC: #seq=[81]
+
+[2016-10-16 22:20:56,222]Coordinator:INFO: SC - Incoming evaluation response from worker: #seq=[1], subrattr=[['id', 'position']], subwattr=[{'goals': 1, 'id': 'Messi', 'position': 'forward'}], resrattr=[['id']], reswattr=[{'id': 'goal2'}]
+[2016-10-16 22:20:56,223]Coordinator:INFO: SC - Checking... tattr cache is: {'goals': (1, 1476670856.2018816, 'Coordinator-1:10@1'),
+ 'id': ('Messi', 1476670856.2018845, 'Coordinator-1:10@1'),
+ 'position': ('forward', 1476670856.2018862, 'Coordinator-1:10@1')}
+[2016-10-16 22:20:56,223]Coordinator:INFO: SC - Incoming application request: #seq=[31] subject=[Ronaldino]
+[2016-10-16 22:20:56,223]Coordinator:WARNING: ***** Conflict *****: Request #seq-[1] subject-update conflict with #seq-[91] on attr-[id]
+[2016-10-16 22:20:56,223]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@3] to #seq=[31]
+[2016-10-16 22:20:56,223]Coordinator:INFO: RC - Incoming evaluation request: #seq=[21] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,224]Coordinator:INFO: SC - Conflict found, restart: #seq=[1]
+[2016-10-16 22:20:56,224]Coordinator:INFO: RC - Resource attr dependency of #seq-[21]:
+ {'id': ('goal2', 1476670854.1223297)}
+[2016-10-16 22:20:56,224]Coordinator:INFO: SC - Subject attr dependency of #seq-[31]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,224]Coordinator:INFO: RC - Assign evalution request: #seq=[21] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,224]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[31], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,226]Coordinator:INFO: RC - Incoming commit request: #seq=[91] resource=[goal1] sc=('localhost', 20153)
+[2016-10-16 22:20:56,227]Worker:INFO: Received evaluation request from resource coodinator: ('localhost', 31594)
+[2016-10-16 22:20:56,227]Coordinator:INFO: RC - Checking... resource cache is: {'id': ('goal1', 1476670854.1225226)}
+[2016-10-16 22:20:56,227]Worker:INFO: Start to evaluate req: [41]
+[2016-10-16 22:20:56,227]Coordinator:INFO: RC - No conflict found, commit resource updates to db: #seq=[91]
+[2016-10-16 22:20:56,227]Coordinator:INFO: RC - Send resource update attributes to db [{<DB('localhost', 14264)>}]
+[2016-10-16 22:20:56,228]Coordinator:INFO: SC - Incoming application request: #seq=[1] subject=[Messi]
+[2016-10-16 22:20:56,228]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:10@3] to #seq=[1]
+[2016-10-16 22:20:56,229]Coordinator:INFO: RC - Send commit response to SC: #seq=[91] sc=('localhost', 20153)
+
+[2016-10-16 22:20:56,229]Coordinator:INFO: SC - Subject attr dependency of #seq-[1]:
+ {'goals': (1, 1476670856.2018816, 'Coordinator-1:10@1'),
+ 'id': ('Messi', 1476670856.2018845, 'Coordinator-1:10@1'),
+ 'position': ('forward', 1476670856.2018862, 'Coordinator-1:10@1')}
+[2016-10-16 22:20:56,229]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[1], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,229]DB:INFO: Received write attribute messages from resource coordinator [('localhost', 31594)]
+[2016-10-16 22:20:56,231]Worker:INFO: Corresponding rule found: [shoot2]. granting access...
+[2016-10-16 22:20:56,231]Coordinator:INFO: RC - Incoming evaluation request: #seq=[71] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,232]Coordinator:INFO: RC - Resource attr dependency of #seq-[71]:
+ {'id': ('goal2', 1476670854.1223297)}
+[2016-10-16 22:20:56,232]Worker:INFO: Send response to subject coordinator [('localhost', 36640)] (Decision=True)
+[2016-10-16 22:20:56,232]Coordinator:INFO: RC - Assign evalution request: #seq=[71] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,233]Coordinator:INFO: SC - Incoming commit response from RC: #seq=[91]
+[2016-10-16 22:20:56,233]Coordinator:INFO: SC - No conflict found, commit subject updates to db: #seq=[91]
+[2016-10-16 22:20:56,233]Coordinator:INFO: SC - Send subject tentative update attributes to db [{<DB('localhost', 14264)>}]
+[2016-10-16 22:20:56,234]Coordinator:INFO: SC - Incoming evaluation response from worker: #seq=[41], subrattr=[['id', 'position']], subwattr=[{'goals': 1, 'id': 'Suarez', 'position': 'forward'}], resrattr=[['id']], reswattr=[{'id': 'goal2'}]
+[2016-10-16 22:20:56,234]Coordinator:INFO: SC - Incoming evaluation response from worker: #seq=[51], subrattr=[['id', 'position']], subwattr=[{'goals': 1, 'id': "Eto'o", 'position': 'forward'}], resrattr=[['id']], reswattr=[{'id': 'goal1'}]
+[2016-10-16 22:20:56,235]Coordinator:INFO: SC - Checking... tattr cache is: {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,235]Coordinator:INFO: SC - Checking... tattr cache is: {'id': ("Eto'o", 1476670854.1218448, None),
+ 'position': ('forward', 1476670854.1218462, None)}
+[2016-10-16 22:20:56,235]Coordinator:INFO: SC - No conflict found, update tattr cache: #seq=[51]
+[2016-10-16 22:20:56,235]Coordinator:INFO: SC - Send commit request to RC: #seq=[51]
+
+[2016-10-16 22:20:56,235]Coordinator:INFO: SC - No conflict found, update tattr cache: #seq=[41]
+[2016-10-16 22:20:56,236]Coordinator:INFO: SC - Send commit request to RC: #seq=[41]
+
+[2016-10-16 22:20:56,238]Coordinator:INFO: RC - Incoming commit request: #seq=[11] resource=[goal2] sc=('localhost', 16921)
+[2016-10-16 22:20:56,238]Coordinator:INFO: RC - Checking... resource cache is: {'id': ('goal2', 1476670854.1223297)}
+[2016-10-16 22:20:56,238]Coordinator:INFO: RC - No conflict found, commit resource updates to db: #seq=[11]
+[2016-10-16 22:20:56,238]Coordinator:INFO: RC - Send resource update attributes to db [{<DB('localhost', 14264)>}]
+[2016-10-16 22:20:56,239]Coordinator:INFO: SC - Send application response: #seq=[91]
+
+[2016-10-16 22:20:56,239]Worker:INFO: Received evaluation request from resource coodinator: ('localhost', 31594)
+[2016-10-16 22:20:56,239]Coordinator:INFO: RC - Send commit response to SC: #seq=[11] sc=('localhost', 16921)
+
+[2016-10-16 22:20:56,240]Worker:INFO: Start to evaluate req: [21]
+[2016-10-16 22:20:56,242]Coordinator:INFO: RC - Incoming evaluation request: #seq=[61] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,242]Coordinator:INFO: SC - Incoming commit response from RC: #seq=[11]
+[2016-10-16 22:20:56,242]Coordinator:INFO: RC - Resource attr dependency of #seq-[61]:
+ {'id': ('goal2', 1476670856.2388923)}
+[2016-10-16 22:20:56,242]Coordinator:INFO: RC - Assign evalution request: #seq=[61] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,244]Worker:INFO: Corresponding rule found: [shoot2]. granting access...
+[2016-10-16 22:20:56,244]Worker:INFO: Send response to subject coordinator [('localhost', 31594)] (Decision=True)
+[2016-10-16 22:20:56,244]Coordinator:INFO: RC - Incoming commit request: #seq=[81] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,242]Coordinator:INFO: SC - No conflict found, commit subject updates to db: #seq=[11]
+[2016-10-16 22:20:56,245]Coordinator:INFO: RC - Checking... resource cache is: {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,245]Coordinator:WARNING: ***** Conflict *****: Request #seq-[81] resource-update conflict on attr-[id]
+[2016-10-16 22:20:56,245]Coordinator:INFO: RC - Conflict found: #seq=[81], cleanup and send back to SC to handle
+[2016-10-16 22:20:56,245]Coordinator:INFO: SC - Send subject tentative update attributes to db [{<DB('localhost', 14264)>}]
+[2016-10-16 22:20:56,246]Coordinator:INFO: RC - Send commit response to SC: #seq=[81] sc=('localhost', 31594)
+
+[2016-10-16 22:20:56,247]Coordinator:INFO: RC - Incoming evaluation request: #seq=[31] resource=[goal2] sc=('localhost', 16921)
+[2016-10-16 22:20:56,248]Coordinator:INFO: RC - Resource attr dependency of #seq-[31]:
+ {'id': ('goal2', 1476670856.2388923)}
+[2016-10-16 22:20:56,248]Coordinator:INFO: RC - Assign evalution request: #seq=[31] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,249]Coordinator:INFO: SC - Send application response: #seq=[11]
+
+[2016-10-16 22:20:56,249]Coordinator:INFO: RC - Incoming evaluation request: #seq=[1] resource=[goal2] sc=('localhost', 20153)
+[2016-10-16 22:20:56,249]Coordinator:INFO: RC - Resource attr dependency of #seq-[1]:
+ {'id': ('goal2', 1476670856.2388923)}
+[2016-10-16 22:20:56,250]Coordinator:INFO: RC - Assign evalution request: #seq=[1] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,250]Worker:INFO: Received evaluation request from resource coodinator: ('localhost', 31594)
+[2016-10-16 22:20:56,251]Coordinator:INFO: RC - Incoming commit request: #seq=[51] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,251]Worker:INFO: Start to evaluate req: [71]
+[2016-10-16 22:20:56,251]Coordinator:INFO: RC - Checking... resource cache is: {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,251]Coordinator:WARNING: ***** Conflict *****: Request #seq-[51] resource-update conflict on attr-[id]
+[2016-10-16 22:20:56,251]Coordinator:INFO: RC - Conflict found: #seq=[51], cleanup and send back to SC to handle
+[2016-10-16 22:20:56,252]Coordinator:INFO: RC - Send commit response to SC: #seq=[51] sc=('localhost', 31594)
+
+[2016-10-16 22:20:56,253]Coordinator:INFO: RC - Incoming commit request: #seq=[41] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:56,253]Worker:INFO: Corresponding rule found: [shoot2]. granting access...
+[2016-10-16 22:20:56,253]Coordinator:INFO: RC - Checking... resource cache is: {'id': ('goal2', 1476670856.2388923)}
+[2016-10-16 22:20:56,253]Coordinator:WARNING: ***** Conflict *****: Request #seq-[41] resource-update conflict on attr-[id]
+[2016-10-16 22:20:56,253]Coordinator:INFO: RC - Conflict found: #seq=[41], cleanup and send back to SC to handle
+[2016-10-16 22:20:56,254]Worker:INFO: Send response to subject coordinator [('localhost', 31594)] (Decision=True)
+[2016-10-16 22:20:56,254]Coordinator:INFO: RC - Send commit response to SC: #seq=[41] sc=('localhost', 36640)
+
+[2016-10-16 22:20:56,255]Coordinator:INFO: SC - Incoming evaluation response from worker: #seq=[21], subrattr=[['id', 'position']], subwattr=[{'goals': 1, 'id': "Eto'o", 'position': 'forward'}], resrattr=[['id']], reswattr=[{'id': 'goal2'}]
+[2016-10-16 22:20:56,255]Coordinator:INFO: SC - Checking... tattr cache is: {'goals': (1, 1476670856.235578, 'Coordinator-1:7@2'),
+ 'id': ("Eto'o", 1476670856.2355807, 'Coordinator-1:7@2'),
+ 'position': ('forward', 1476670856.2355819, 'Coordinator-1:7@2')}
+[2016-10-16 22:20:56,255]Coordinator:INFO: SC - Incoming commit response from RC: #seq=[41]
+[2016-10-16 22:20:56,256]Coordinator:WARNING: ***** Conflict *****: Request #seq-[21] subject-update conflict with #seq-[51] on attr-[id]
+[2016-10-16 22:20:56,256]Coordinator:INFO: SC - Conflict found, restart: #seq=[21]
+[2016-10-16 22:20:56,256]Coordinator:INFO: SC - Commit conflict found: #seq=[41], cleanup, rollback and restart
+[2016-10-16 22:20:56,256]Coordinator:INFO: SC - Check if update in tentative cache could be rollback
+[2016-10-16 22:20:56,256]Coordinator:INFO: SC - Rollback attribute value from [(1, 1476670856.2360506, 'Coordinator-1:9@1')] to [None]
+[2016-10-16 22:20:56,256]Coordinator:INFO: SC - Rollback attribute value from [('Suarez', 1476670856.2360537, 'Coordinator-1:9@1')] to [('Suarez', 1476670854.1214821, None)]
+[2016-10-16 22:20:56,257]Coordinator:INFO: SC - Rollback attribute value from [('forward', 1476670856.2360554, 'Coordinator-1:9@1')] to [('forward', 1476670854.1214848, None)]
+[2016-10-16 22:20:56,258]Coordinator:INFO: SC - Incoming commit response from RC: #seq=[81]
+[2016-10-16 22:20:56,258]Coordinator:INFO: SC - Incoming application request: #seq=[41] subject=[Suarez]
+[2016-10-16 22:20:56,258]Coordinator:INFO: SC - Commit conflict found: #seq=[81], cleanup, rollback and restart
+[2016-10-16 22:20:56,258]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@2] to #seq=[41]
+[2016-10-16 22:20:56,258]Coordinator:INFO: SC - Check if update in tentative cache could be rollback
+[2016-10-16 22:20:56,258]Worker:INFO: Received evaluation request from resource coodinator: ('localhost', 31594)
+[2016-10-16 22:20:56,259]Coordinator:INFO: SC - Rollback attribute value from [(1, 1476670856.2217052, 'Coordinator-1:7@1')] to [None]
+[2016-10-16 22:20:56,259]Worker:INFO: Start to evaluate req: [61]
+[2016-10-16 22:20:56,259]Coordinator:INFO: SC - Subject attr dependency of #seq-[41]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,259]Coordinator:INFO: SC - Rollback attribute value from [('Neymar', 1476670856.2217083, 'Coordinator-1:7@1')] to [('Neymar', 1476670854.122119, None)]
+[2016-10-16 22:20:56,259]Coordinator:INFO: SC - Rollback attribute value from [('forward', 1476670856.2217102, 'Coordinator-1:7@1')] to [('forward', 1476670854.1221204, None)]
+[2016-10-16 22:20:56,259]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[41], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,260]Worker:INFO: Corresponding rule found: [shoot2]. granting access...
+[2016-10-16 22:20:56,261]Worker:INFO: Send response to subject coordinator [('localhost', 31594)] (Decision=True)
+[2016-10-16 22:20:56,261]Coordinator:INFO: SC - Incoming commit response from RC: #seq=[51]
+[2016-10-16 22:20:56,262]Coordinator:INFO: SC - Commit conflict found: #seq=[51], cleanup, rollback and restart
+[2016-10-16 22:20:56,263]Coordinator:INFO: SC - Check if update in tentative cache could be rollback
+[2016-10-16 22:20:56,264]Worker:INFO: Received evaluation request from resource coodinator: ('localhost', 31594)
+[2016-10-16 22:20:56,264]Worker:INFO: Start to evaluate req: [31]
+[2016-10-16 22:20:56,264]Coordinator:INFO: SC - Rollback attribute value from [(1, 1476670856.235578, 'Coordinator-1:7@2')] to [None]
+[2016-10-16 22:20:56,265]Coordinator:INFO: SC - Rollback attribute value from [("Eto'o", 1476670856.2355807, 'Coordinator-1:7@2')] to [("Eto'o", 1476670854.1218448, None)]
+[2016-10-16 22:20:56,265]Coordinator:INFO: SC - Rollback attribute value from [('forward', 1476670856.2355819, 'Coordinator-1:7@2')] to [('forward', 1476670854.1218462, None)]
+[2016-10-16 22:20:56,266]Worker:INFO: Corresponding rule found: [shoot2]. granting access...
+[2016-10-16 22:20:56,267]Coordinator:INFO: SC - Incoming application request: #seq=[21] subject=[Eto'o]
+[2016-10-16 22:20:56,267]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@6] to #seq=[21]
+[2016-10-16 22:20:56,268]Coordinator:INFO: SC - Subject attr dependency of #seq-[21]:
+ {'id': ("Eto'o", 1476670854.1218448, None),
+ 'position': ('forward', 1476670854.1218462, None)}
+[2016-10-16 22:20:56,268]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[21], rc=('localhost', 31594)
+
+Unexpected error at process Worker[('localhost', 11328)]:AttributeError("'int' object has no attribute 'startswith'",)  File "/home/cdai/Software/DistAlgo/da/sim.py", line 221, in run
+    result = self._da_run_internal()
+  File "src/comp/worker.py", line 44, in _da_run_internal
+    super()._label('_st_label_220', block=True)
+  File "/home/cdai/Software/DistAlgo/da/sim.py", line 370, in _label
+    self._process_jobqueue(name)
+  File "/home/cdai/Software/DistAlgo/da/sim.py", line 422, in _process_jobqueue
+    handler(**args)
+  File "src/comp/worker.py", line 205, in _Worker_handler_236
+    resp = self.add_read_write_attributes(req, resp, rule)
+  File "src/comp/worker.py", line 122, in add_read_write_attributes
+    while ((not (value_original == None)) and value_original.startswith('$')):
+[2016-10-16 22:20:56,269]Coordinator:INFO: SC - Incoming evaluation response from worker: #seq=[71], subrattr=[['id', 'position']], subwattr=[{'goals': 1, 'id': 'Neymar', 'position': 'forward'}], resrattr=[['id']], reswattr=[{'id': 'goal2'}]
+[2016-10-16 22:20:56,270]Coordinator:INFO: SC - Checking... tattr cache is: {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,270]Coordinator:INFO: SC - No conflict found, update tattr cache: #seq=[71]
+[2016-10-16 22:20:56,270]Coordinator:INFO: SC - Send commit request to RC: #seq=[71]
+
+[2016-10-16 22:20:56,272]Application:INFO: App - Send request #seq [82] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,272]Coordinator:INFO: SC - Incoming application request: #seq=[81] subject=[Neymar]
+[2016-10-16 22:20:56,272]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@7] to #seq=[81]
+[2016-10-16 22:20:56,272]Application:INFO: App - Send request #seq [52] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,273]Coordinator:INFO: SC - Subject attr dependency of #seq-[81]:
+ {'goals': (1, 1476670856.270575, 'Coordinator-1:7@4'),
+ 'id': ('Neymar', 1476670856.270577, 'Coordinator-1:7@4'),
+ 'position': ('forward', 1476670856.270578, 'Coordinator-1:7@4')}
+[2016-10-16 22:20:56,273]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[81], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,273]Coordinator:INFO: SC - Incoming application request: #seq=[82] subject=[Ronaldino]
+[2016-10-16 22:20:56,274]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@4] to #seq=[82]
+[2016-10-16 22:20:56,274]Coordinator:INFO: RC - Incoming evaluation request: #seq=[41] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:56,275]Coordinator:INFO: RC - Resource attr dependency of #seq-[41]:
+ {'id': ('goal2', 1476670856.2388923)}
+[2016-10-16 22:20:56,275]Coordinator:INFO: RC - Assign evalution request: #seq=[41] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,276]Coordinator:INFO: SC - Incoming application request: #seq=[52] subject=[Suarez]
+[2016-10-16 22:20:56,276]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@3] to #seq=[52]
+[2016-10-16 22:20:56,276]Coordinator:INFO: SC - Incoming evaluation response from worker: #seq=[61], subrattr=[['id', 'position']], subwattr=[{'goals': 1, 'id': "Eto'o", 'position': 'forward'}], resrattr=[['id']], reswattr=[{'id': 'goal2'}]
+[2016-10-16 22:20:56,277]Coordinator:INFO: SC - Checking... tattr cache is: {'id': ("Eto'o", 1476670854.1218448, None),
+ 'position': ('forward', 1476670854.1218462, None)}
+[2016-10-16 22:20:56,277]Coordinator:INFO: SC - Subject attr dependency of #seq-[52]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,277]Coordinator:INFO: SC - No conflict found, update tattr cache: #seq=[61]
+[2016-10-16 22:20:56,277]Coordinator:INFO: SC - Send commit request to RC: #seq=[61]
+
+[2016-10-16 22:20:56,277]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[52], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,274]Coordinator:INFO: SC - Subject attr dependency of #seq-[82]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,278]Coordinator:INFO: SC - Incoming application request: #seq=[51] subject=[Eto'o]
+[2016-10-16 22:20:56,279]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[82], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,279]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@8] to #seq=[51]
+[2016-10-16 22:20:56,279]Coordinator:INFO: SC - Subject attr dependency of #seq-[51]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,279]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[51], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,281]Coordinator:INFO: RC - Incoming evaluation request: #seq=[21] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,281]Coordinator:INFO: RC - Resource attr dependency of #seq-[21]:
+ {'id': ('goal2', 1476670856.2388923)}
+[2016-10-16 22:20:56,281]Coordinator:INFO: RC - Assign evalution request: #seq=[21] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,283]Coordinator:INFO: RC - Incoming commit request: #seq=[71] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,283]Coordinator:INFO: RC - Checking... resource cache is: {'id': ('goal2', 1476670856.2388923)}
+[2016-10-16 22:20:56,283]Coordinator:WARNING: ***** Conflict *****: Request #seq-[71] resource-update conflict on attr-[id]
+[2016-10-16 22:20:56,284]Coordinator:INFO: RC - Conflict found: #seq=[71], cleanup and send back to SC to handle
+[2016-10-16 22:20:56,284]Application:INFO: App - Send request #seq [92] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,284]Coordinator:INFO: RC - Send commit response to SC: #seq=[71] sc=('localhost', 31594)
+
+[2016-10-16 22:20:56,284]Application:INFO: App - Send request #seq [22] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,285]Application:INFO: App - Send request #seq [32] to SC ('localhost', 20153)
+[2016-10-16 22:20:56,286]Coordinator:INFO: RC - Incoming evaluation request: #seq=[81] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,287]Coordinator:INFO: SC - Incoming application request: #seq=[92] subject=[Suarez]
+[2016-10-16 22:20:56,287]Coordinator:INFO: RC - Resource attr dependency of #seq-[81]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,287]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@4] to #seq=[92]
+[2016-10-16 22:20:56,287]Coordinator:INFO: RC - Assign evalution request: #seq=[81] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,287]Application:INFO: App - Send request #seq [62] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,287]Application:INFO: App - Send request #seq [12] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,288]Coordinator:INFO: SC - Incoming application request: #seq=[32] subject=[Messi]
+[2016-10-16 22:20:56,288]Application:INFO: App - Send request #seq [72] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,288]Coordinator:INFO: SC - Subject attr dependency of #seq-[92]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,288]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:10@4] to #seq=[32]
+[2016-10-16 22:20:56,289]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[92], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,289]Coordinator:INFO: SC - Subject attr dependency of #seq-[32]:
+ {'goals': (1, 1476670856.2018816, 'Coordinator-1:10@1'),
+ 'id': ('Messi', 1476670856.2018845, 'Coordinator-1:10@1'),
+ 'position': ('forward', 1476670856.2018862, 'Coordinator-1:10@1')}
+[2016-10-16 22:20:56,289]Coordinator:INFO: RC - Incoming commit request: #seq=[61] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,289]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[32], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,289]Application:INFO: App - Send request #seq [42] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,290]Coordinator:INFO: RC - Checking... resource cache is: {'id': ('goal2', 1476670856.2388923)}
+[2016-10-16 22:20:56,290]Coordinator:INFO: RC - No conflict found, commit resource updates to db: #seq=[61]
+[2016-10-16 22:20:56,290]Coordinator:INFO: RC - Send resource update attributes to db [{<DB('localhost', 14264)>}]
+[2016-10-16 22:20:56,290]Application:INFO: App - Send request #seq [2] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,291]Coordinator:INFO: RC - Send commit response to SC: #seq=[61] sc=('localhost', 31594)
+
+[2016-10-16 22:20:56,292]Coordinator:INFO: SC - Incoming application request: #seq=[62] subject=[Ronaldino]
+[2016-10-16 22:20:56,292]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@5] to #seq=[62]
+[2016-10-16 22:20:56,293]Coordinator:INFO: SC - Subject attr dependency of #seq-[62]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,293]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[62], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,294]Coordinator:INFO: RC - Incoming evaluation request: #seq=[52] resource=[goal1] sc=('localhost', 36640)
+[2016-10-16 22:20:56,294]Coordinator:INFO: SC - Incoming application request: #seq=[12] subject=[Ronaldino]
+[2016-10-16 22:20:56,295]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@6] to #seq=[12]
+[2016-10-16 22:20:56,295]Coordinator:INFO: RC - Resource attr dependency of #seq-[52]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,295]Coordinator:INFO: SC - Subject attr dependency of #seq-[12]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,295]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[12], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,295]Coordinator:INFO: RC - Assign evalution request: #seq=[52] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,296]Coordinator:INFO: SC - Incoming application request: #seq=[72] subject=[Ronaldino]
+[2016-10-16 22:20:56,297]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@7] to #seq=[72]
+[2016-10-16 22:20:56,297]Coordinator:INFO: SC - Subject attr dependency of #seq-[72]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,297]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[72], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,298]Coordinator:INFO: RC - Incoming evaluation request: #seq=[82] resource=[goal2] sc=('localhost', 16921)
+[2016-10-16 22:20:56,299]Coordinator:INFO: SC - Incoming application request: #seq=[2] subject=[Ronaldino]
+[2016-10-16 22:20:56,299]Coordinator:INFO: RC - Resource attr dependency of #seq-[82]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,299]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@8] to #seq=[2]
+[2016-10-16 22:20:56,299]Coordinator:INFO: RC - Assign evalution request: #seq=[82] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,300]Coordinator:INFO: SC - Subject attr dependency of #seq-[2]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,300]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[2], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,302]Coordinator:INFO: RC - Incoming evaluation request: #seq=[51] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,303]Coordinator:INFO: RC - Resource attr dependency of #seq-[51]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,303]Coordinator:INFO: RC - Assign evalution request: #seq=[51] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,305]Coordinator:INFO: SC - Incoming commit response from RC: #seq=[71]
+[2016-10-16 22:20:56,306]Coordinator:INFO: SC - Commit conflict found: #seq=[71], cleanup, rollback and restart
+[2016-10-16 22:20:56,306]Coordinator:INFO: SC - Check if update in tentative cache could be rollback
+[2016-10-16 22:20:56,306]Coordinator:INFO: SC - Rollback attribute value from [(1, 1476670856.270575, 'Coordinator-1:7@4')] to [None]
+[2016-10-16 22:20:56,307]Coordinator:INFO: SC - Rollback attribute value from [('Neymar', 1476670856.270577, 'Coordinator-1:7@4')] to [('Neymar', 1476670854.122119, None)]
+[2016-10-16 22:20:56,307]Coordinator:INFO: SC - Rollback attribute value from [('forward', 1476670856.270578, 'Coordinator-1:7@4')] to [('forward', 1476670854.1221204, None)]
+[2016-10-16 22:20:56,309]Coordinator:INFO: SC - Incoming application request: #seq=[22] subject=[Neymar]
+[2016-10-16 22:20:56,309]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@9] to #seq=[22]
+[2016-10-16 22:20:56,310]Coordinator:INFO: SC - Subject attr dependency of #seq-[22]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,310]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[22], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,313]Coordinator:INFO: RC - Incoming evaluation request: #seq=[92] resource=[goal1] sc=('localhost', 36640)
+[2016-10-16 22:20:56,313]Coordinator:INFO: RC - Resource attr dependency of #seq-[92]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,313]Coordinator:INFO: RC - Assign evalution request: #seq=[92] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,316]Coordinator:INFO: SC - Incoming application request: #seq=[42] subject=[Neymar]
+[2016-10-16 22:20:56,316]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@10] to #seq=[42]
+[2016-10-16 22:20:56,317]Coordinator:INFO: SC - Subject attr dependency of #seq-[42]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,317]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[42], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,319]Coordinator:INFO: RC - Incoming evaluation request: #seq=[32] resource=[goal2] sc=('localhost', 20153)
+[2016-10-16 22:20:56,320]Coordinator:INFO: RC - Resource attr dependency of #seq-[32]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,320]Coordinator:INFO: RC - Assign evalution request: #seq=[32] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,322]Coordinator:INFO: SC - Incoming commit response from RC: #seq=[61]
+[2016-10-16 22:20:56,323]Coordinator:INFO: SC - No conflict found, commit subject updates to db: #seq=[61]
+[2016-10-16 22:20:56,323]Coordinator:INFO: SC - Send subject tentative update attributes to db [{<DB('localhost', 14264)>}]
+[2016-10-16 22:20:56,324]Coordinator:INFO: SC - Send application response: #seq=[61]
+
+[2016-10-16 22:20:56,326]Coordinator:INFO: RC - Incoming evaluation request: #seq=[62] resource=[goal2] sc=('localhost', 16921)
+[2016-10-16 22:20:56,327]Coordinator:INFO: RC - Resource attr dependency of #seq-[62]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,327]Coordinator:INFO: RC - Assign evalution request: #seq=[62] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,328]Coordinator:INFO: RC - Incoming evaluation request: #seq=[12] resource=[goal2] sc=('localhost', 16921)
+[2016-10-16 22:20:56,329]Coordinator:INFO: RC - Resource attr dependency of #seq-[12]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,329]Coordinator:INFO: RC - Assign evalution request: #seq=[12] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,331]Coordinator:INFO: RC - Incoming evaluation request: #seq=[72] resource=[goal2] sc=('localhost', 16921)
+[2016-10-16 22:20:56,331]Coordinator:INFO: RC - Resource attr dependency of #seq-[72]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,331]Coordinator:INFO: RC - Assign evalution request: #seq=[72] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,334]Coordinator:INFO: RC - Incoming evaluation request: #seq=[2] resource=[goal1] sc=('localhost', 16921)
+[2016-10-16 22:20:56,334]Coordinator:INFO: RC - Resource attr dependency of #seq-[2]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,334]Coordinator:INFO: RC - Assign evalution request: #seq=[2] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,336]Coordinator:INFO: SC - Incoming application request: #seq=[71] subject=[Neymar]
+[2016-10-16 22:20:56,336]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@11] to #seq=[71]
+[2016-10-16 22:20:56,337]Coordinator:INFO: SC - Subject attr dependency of #seq-[71]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,337]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[71], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,339]Coordinator:INFO: RC - Incoming evaluation request: #seq=[22] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,339]Coordinator:INFO: RC - Resource attr dependency of #seq-[22]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,339]Coordinator:INFO: RC - Assign evalution request: #seq=[22] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,341]Coordinator:INFO: RC - Incoming evaluation request: #seq=[42] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,341]Coordinator:INFO: RC - Resource attr dependency of #seq-[42]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,341]Coordinator:INFO: RC - Assign evalution request: #seq=[42] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,343]Coordinator:INFO: RC - Incoming evaluation request: #seq=[71] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,343]Coordinator:INFO: RC - Resource attr dependency of #seq-[71]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,343]Coordinator:INFO: RC - Assign evalution request: #seq=[71] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,373]Application:INFO: App - Send request #seq [83] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,374]Application:INFO: App - Send request #seq [53] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,375]Coordinator:INFO: SC - Incoming application request: #seq=[53] subject=[Suarez]
+[2016-10-16 22:20:56,375]Coordinator:INFO: SC - Incoming application request: #seq=[83] subject=[Eto'o]
+[2016-10-16 22:20:56,376]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@5] to #seq=[53]
+[2016-10-16 22:20:56,376]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@12] to #seq=[83]
+[2016-10-16 22:20:56,376]Coordinator:INFO: SC - Subject attr dependency of #seq-[53]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,376]Coordinator:INFO: SC - Subject attr dependency of #seq-[83]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,376]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[53], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,377]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[83], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,378]Coordinator:INFO: RC - Incoming evaluation request: #seq=[53] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:56,379]Coordinator:INFO: RC - Resource attr dependency of #seq-[53]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,379]Coordinator:INFO: RC - Assign evalution request: #seq=[53] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,380]Coordinator:INFO: RC - Incoming evaluation request: #seq=[83] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,380]Coordinator:INFO: RC - Resource attr dependency of #seq-[83]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,381]Coordinator:INFO: RC - Assign evalution request: #seq=[83] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,385]Application:INFO: App - Send request #seq [93] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,385]Application:INFO: App - Send request #seq [23] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,387]Application:INFO: App - Send request #seq [33] to SC ('localhost', 20153)
+[2016-10-16 22:20:56,387]Coordinator:INFO: SC - Incoming application request: #seq=[23] subject=[Ronaldino]
+[2016-10-16 22:20:56,388]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@9] to #seq=[23]
+[2016-10-16 22:20:56,388]Application:INFO: App - Send request #seq [63] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,388]Application:INFO: App - Send request #seq [13] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,389]Coordinator:INFO: SC - Incoming application request: #seq=[33] subject=[Messi]
+[2016-10-16 22:20:56,389]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:10@5] to #seq=[33]
+[2016-10-16 22:20:56,390]Application:INFO: App - Send request #seq [73] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,390]Coordinator:INFO: SC - Subject attr dependency of #seq-[33]:
+ {'goals': (1, 1476670856.2018816, 'Coordinator-1:10@1'),
+ 'id': ('Messi', 1476670856.2018845, 'Coordinator-1:10@1'),
+ 'position': ('forward', 1476670856.2018862, 'Coordinator-1:10@1')}
+[2016-10-16 22:20:56,390]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[33], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,390]Application:INFO: App - Send request #seq [43] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,391]Coordinator:INFO: SC - Incoming application request: #seq=[63] subject=[Suarez]
+[2016-10-16 22:20:56,391]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@6] to #seq=[63]
+[2016-10-16 22:20:56,391]Coordinator:INFO: SC - Subject attr dependency of #seq-[63]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,392]Application:INFO: App - Send request #seq [3] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,392]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[63], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,393]Coordinator:INFO: SC - Subject attr dependency of #seq-[23]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,393]Coordinator:INFO: SC - Incoming application request: #seq=[93] subject=[Neymar]
+[2016-10-16 22:20:56,393]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@13] to #seq=[93]
+[2016-10-16 22:20:56,393]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[23], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,394]Coordinator:INFO: SC - Subject attr dependency of #seq-[93]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,395]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[93], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,395]Coordinator:INFO: SC - Incoming application request: #seq=[13] subject=[Ronaldino]
+[2016-10-16 22:20:56,396]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@10] to #seq=[13]
+[2016-10-16 22:20:56,396]Coordinator:INFO: SC - Incoming application request: #seq=[73] subject=[Neymar]
+[2016-10-16 22:20:56,396]Coordinator:INFO: SC - Subject attr dependency of #seq-[13]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,396]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@14] to #seq=[73]
+[2016-10-16 22:20:56,397]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[13], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,397]Coordinator:INFO: SC - Subject attr dependency of #seq-[73]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,397]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[73], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,398]Coordinator:INFO: SC - Incoming application request: #seq=[43] subject=[Neymar]
+[2016-10-16 22:20:56,399]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@15] to #seq=[43]
+[2016-10-16 22:20:56,399]Coordinator:INFO: SC - Subject attr dependency of #seq-[43]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,399]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[43], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,400]Coordinator:INFO: RC - Incoming evaluation request: #seq=[33] resource=[goal1] sc=('localhost', 20153)
+[2016-10-16 22:20:56,401]Coordinator:INFO: RC - Resource attr dependency of #seq-[33]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,401]Coordinator:INFO: RC - Assign evalution request: #seq=[33] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,402]Coordinator:INFO: SC - Incoming application request: #seq=[3] subject=[Neymar]
+[2016-10-16 22:20:56,402]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@16] to #seq=[3]
+[2016-10-16 22:20:56,402]Coordinator:INFO: SC - Subject attr dependency of #seq-[3]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,403]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[3], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,404]Coordinator:INFO: RC - Incoming evaluation request: #seq=[63] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:56,404]Coordinator:INFO: RC - Resource attr dependency of #seq-[63]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,404]Coordinator:INFO: RC - Assign evalution request: #seq=[63] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,406]Coordinator:INFO: RC - Incoming evaluation request: #seq=[23] resource=[goal2] sc=('localhost', 16921)
+[2016-10-16 22:20:56,406]Coordinator:INFO: RC - Resource attr dependency of #seq-[23]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,406]Coordinator:INFO: RC - Assign evalution request: #seq=[23] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,408]Coordinator:INFO: RC - Incoming evaluation request: #seq=[93] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,408]Coordinator:INFO: RC - Resource attr dependency of #seq-[93]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,409]Coordinator:INFO: RC - Assign evalution request: #seq=[93] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,410]Coordinator:INFO: RC - Incoming evaluation request: #seq=[13] resource=[goal1] sc=('localhost', 16921)
+[2016-10-16 22:20:56,410]Coordinator:INFO: RC - Resource attr dependency of #seq-[13]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,410]Coordinator:INFO: RC - Assign evalution request: #seq=[13] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,412]Coordinator:INFO: RC - Incoming evaluation request: #seq=[73] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,412]Coordinator:INFO: RC - Resource attr dependency of #seq-[73]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,412]Coordinator:INFO: RC - Assign evalution request: #seq=[73] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,413]Coordinator:INFO: RC - Incoming evaluation request: #seq=[43] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,414]Coordinator:INFO: RC - Resource attr dependency of #seq-[43]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,414]Coordinator:INFO: RC - Assign evalution request: #seq=[43] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,415]Coordinator:INFO: RC - Incoming evaluation request: #seq=[3] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,415]Coordinator:INFO: RC - Resource attr dependency of #seq-[3]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,415]Coordinator:INFO: RC - Assign evalution request: #seq=[3] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,474]Application:INFO: App - Send request #seq [84] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,475]Application:INFO: App - Send request #seq [54] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,475]Coordinator:INFO: SC - Incoming application request: #seq=[84] subject=[Eto'o]
+[2016-10-16 22:20:56,476]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@17] to #seq=[84]
+[2016-10-16 22:20:56,476]Coordinator:INFO: SC - Subject attr dependency of #seq-[84]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,476]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[84], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,477]Coordinator:INFO: SC - Incoming application request: #seq=[54] subject=[Ronaldino]
+[2016-10-16 22:20:56,477]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@11] to #seq=[54]
+[2016-10-16 22:20:56,478]Coordinator:INFO: SC - Subject attr dependency of #seq-[54]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,478]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[54], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,479]Coordinator:INFO: RC - Incoming evaluation request: #seq=[84] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,479]Coordinator:INFO: RC - Resource attr dependency of #seq-[84]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,480]Coordinator:INFO: RC - Assign evalution request: #seq=[84] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,481]Coordinator:INFO: RC - Incoming evaluation request: #seq=[54] resource=[goal1] sc=('localhost', 16921)
+[2016-10-16 22:20:56,481]Coordinator:INFO: RC - Resource attr dependency of #seq-[54]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,481]Coordinator:INFO: RC - Assign evalution request: #seq=[54] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,486]Application:INFO: App - Send request #seq [24] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,486]Application:INFO: App - Send request #seq [94] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,488]Application:INFO: App - Send request #seq [34] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,489]Coordinator:INFO: SC - Incoming application request: #seq=[24] subject=[Suarez]
+[2016-10-16 22:20:56,489]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@7] to #seq=[24]
+[2016-10-16 22:20:56,489]Coordinator:INFO: SC - Subject attr dependency of #seq-[24]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,490]Application:INFO: App - Send request #seq [64] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,490]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[24], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,490]Application:INFO: App - Send request #seq [14] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,492]Application:INFO: App - Send request #seq [44] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,492]Coordinator:INFO: SC - Incoming application request: #seq=[34] subject=[Ronaldino]
+[2016-10-16 22:20:56,492]Coordinator:INFO: SC - Incoming application request: #seq=[94] subject=[Suarez]
+[2016-10-16 22:20:56,492]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@12] to #seq=[34]
+[2016-10-16 22:20:56,493]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@8] to #seq=[94]
+[2016-10-16 22:20:56,493]Application:INFO: App - Send request #seq [74] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,493]Coordinator:INFO: SC - Subject attr dependency of #seq-[34]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,493]Coordinator:INFO: SC - Subject attr dependency of #seq-[94]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,493]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[34], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,493]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[94], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,494]Application:INFO: App - Send request #seq [4] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,495]Coordinator:INFO: SC - Incoming application request: #seq=[64] subject=[Eto'o]
+[2016-10-16 22:20:56,495]Coordinator:INFO: SC - Incoming application request: #seq=[14] subject=[Suarez]
+[2016-10-16 22:20:56,496]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@9] to #seq=[14]
+[2016-10-16 22:20:56,496]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@18] to #seq=[64]
+[2016-10-16 22:20:56,496]Coordinator:INFO: SC - Subject attr dependency of #seq-[14]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,496]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[14], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,496]Coordinator:INFO: SC - Subject attr dependency of #seq-[64]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,497]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[64], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,497]Coordinator:INFO: SC - Incoming application request: #seq=[44] subject=[Suarez]
+[2016-10-16 22:20:56,498]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@10] to #seq=[44]
+[2016-10-16 22:20:56,498]Coordinator:INFO: SC - Subject attr dependency of #seq-[44]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,498]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[44], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,499]Coordinator:INFO: SC - Incoming application request: #seq=[4] subject=[Suarez]
+[2016-10-16 22:20:56,500]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@11] to #seq=[4]
+[2016-10-16 22:20:56,500]Coordinator:INFO: RC - Incoming evaluation request: #seq=[24] resource=[goal1] sc=('localhost', 36640)
+[2016-10-16 22:20:56,500]Coordinator:INFO: SC - Subject attr dependency of #seq-[4]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,500]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[4], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,500]Coordinator:INFO: RC - Resource attr dependency of #seq-[24]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,501]Coordinator:INFO: RC - Assign evalution request: #seq=[24] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,503]Coordinator:INFO: SC - Incoming application request: #seq=[74] subject=[Neymar]
+[2016-10-16 22:20:56,503]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@19] to #seq=[74]
+[2016-10-16 22:20:56,504]Coordinator:INFO: SC - Subject attr dependency of #seq-[74]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,504]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[74], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,507]Coordinator:INFO: RC - Incoming evaluation request: #seq=[34] resource=[goal1] sc=('localhost', 16921)
+[2016-10-16 22:20:56,507]Coordinator:INFO: RC - Resource attr dependency of #seq-[34]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,507]Coordinator:INFO: RC - Assign evalution request: #seq=[34] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,510]Coordinator:INFO: RC - Incoming evaluation request: #seq=[94] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:56,510]Coordinator:INFO: RC - Resource attr dependency of #seq-[94]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,510]Coordinator:INFO: RC - Assign evalution request: #seq=[94] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,513]Coordinator:INFO: RC - Incoming evaluation request: #seq=[14] resource=[goal1] sc=('localhost', 36640)
+[2016-10-16 22:20:56,513]Coordinator:INFO: RC - Resource attr dependency of #seq-[14]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,514]Coordinator:INFO: RC - Assign evalution request: #seq=[14] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,515]Coordinator:INFO: RC - Incoming evaluation request: #seq=[64] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,516]Coordinator:INFO: RC - Resource attr dependency of #seq-[64]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,516]Coordinator:INFO: RC - Assign evalution request: #seq=[64] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,518]Coordinator:INFO: RC - Incoming evaluation request: #seq=[44] resource=[goal1] sc=('localhost', 36640)
+[2016-10-16 22:20:56,518]Coordinator:INFO: RC - Resource attr dependency of #seq-[44]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,518]Coordinator:INFO: RC - Assign evalution request: #seq=[44] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,520]Coordinator:INFO: RC - Incoming evaluation request: #seq=[4] resource=[goal1] sc=('localhost', 36640)
+[2016-10-16 22:20:56,520]Coordinator:INFO: RC - Resource attr dependency of #seq-[4]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,520]Coordinator:INFO: RC - Assign evalution request: #seq=[4] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,522]Coordinator:INFO: RC - Incoming evaluation request: #seq=[74] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,522]Coordinator:INFO: RC - Resource attr dependency of #seq-[74]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,522]Coordinator:INFO: RC - Assign evalution request: #seq=[74] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,575]Application:INFO: App - Send request #seq [85] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,576]Application:INFO: App - Send request #seq [55] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,576]Coordinator:INFO: SC - Incoming application request: #seq=[85] subject=[Neymar]
+[2016-10-16 22:20:56,577]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@20] to #seq=[85]
+[2016-10-16 22:20:56,577]Coordinator:INFO: SC - Subject attr dependency of #seq-[85]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,577]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[85], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,579]Coordinator:INFO: SC - Incoming application request: #seq=[55] subject=[Eto'o]
+[2016-10-16 22:20:56,579]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@21] to #seq=[55]
+[2016-10-16 22:20:56,579]Coordinator:INFO: SC - Subject attr dependency of #seq-[55]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,580]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[55], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,581]Coordinator:INFO: RC - Incoming evaluation request: #seq=[85] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,581]Coordinator:INFO: RC - Resource attr dependency of #seq-[85]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,581]Coordinator:INFO: RC - Assign evalution request: #seq=[85] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,583]Coordinator:INFO: RC - Incoming evaluation request: #seq=[55] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,583]Coordinator:INFO: RC - Resource attr dependency of #seq-[55]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,583]Coordinator:INFO: RC - Assign evalution request: #seq=[55] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,588]Application:INFO: App - Send request #seq [25] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,588]Application:INFO: App - Send request #seq [95] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,589]Application:INFO: App - Send request #seq [35] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,590]Coordinator:INFO: SC - Incoming application request: #seq=[25] subject=[Eto'o]
+[2016-10-16 22:20:56,590]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@22] to #seq=[25]
+[2016-10-16 22:20:56,591]Coordinator:INFO: SC - Subject attr dependency of #seq-[25]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,591]Application:INFO: App - Send request #seq [65] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,591]Application:INFO: App - Send request #seq [15] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,592]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[25], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,593]Application:INFO: App - Send request #seq [45] to SC ('localhost', 20153)
+[2016-10-16 22:20:56,594]Application:INFO: App - Send request #seq [75] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,594]Coordinator:INFO: SC - Incoming application request: #seq=[45] subject=[Messi]
+[2016-10-16 22:20:56,595]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:10@6] to #seq=[45]
+[2016-10-16 22:20:56,595]Coordinator:INFO: SC - Incoming application request: #seq=[95] subject=[Eto'o]
+[2016-10-16 22:20:56,595]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@23] to #seq=[95]
+[2016-10-16 22:20:56,595]Coordinator:INFO: SC - Subject attr dependency of #seq-[45]:
+ {'goals': (1, 1476670856.2018816, 'Coordinator-1:10@1'),
+ 'id': ('Messi', 1476670856.2018845, 'Coordinator-1:10@1'),
+ 'position': ('forward', 1476670856.2018862, 'Coordinator-1:10@1')}
+[2016-10-16 22:20:56,595]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[45], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,596]Coordinator:INFO: SC - Subject attr dependency of #seq-[95]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,596]Coordinator:INFO: SC - Incoming application request: #seq=[75] subject=[Ronaldino]
+[2016-10-16 22:20:56,596]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@13] to #seq=[75]
+[2016-10-16 22:20:56,596]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[95], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,596]Coordinator:INFO: SC - Subject attr dependency of #seq-[75]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,597]Application:INFO: App - Send request #seq [5] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,598]Coordinator:INFO: SC - Incoming application request: #seq=[35] subject=[Eto'o]
+[2016-10-16 22:20:56,599]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[75], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,599]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@24] to #seq=[35]
+[2016-10-16 22:20:56,600]Coordinator:INFO: SC - Subject attr dependency of #seq-[35]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,600]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[35], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,603]Coordinator:INFO: SC - Incoming application request: #seq=[65] subject=[Eto'o]
+[2016-10-16 22:20:56,603]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@25] to #seq=[65]
+[2016-10-16 22:20:56,603]Coordinator:INFO: SC - Subject attr dependency of #seq-[65]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,604]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[65], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,606]Coordinator:INFO: SC - Incoming application request: #seq=[15] subject=[Eto'o]
+[2016-10-16 22:20:56,606]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@26] to #seq=[15]
+[2016-10-16 22:20:56,607]Coordinator:INFO: SC - Subject attr dependency of #seq-[15]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,607]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[15], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,610]Coordinator:INFO: RC - Incoming evaluation request: #seq=[25] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,610]Coordinator:INFO: RC - Resource attr dependency of #seq-[25]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,610]Coordinator:INFO: RC - Assign evalution request: #seq=[25] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,612]Coordinator:INFO: RC - Incoming evaluation request: #seq=[45] resource=[goal1] sc=('localhost', 20153)
+[2016-10-16 22:20:56,612]Coordinator:INFO: RC - Resource attr dependency of #seq-[45]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,612]Coordinator:INFO: RC - Assign evalution request: #seq=[45] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,614]Coordinator:INFO: RC - Incoming evaluation request: #seq=[95] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,614]Coordinator:INFO: RC - Resource attr dependency of #seq-[95]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,614]Coordinator:INFO: RC - Assign evalution request: #seq=[95] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,615]Coordinator:INFO: SC - Incoming application request: #seq=[5] subject=[Neymar]
+[2016-10-16 22:20:56,615]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@27] to #seq=[5]
+[2016-10-16 22:20:56,616]Coordinator:INFO: SC - Subject attr dependency of #seq-[5]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,616]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[5], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,617]Coordinator:INFO: RC - Incoming evaluation request: #seq=[75] resource=[goal1] sc=('localhost', 16921)
+[2016-10-16 22:20:56,618]Coordinator:INFO: RC - Resource attr dependency of #seq-[75]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,618]Coordinator:INFO: RC - Assign evalution request: #seq=[75] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,619]Coordinator:INFO: RC - Incoming evaluation request: #seq=[35] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,619]Coordinator:INFO: RC - Resource attr dependency of #seq-[35]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,619]Coordinator:INFO: RC - Assign evalution request: #seq=[35] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,621]Coordinator:INFO: RC - Incoming evaluation request: #seq=[65] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,621]Coordinator:INFO: RC - Resource attr dependency of #seq-[65]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,621]Coordinator:INFO: RC - Assign evalution request: #seq=[65] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,623]Coordinator:INFO: RC - Incoming evaluation request: #seq=[15] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,623]Coordinator:INFO: RC - Resource attr dependency of #seq-[15]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,623]Coordinator:INFO: RC - Assign evalution request: #seq=[15] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,624]Coordinator:INFO: RC - Incoming evaluation request: #seq=[5] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,625]Coordinator:INFO: RC - Resource attr dependency of #seq-[5]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,625]Coordinator:INFO: RC - Assign evalution request: #seq=[5] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,676]Application:INFO: App - Send request #seq [86] to SC ('localhost', 20153)
+[2016-10-16 22:20:56,677]Application:INFO: App - Send request #seq [56] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,678]Coordinator:INFO: SC - Incoming application request: #seq=[86] subject=[Messi]
+[2016-10-16 22:20:56,678]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:10@7] to #seq=[86]
+[2016-10-16 22:20:56,678]Coordinator:INFO: SC - Subject attr dependency of #seq-[86]:
+ {'goals': (1, 1476670856.2018816, 'Coordinator-1:10@1'),
+ 'id': ('Messi', 1476670856.2018845, 'Coordinator-1:10@1'),
+ 'position': ('forward', 1476670856.2018862, 'Coordinator-1:10@1')}
+[2016-10-16 22:20:56,679]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[86], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,681]Coordinator:INFO: SC - Incoming application request: #seq=[56] subject=[Suarez]
+[2016-10-16 22:20:56,681]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@12] to #seq=[56]
+[2016-10-16 22:20:56,681]Coordinator:INFO: SC - Subject attr dependency of #seq-[56]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,682]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[56], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,682]Coordinator:INFO: RC - Incoming evaluation request: #seq=[86] resource=[goal2] sc=('localhost', 20153)
+[2016-10-16 22:20:56,683]Coordinator:INFO: RC - Resource attr dependency of #seq-[86]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,683]Coordinator:INFO: RC - Assign evalution request: #seq=[86] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,686]Coordinator:INFO: RC - Incoming evaluation request: #seq=[56] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:56,687]Coordinator:INFO: RC - Resource attr dependency of #seq-[56]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,687]Coordinator:INFO: RC - Assign evalution request: #seq=[56] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,689]Application:INFO: App - Send request #seq [96] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,692]Application:INFO: App - Send request #seq [16] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,692]Coordinator:INFO: SC - Incoming application request: #seq=[96] subject=[Ronaldino]
+[2016-10-16 22:20:56,693]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@14] to #seq=[96]
+[2016-10-16 22:20:56,694]Coordinator:INFO: SC - Subject attr dependency of #seq-[96]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,695]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[96], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,697]Application:INFO: App - Send request #seq [26] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,698]Application:INFO: App - Send request #seq [36] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,699]Coordinator:INFO: SC - Incoming application request: #seq=[16] subject=[Neymar]
+[2016-10-16 22:20:56,699]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@28] to #seq=[16]
+[2016-10-16 22:20:56,700]Application:INFO: App - Send request #seq [66] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,700]Coordinator:INFO: SC - Subject attr dependency of #seq-[16]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,700]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[16], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,701]Application:INFO: App - Send request #seq [46] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,702]Application:INFO: App - Send request #seq [76] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,703]Application:INFO: App - Send request #seq [6] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,705]Coordinator:INFO: SC - Incoming application request: #seq=[46] subject=[Suarez]
+[2016-10-16 22:20:56,705]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@13] to #seq=[46]
+[2016-10-16 22:20:56,706]Coordinator:INFO: SC - Incoming application request: #seq=[26] subject=[Ronaldino]
+[2016-10-16 22:20:56,706]Coordinator:INFO: SC - Subject attr dependency of #seq-[46]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,706]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@15] to #seq=[26]
+[2016-10-16 22:20:56,706]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[46], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,707]Coordinator:INFO: SC - Subject attr dependency of #seq-[26]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,707]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[26], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,708]Coordinator:INFO: RC - Incoming evaluation request: #seq=[96] resource=[goal2] sc=('localhost', 16921)
+[2016-10-16 22:20:56,709]Coordinator:INFO: RC - Resource attr dependency of #seq-[96]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,709]Coordinator:INFO: RC - Assign evalution request: #seq=[96] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,710]Coordinator:INFO: SC - Incoming application request: #seq=[66] subject=[Ronaldino]
+[2016-10-16 22:20:56,710]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@16] to #seq=[66]
+[2016-10-16 22:20:56,711]Coordinator:INFO: SC - Incoming application request: #seq=[36] subject=[Eto'o]
+[2016-10-16 22:20:56,711]Coordinator:INFO: SC - Subject attr dependency of #seq-[66]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,711]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@29] to #seq=[36]
+[2016-10-16 22:20:56,712]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[66], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,712]Coordinator:INFO: SC - Subject attr dependency of #seq-[36]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,712]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[36], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,715]Coordinator:INFO: RC - Incoming evaluation request: #seq=[16] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,715]Coordinator:INFO: RC - Resource attr dependency of #seq-[16]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,716]Coordinator:INFO: RC - Assign evalution request: #seq=[16] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,718]Coordinator:INFO: SC - Incoming application request: #seq=[76] subject=[Neymar]
+[2016-10-16 22:20:56,718]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@30] to #seq=[76]
+[2016-10-16 22:20:56,719]Coordinator:INFO: SC - Subject attr dependency of #seq-[76]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,719]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[76], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,720]Coordinator:INFO: SC - Incoming application request: #seq=[6] subject=[Ronaldino]
+[2016-10-16 22:20:56,720]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@17] to #seq=[6]
+[2016-10-16 22:20:56,721]Coordinator:INFO: SC - Subject attr dependency of #seq-[6]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,721]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[6], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,723]Coordinator:INFO: RC - Incoming evaluation request: #seq=[46] resource=[goal1] sc=('localhost', 36640)
+[2016-10-16 22:20:56,723]Coordinator:INFO: RC - Resource attr dependency of #seq-[46]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,723]Coordinator:INFO: RC - Assign evalution request: #seq=[46] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,726]Coordinator:INFO: RC - Incoming evaluation request: #seq=[26] resource=[goal1] sc=('localhost', 16921)
+[2016-10-16 22:20:56,726]Coordinator:INFO: RC - Resource attr dependency of #seq-[26]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,727]Coordinator:INFO: RC - Assign evalution request: #seq=[26] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,729]Coordinator:INFO: RC - Incoming evaluation request: #seq=[66] resource=[goal1] sc=('localhost', 16921)
+[2016-10-16 22:20:56,730]Coordinator:INFO: RC - Resource attr dependency of #seq-[66]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,730]Coordinator:INFO: RC - Assign evalution request: #seq=[66] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,733]Coordinator:INFO: RC - Incoming evaluation request: #seq=[36] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,733]Coordinator:INFO: RC - Resource attr dependency of #seq-[36]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,734]Coordinator:INFO: RC - Assign evalution request: #seq=[36] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,736]Coordinator:INFO: RC - Incoming evaluation request: #seq=[76] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,736]Coordinator:INFO: RC - Resource attr dependency of #seq-[76]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,736]Coordinator:INFO: RC - Assign evalution request: #seq=[76] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,738]Coordinator:INFO: RC - Incoming evaluation request: #seq=[6] resource=[goal1] sc=('localhost', 16921)
+[2016-10-16 22:20:56,738]Coordinator:INFO: RC - Resource attr dependency of #seq-[6]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,738]Coordinator:INFO: RC - Assign evalution request: #seq=[6] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,777]Application:INFO: App - Send request #seq [87] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,779]Application:INFO: App - Send request #seq [57] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,779]Coordinator:INFO: SC - Incoming application request: #seq=[87] subject=[Ronaldino]
+[2016-10-16 22:20:56,779]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@18] to #seq=[87]
+[2016-10-16 22:20:56,780]Coordinator:INFO: SC - Subject attr dependency of #seq-[87]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,780]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[87], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,781]Coordinator:INFO: SC - Incoming application request: #seq=[57] subject=[Neymar]
+[2016-10-16 22:20:56,781]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@31] to #seq=[57]
+[2016-10-16 22:20:56,782]Coordinator:INFO: SC - Subject attr dependency of #seq-[57]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,782]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[57], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,785]Coordinator:INFO: RC - Incoming evaluation request: #seq=[87] resource=[goal1] sc=('localhost', 16921)
+[2016-10-16 22:20:56,785]Coordinator:INFO: RC - Resource attr dependency of #seq-[87]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,785]Coordinator:INFO: RC - Assign evalution request: #seq=[87] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,788]Coordinator:INFO: RC - Incoming evaluation request: #seq=[57] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,788]Coordinator:INFO: RC - Resource attr dependency of #seq-[57]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,789]Coordinator:INFO: RC - Assign evalution request: #seq=[57] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,793]Application:INFO: App - Send request #seq [97] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,794]Application:INFO: App - Send request #seq [17] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,794]Coordinator:INFO: SC - Incoming application request: #seq=[97] subject=[Eto'o]
+[2016-10-16 22:20:56,795]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@32] to #seq=[97]
+[2016-10-16 22:20:56,795]Coordinator:INFO: SC - Subject attr dependency of #seq-[97]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,795]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[97], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,797]Coordinator:INFO: SC - Incoming application request: #seq=[17] subject=[Neymar]
+[2016-10-16 22:20:56,797]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@33] to #seq=[17]
+[2016-10-16 22:20:56,797]Coordinator:INFO: SC - Subject attr dependency of #seq-[17]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,798]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[17], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,799]Application:INFO: App - Send request #seq [27] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,799]Coordinator:INFO: RC - Incoming evaluation request: #seq=[97] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,799]Coordinator:INFO: RC - Resource attr dependency of #seq-[97]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,800]Coordinator:INFO: RC - Assign evalution request: #seq=[97] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,800]Application:INFO: App - Send request #seq [37] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,801]Coordinator:INFO: SC - Incoming application request: #seq=[27] subject=[Suarez]
+[2016-10-16 22:20:56,801]Application:INFO: App - Send request #seq [67] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,801]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@14] to #seq=[27]
+[2016-10-16 22:20:56,801]Coordinator:INFO: RC - Incoming evaluation request: #seq=[17] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,802]Coordinator:INFO: RC - Resource attr dependency of #seq-[17]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,802]Coordinator:INFO: SC - Subject attr dependency of #seq-[27]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,802]Coordinator:INFO: RC - Assign evalution request: #seq=[17] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,802]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[27], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,802]Coordinator:INFO: SC - Incoming application request: #seq=[37] subject=[Ronaldino]
+[2016-10-16 22:20:56,802]Application:INFO: App - Send request #seq [47] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,802]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@19] to #seq=[37]
+[2016-10-16 22:20:56,803]Application:INFO: App - Send request #seq [77] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,803]Coordinator:INFO: SC - Subject attr dependency of #seq-[37]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,803]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[37], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,804]Coordinator:INFO: SC - Incoming application request: #seq=[67] subject=[Suarez]
+[2016-10-16 22:20:56,804]Coordinator:INFO: SC - Incoming application request: #seq=[47] subject=[Eto'o]
+[2016-10-16 22:20:56,804]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@15] to #seq=[67]
+[2016-10-16 22:20:56,805]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@34] to #seq=[47]
+[2016-10-16 22:20:56,805]Coordinator:INFO: SC - Subject attr dependency of #seq-[47]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,805]Coordinator:INFO: SC - Subject attr dependency of #seq-[67]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,805]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[47], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,805]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[67], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,807]Application:INFO: App - Send request #seq [7] to SC ('localhost', 20153)
+[2016-10-16 22:20:56,807]Coordinator:INFO: RC - Incoming evaluation request: #seq=[27] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:56,807]Coordinator:INFO: RC - Resource attr dependency of #seq-[27]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,807]Coordinator:INFO: RC - Assign evalution request: #seq=[27] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,808]Coordinator:INFO: SC - Incoming application request: #seq=[7] subject=[Messi]
+[2016-10-16 22:20:56,809]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:10@8] to #seq=[7]
+[2016-10-16 22:20:56,809]Coordinator:INFO: SC - Subject attr dependency of #seq-[7]:
+ {'goals': (1, 1476670856.2018816, 'Coordinator-1:10@1'),
+ 'id': ('Messi', 1476670856.2018845, 'Coordinator-1:10@1'),
+ 'position': ('forward', 1476670856.2018862, 'Coordinator-1:10@1')}
+[2016-10-16 22:20:56,809]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[7], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,810]Coordinator:INFO: SC - Incoming application request: #seq=[77] subject=[Eto'o]
+[2016-10-16 22:20:56,810]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@35] to #seq=[77]
+[2016-10-16 22:20:56,810]Coordinator:INFO: SC - Subject attr dependency of #seq-[77]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,811]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[77], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,812]Coordinator:INFO: RC - Incoming evaluation request: #seq=[37] resource=[goal2] sc=('localhost', 16921)
+[2016-10-16 22:20:56,812]Coordinator:INFO: RC - Resource attr dependency of #seq-[37]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,812]Coordinator:INFO: RC - Assign evalution request: #seq=[37] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,814]Coordinator:INFO: RC - Incoming evaluation request: #seq=[47] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,814]Coordinator:INFO: RC - Resource attr dependency of #seq-[47]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,814]Coordinator:INFO: RC - Assign evalution request: #seq=[47] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,816]Coordinator:INFO: RC - Incoming evaluation request: #seq=[67] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:56,816]Coordinator:INFO: RC - Resource attr dependency of #seq-[67]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,816]Coordinator:INFO: RC - Assign evalution request: #seq=[67] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,817]Coordinator:INFO: RC - Incoming evaluation request: #seq=[7] resource=[goal1] sc=('localhost', 20153)
+[2016-10-16 22:20:56,817]Coordinator:INFO: RC - Resource attr dependency of #seq-[7]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,818]Coordinator:INFO: RC - Assign evalution request: #seq=[7] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,819]Coordinator:INFO: RC - Incoming evaluation request: #seq=[77] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,820]Coordinator:INFO: RC - Resource attr dependency of #seq-[77]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,820]Coordinator:INFO: RC - Assign evalution request: #seq=[77] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,879]Application:INFO: App - Send request #seq [88] to SC ('localhost', 20153)
+[2016-10-16 22:20:56,880]Application:INFO: App - Send request #seq [58] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,880]Coordinator:INFO: SC - Incoming application request: #seq=[88] subject=[Messi]
+[2016-10-16 22:20:56,881]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:10@9] to #seq=[88]
+[2016-10-16 22:20:56,881]Coordinator:INFO: SC - Subject attr dependency of #seq-[88]:
+ {'goals': (1, 1476670856.2018816, 'Coordinator-1:10@1'),
+ 'id': ('Messi', 1476670856.2018845, 'Coordinator-1:10@1'),
+ 'position': ('forward', 1476670856.2018862, 'Coordinator-1:10@1')}
+[2016-10-16 22:20:56,881]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[88], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,882]Coordinator:INFO: SC - Incoming application request: #seq=[58] subject=[Suarez]
+[2016-10-16 22:20:56,882]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@16] to #seq=[58]
+[2016-10-16 22:20:56,883]Coordinator:INFO: RC - Incoming evaluation request: #seq=[88] resource=[goal2] sc=('localhost', 20153)
+[2016-10-16 22:20:56,883]Coordinator:INFO: RC - Resource attr dependency of #seq-[88]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,883]Coordinator:INFO: SC - Subject attr dependency of #seq-[58]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,883]Coordinator:INFO: RC - Assign evalution request: #seq=[88] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,883]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[58], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,885]Coordinator:INFO: RC - Incoming evaluation request: #seq=[58] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:56,885]Coordinator:INFO: RC - Resource attr dependency of #seq-[58]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,885]Coordinator:INFO: RC - Assign evalution request: #seq=[58] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,894]Application:INFO: App - Send request #seq [98] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,895]Application:INFO: App - Send request #seq [18] to SC ('localhost', 16921)
+[2016-10-16 22:20:56,896]Coordinator:INFO: SC - Incoming application request: #seq=[98] subject=[Neymar]
+[2016-10-16 22:20:56,897]Coordinator:INFO: SC - Incoming application request: #seq=[18] subject=[Ronaldino]
+[2016-10-16 22:20:56,897]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@20] to #seq=[18]
+[2016-10-16 22:20:56,897]Coordinator:INFO: SC - Subject attr dependency of #seq-[18]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:56,898]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[18], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,898]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@36] to #seq=[98]
+[2016-10-16 22:20:56,899]Coordinator:INFO: SC - Subject attr dependency of #seq-[98]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,899]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[98], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,900]Application:INFO: App - Send request #seq [28] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,901]Application:INFO: App - Send request #seq [38] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,902]Application:INFO: App - Send request #seq [68] to SC ('localhost', 20153)
+[2016-10-16 22:20:56,903]Application:INFO: App - Send request #seq [48] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,903]Coordinator:INFO: SC - Incoming application request: #seq=[28] subject=[Suarez]
+[2016-10-16 22:20:56,904]Coordinator:INFO: SC - Incoming application request: #seq=[68] subject=[Messi]
+[2016-10-16 22:20:56,904]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@17] to #seq=[28]
+[2016-10-16 22:20:56,904]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:10@10] to #seq=[68]
+[2016-10-16 22:20:56,905]Application:INFO: App - Send request #seq [78] to SC ('localhost', 36640)
+[2016-10-16 22:20:56,905]Coordinator:INFO: SC - Subject attr dependency of #seq-[28]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,905]Coordinator:INFO: SC - Subject attr dependency of #seq-[68]:
+ {'goals': (1, 1476670856.2018816, 'Coordinator-1:10@1'),
+ 'id': ('Messi', 1476670856.2018845, 'Coordinator-1:10@1'),
+ 'position': ('forward', 1476670856.2018862, 'Coordinator-1:10@1')}
+[2016-10-16 22:20:56,905]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[68], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,905]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[28], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,907]Coordinator:INFO: RC - Incoming evaluation request: #seq=[18] resource=[goal2] sc=('localhost', 16921)
+[2016-10-16 22:20:56,908]Coordinator:INFO: SC - Incoming application request: #seq=[78] subject=[Suarez]
+[2016-10-16 22:20:56,908]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@18] to #seq=[78]
+[2016-10-16 22:20:56,909]Coordinator:INFO: SC - Subject attr dependency of #seq-[78]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:56,909]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[78], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,910]Coordinator:INFO: RC - Resource attr dependency of #seq-[18]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,910]Coordinator:INFO: RC - Assign evalution request: #seq=[18] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,914]Application:INFO: App - Send request #seq [8] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,914]Coordinator:INFO: RC - Incoming evaluation request: #seq=[98] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,915]Coordinator:INFO: RC - Resource attr dependency of #seq-[98]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,915]Coordinator:INFO: RC - Assign evalution request: #seq=[98] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,917]Coordinator:INFO: SC - Incoming application request: #seq=[38] subject=[Eto'o]
+[2016-10-16 22:20:56,917]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@37] to #seq=[38]
+[2016-10-16 22:20:56,917]Coordinator:INFO: SC - Subject attr dependency of #seq-[38]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,917]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[38], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,919]Coordinator:INFO: SC - Incoming application request: #seq=[48] subject=[Eto'o]
+[2016-10-16 22:20:56,919]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@38] to #seq=[48]
+[2016-10-16 22:20:56,919]Coordinator:INFO: SC - Subject attr dependency of #seq-[48]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,919]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[48], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,921]Coordinator:INFO: RC - Incoming evaluation request: #seq=[68] resource=[goal2] sc=('localhost', 20153)
+[2016-10-16 22:20:56,921]Coordinator:INFO: RC - Resource attr dependency of #seq-[68]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,921]Coordinator:INFO: RC - Assign evalution request: #seq=[68] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,923]Coordinator:INFO: RC - Incoming evaluation request: #seq=[28] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:56,923]Coordinator:INFO: RC - Resource attr dependency of #seq-[28]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,923]Coordinator:INFO: RC - Assign evalution request: #seq=[28] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,925]Coordinator:INFO: RC - Incoming evaluation request: #seq=[78] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:56,925]Coordinator:INFO: RC - Resource attr dependency of #seq-[78]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,925]Coordinator:INFO: RC - Assign evalution request: #seq=[78] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,926]Coordinator:INFO: SC - Incoming application request: #seq=[8] subject=[Eto'o]
+[2016-10-16 22:20:56,926]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@39] to #seq=[8]
+[2016-10-16 22:20:56,927]Coordinator:INFO: SC - Subject attr dependency of #seq-[8]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,927]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[8], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,929]Coordinator:INFO: RC - Incoming evaluation request: #seq=[38] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,930]Coordinator:INFO: RC - Resource attr dependency of #seq-[38]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,930]Coordinator:INFO: RC - Assign evalution request: #seq=[38] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,932]Coordinator:INFO: RC - Incoming evaluation request: #seq=[48] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,932]Coordinator:INFO: RC - Resource attr dependency of #seq-[48]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,933]Coordinator:INFO: RC - Assign evalution request: #seq=[48] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,935]Coordinator:INFO: RC - Incoming evaluation request: #seq=[8] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,935]Coordinator:INFO: RC - Resource attr dependency of #seq-[8]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,935]Coordinator:INFO: RC - Assign evalution request: #seq=[8] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,980]Application:INFO: App - Send request #seq [89] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,981]Application:INFO: App - Send request #seq [59] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,983]Coordinator:INFO: SC - Incoming application request: #seq=[89] subject=[Neymar]
+[2016-10-16 22:20:56,983]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@40] to #seq=[89]
+[2016-10-16 22:20:56,984]Coordinator:INFO: SC - Subject attr dependency of #seq-[89]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:56,984]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[89], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,987]Coordinator:INFO: SC - Incoming application request: #seq=[59] subject=[Eto'o]
+[2016-10-16 22:20:56,987]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@41] to #seq=[59]
+[2016-10-16 22:20:56,987]Coordinator:INFO: SC - Subject attr dependency of #seq-[59]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,988]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[59], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,990]Coordinator:INFO: RC - Incoming evaluation request: #seq=[89] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:56,991]Coordinator:INFO: RC - Resource attr dependency of #seq-[89]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:56,991]Coordinator:INFO: RC - Assign evalution request: #seq=[89] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,994]Coordinator:INFO: RC - Incoming evaluation request: #seq=[59] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:56,994]Coordinator:INFO: RC - Resource attr dependency of #seq-[59]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:56,994]Coordinator:INFO: RC - Assign evalution request: #seq=[59] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:56,995]Application:INFO: App - Send request #seq [99] to SC ('localhost', 31594)
+[2016-10-16 22:20:56,996]Application:INFO: App - Send request #seq [19] to SC ('localhost', 20153)
+[2016-10-16 22:20:56,998]Coordinator:INFO: SC - Incoming application request: #seq=[19] subject=[Messi]
+[2016-10-16 22:20:56,998]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:10@11] to #seq=[19]
+[2016-10-16 22:20:56,998]Coordinator:INFO: SC - Incoming application request: #seq=[99] subject=[Eto'o]
+[2016-10-16 22:20:56,998]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@42] to #seq=[99]
+[2016-10-16 22:20:56,999]Coordinator:INFO: SC - Subject attr dependency of #seq-[19]:
+ {'goals': (1, 1476670856.2018816, 'Coordinator-1:10@1'),
+ 'id': ('Messi', 1476670856.2018845, 'Coordinator-1:10@1'),
+ 'position': ('forward', 1476670856.2018862, 'Coordinator-1:10@1')}
+[2016-10-16 22:20:56,999]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[19], rc=('localhost', 31594)
+
+[2016-10-16 22:20:56,999]Coordinator:INFO: SC - Subject attr dependency of #seq-[99]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:56,999]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[99], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,001]Application:INFO: App - Send request #seq [29] to SC ('localhost', 31594)
+[2016-10-16 22:20:57,002]Application:INFO: App - Send request #seq [39] to SC ('localhost', 36640)
+[2016-10-16 22:20:57,003]Coordinator:INFO: SC - Incoming application request: #seq=[39] subject=[Suarez]
+[2016-10-16 22:20:57,003]Application:INFO: App - Send request #seq [69] to SC ('localhost', 31594)
+[2016-10-16 22:20:57,003]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@19] to #seq=[39]
+[2016-10-16 22:20:57,004]Coordinator:INFO: RC - Incoming evaluation request: #seq=[19] resource=[goal2] sc=('localhost', 20153)
+[2016-10-16 22:20:57,004]Coordinator:INFO: SC - Subject attr dependency of #seq-[39]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:57,004]Coordinator:INFO: RC - Resource attr dependency of #seq-[19]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:57,004]Application:INFO: App - Send request #seq [49] to SC ('localhost', 31594)
+[2016-10-16 22:20:57,004]Coordinator:INFO: RC - Assign evalution request: #seq=[19] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,004]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[39], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,006]Application:INFO: App - Send request #seq [79] to SC ('localhost', 31594)
+[2016-10-16 22:20:57,006]Coordinator:INFO: RC - Incoming evaluation request: #seq=[99] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:57,007]Coordinator:INFO: RC - Resource attr dependency of #seq-[99]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:57,007]Coordinator:INFO: RC - Assign evalution request: #seq=[99] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,009]Coordinator:INFO: SC - Incoming application request: #seq=[29] subject=[Neymar]
+[2016-10-16 22:20:57,009]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@43] to #seq=[29]
+[2016-10-16 22:20:57,009]Coordinator:INFO: SC - Subject attr dependency of #seq-[29]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:57,009]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[29], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,011]Coordinator:INFO: SC - Incoming application request: #seq=[69] subject=[Neymar]
+[2016-10-16 22:20:57,011]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@44] to #seq=[69]
+[2016-10-16 22:20:57,011]Coordinator:INFO: SC - Subject attr dependency of #seq-[69]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:57,011]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[69], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,013]Coordinator:INFO: SC - Incoming application request: #seq=[49] subject=[Eto'o]
+[2016-10-16 22:20:57,013]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@45] to #seq=[49]
+[2016-10-16 22:20:57,013]Coordinator:INFO: SC - Subject attr dependency of #seq-[49]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:57,013]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[49], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,015]Coordinator:INFO: RC - Incoming evaluation request: #seq=[39] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:57,015]Coordinator:INFO: RC - Resource attr dependency of #seq-[39]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:57,015]Coordinator:INFO: RC - Assign evalution request: #seq=[39] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,015]Application:INFO: App - Send request #seq [9] to SC ('localhost', 31594)
+[2016-10-16 22:20:57,018]Coordinator:INFO: SC - Incoming application request: #seq=[79] subject=[Eto'o]
+[2016-10-16 22:20:57,018]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@46] to #seq=[79]
+[2016-10-16 22:20:57,018]Coordinator:INFO: SC - Subject attr dependency of #seq-[79]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:57,019]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[79], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,021]Coordinator:INFO: RC - Incoming evaluation request: #seq=[29] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:57,022]Coordinator:INFO: RC - Resource attr dependency of #seq-[29]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:57,022]Coordinator:INFO: RC - Assign evalution request: #seq=[29] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,024]Coordinator:INFO: RC - Incoming evaluation request: #seq=[69] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:57,025]Coordinator:INFO: RC - Resource attr dependency of #seq-[69]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:57,025]Coordinator:INFO: RC - Assign evalution request: #seq=[69] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,028]Coordinator:INFO: RC - Incoming evaluation request: #seq=[49] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:57,028]Coordinator:INFO: RC - Resource attr dependency of #seq-[49]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:57,028]Coordinator:INFO: RC - Assign evalution request: #seq=[49] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,031]Coordinator:INFO: SC - Incoming application request: #seq=[9] subject=[Neymar]
+[2016-10-16 22:20:57,031]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@47] to #seq=[9]
+[2016-10-16 22:20:57,031]Coordinator:INFO: SC - Subject attr dependency of #seq-[9]:
+ {'id': ('Neymar', 1476670854.122119, None),
+ 'position': ('forward', 1476670854.1221204, None)}
+[2016-10-16 22:20:57,032]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[9], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,034]Coordinator:INFO: RC - Incoming evaluation request: #seq=[79] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:57,035]Coordinator:INFO: RC - Resource attr dependency of #seq-[79]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:57,035]Coordinator:INFO: RC - Assign evalution request: #seq=[79] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,036]Coordinator:INFO: RC - Incoming evaluation request: #seq=[9] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:57,037]Coordinator:INFO: RC - Resource attr dependency of #seq-[9]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:57,037]Coordinator:INFO: RC - Assign evalution request: #seq=[9] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,082]Application:INFO: App - Send request #seq [90] to SC ('localhost', 20153)
+[2016-10-16 22:20:57,082]Application:INFO: App - Send request #seq [60] to SC ('localhost', 36640)
+[2016-10-16 22:20:57,083]Coordinator:INFO: SC - Incoming application request: #seq=[90] subject=[Messi]
+[2016-10-16 22:20:57,084]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:10@12] to #seq=[90]
+[2016-10-16 22:20:57,084]Coordinator:INFO: SC - Subject attr dependency of #seq-[90]:
+ {'goals': (1, 1476670856.2018816, 'Coordinator-1:10@1'),
+ 'id': ('Messi', 1476670856.2018845, 'Coordinator-1:10@1'),
+ 'position': ('forward', 1476670856.2018862, 'Coordinator-1:10@1')}
+[2016-10-16 22:20:57,084]Coordinator:INFO: SC - Incoming application request: #seq=[60] subject=[Suarez]
+[2016-10-16 22:20:57,084]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[90], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,084]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@20] to #seq=[60]
+[2016-10-16 22:20:57,085]Coordinator:INFO: SC - Subject attr dependency of #seq-[60]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:57,085]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[60], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,085]Coordinator:INFO: RC - Incoming evaluation request: #seq=[90] resource=[goal2] sc=('localhost', 20153)
+[2016-10-16 22:20:57,086]Coordinator:INFO: RC - Resource attr dependency of #seq-[90]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:57,086]Coordinator:INFO: RC - Assign evalution request: #seq=[90] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,087]Coordinator:INFO: RC - Incoming evaluation request: #seq=[60] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:57,088]Coordinator:INFO: RC - Resource attr dependency of #seq-[60]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:57,088]Coordinator:INFO: RC - Assign evalution request: #seq=[60] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,096]Application:INFO: App - Send request #seq [100] to SC ('localhost', 36640)
+[2016-10-16 22:20:57,097]Application:INFO: App - Send request #seq [20] to SC ('localhost', 16921)
+[2016-10-16 22:20:57,098]Coordinator:INFO: SC - Incoming application request: #seq=[100] subject=[Suarez]
+[2016-10-16 22:20:57,098]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@21] to #seq=[100]
+[2016-10-16 22:20:57,099]Coordinator:INFO: SC - Subject attr dependency of #seq-[100]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:57,099]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[100], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,099]Coordinator:INFO: SC - Incoming application request: #seq=[20] subject=[Ronaldino]
+[2016-10-16 22:20:57,099]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@21] to #seq=[20]
+[2016-10-16 22:20:57,100]Coordinator:INFO: SC - Subject attr dependency of #seq-[20]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:57,100]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[20], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,100]Coordinator:INFO: RC - Incoming evaluation request: #seq=[100] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:57,101]Coordinator:INFO: RC - Resource attr dependency of #seq-[100]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:57,101]Coordinator:INFO: RC - Assign evalution request: #seq=[100] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,102]Application:INFO: App - Send request #seq [30] to SC ('localhost', 20153)
+[2016-10-16 22:20:57,102]Coordinator:INFO: RC - Incoming evaluation request: #seq=[20] resource=[goal2] sc=('localhost', 16921)
+[2016-10-16 22:20:57,103]Coordinator:INFO: RC - Resource attr dependency of #seq-[20]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:57,103]Coordinator:INFO: RC - Assign evalution request: #seq=[20] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,103]Application:INFO: App - Send request #seq [40] to SC ('localhost', 36640)
+[2016-10-16 22:20:57,104]Application:INFO: App - Send request #seq [70] to SC ('localhost', 31594)
+[2016-10-16 22:20:57,105]Coordinator:INFO: SC - Incoming application request: #seq=[40] subject=[Suarez]
+[2016-10-16 22:20:57,105]Coordinator:INFO: SC - Incoming application request: #seq=[30] subject=[Messi]
+[2016-10-16 22:20:57,105]Application:INFO: App - Send request #seq [50] to SC ('localhost', 16921)
+[2016-10-16 22:20:57,105]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@22] to #seq=[40]
+[2016-10-16 22:20:57,106]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:10@13] to #seq=[30]
+[2016-10-16 22:20:57,106]Coordinator:INFO: SC - Subject attr dependency of #seq-[40]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:57,106]Coordinator:INFO: SC - Incoming application request: #seq=[70] subject=[Eto'o]
+[2016-10-16 22:20:57,106]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[40], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,107]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@48] to #seq=[70]
+[2016-10-16 22:20:57,107]Coordinator:INFO: SC - Incoming application request: #seq=[50] subject=[Ronaldino]
+[2016-10-16 22:20:57,107]Application:INFO: App - Send request #seq [80] to SC ('localhost', 31594)
+[2016-10-16 22:20:57,107]Coordinator:INFO: SC - Subject attr dependency of #seq-[30]:
+ {'goals': (1, 1476670856.2018816, 'Coordinator-1:10@1'),
+ 'id': ('Messi', 1476670856.2018845, 'Coordinator-1:10@1'),
+ 'position': ('forward', 1476670856.2018862, 'Coordinator-1:10@1')}
+[2016-10-16 22:20:57,107]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:8@22] to #seq=[50]
+[2016-10-16 22:20:57,107]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[30], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,108]Coordinator:INFO: SC - Subject attr dependency of #seq-[50]:
+ {'goals': (1, 1476670856.2087774, 'Coordinator-1:8@1'),
+ 'id': ('Ronaldino', 1476670856.2087793, 'Coordinator-1:8@1'),
+ 'position': ('forward', 1476670856.2087803, 'Coordinator-1:8@1')}
+[2016-10-16 22:20:57,108]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[50], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,108]Coordinator:INFO: SC - Subject attr dependency of #seq-[70]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:57,109]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[70], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,110]Coordinator:INFO: RC - Incoming evaluation request: #seq=[40] resource=[goal2] sc=('localhost', 36640)
+[2016-10-16 22:20:57,111]Coordinator:INFO: RC - Resource attr dependency of #seq-[40]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:57,111]Coordinator:INFO: RC - Assign evalution request: #seq=[40] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,112]Coordinator:INFO: SC - Incoming application request: #seq=[80] subject=[Eto'o]
+[2016-10-16 22:20:57,112]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:7@49] to #seq=[80]
+[2016-10-16 22:20:57,113]Coordinator:INFO: SC - Subject attr dependency of #seq-[80]:
+ {'goals': (1, 1476670856.2773607, 'Coordinator-1:7@5'),
+ 'id': ("Eto'o", 1476670856.2773626, 'Coordinator-1:7@5'),
+ 'position': ('forward', 1476670856.2773635, 'Coordinator-1:7@5')}
+[2016-10-16 22:20:57,113]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[80], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,114]Coordinator:INFO: RC - Incoming evaluation request: #seq=[30] resource=[goal1] sc=('localhost', 20153)
+[2016-10-16 22:20:57,114]Coordinator:INFO: RC - Resource attr dependency of #seq-[30]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:57,115]Coordinator:INFO: RC - Assign evalution request: #seq=[30] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,116]Coordinator:INFO: RC - Incoming evaluation request: #seq=[50] resource=[goal2] sc=('localhost', 16921)
+[2016-10-16 22:20:57,116]Coordinator:INFO: RC - Resource attr dependency of #seq-[50]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:57,116]Coordinator:INFO: RC - Assign evalution request: #seq=[50] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,117]Application:INFO: App - Send request #seq [10] to SC ('localhost', 36640)
+[2016-10-16 22:20:57,118]Coordinator:INFO: RC - Incoming evaluation request: #seq=[70] resource=[goal2] sc=('localhost', 31594)
+[2016-10-16 22:20:57,118]Coordinator:INFO: RC - Resource attr dependency of #seq-[70]:
+ {'id': ('goal2', 1476670856.2905407)}
+[2016-10-16 22:20:57,118]Coordinator:INFO: RC - Assign evalution request: #seq=[70] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,119]Coordinator:INFO: SC - Incoming application request: #seq=[10] subject=[Suarez]
+[2016-10-16 22:20:57,119]Coordinator:INFO: SC - Assign globalID=[Coordinator-1:9@23] to #seq=[10]
+[2016-10-16 22:20:57,120]Coordinator:INFO: SC - Subject attr dependency of #seq-[10]:
+ {'id': ('Suarez', 1476670854.1214821, None),
+ 'position': ('forward', 1476670854.1214848, None)}
+[2016-10-16 22:20:57,120]Coordinator:INFO: SC - Send evaluation request to RC: #seq=[10], rc=('localhost', 31594)
+
+[2016-10-16 22:20:57,121]Coordinator:INFO: RC - Incoming evaluation request: #seq=[80] resource=[goal1] sc=('localhost', 31594)
+[2016-10-16 22:20:57,121]Coordinator:INFO: RC - Resource attr dependency of #seq-[80]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:57,121]Coordinator:INFO: RC - Assign evalution request: #seq=[80] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,123]Coordinator:INFO: RC - Incoming evaluation request: #seq=[10] resource=[goal1] sc=('localhost', 36640)
+[2016-10-16 22:20:57,123]Coordinator:INFO: RC - Resource attr dependency of #seq-[10]:
+ {'id': ('goal1', 1476670856.227754)}
+[2016-10-16 22:20:57,123]Coordinator:INFO: RC - Assign evalution request: #seq=[10] to worker=[('localhost', 11328)]
+
+[2016-10-16 22:20:57,183]Application:INFO: App - Waiting for response
+[2016-10-16 22:20:57,183]Application:INFO: App - Waiting for response
+[2016-10-16 22:20:57,198]Application:INFO: App - Waiting for response
+[2016-10-16 22:20:57,198]Application:INFO: App - Waiting for response
+[2016-10-16 22:20:57,199]Application:INFO: App - Received request #seq-[91] result: True from SC ('localhost', 20153)
+[2016-10-16 22:20:57,199]Application:INFO: App - Received request #seq-[11] result: True from SC ('localhost', 16921)
+[2016-10-16 22:20:57,203]Application:INFO: App - Waiting for response
+[2016-10-16 22:20:57,204]Application:INFO: App - Waiting for response
+[2016-10-16 22:20:57,205]Application:INFO: App - Waiting for response
+[2016-10-16 22:20:57,206]Application:INFO: App - Received request #seq-[61] result: True from SC ('localhost', 31594)
+[2016-10-16 22:20:57,206]Application:INFO: App - Waiting for response
+[2016-10-16 22:20:57,208]Application:INFO: App - Waiting for response
+[2016-10-16 22:20:57,218]Application:INFO: App - Waiting for response
+[2016-10-16 22:21:03,240]DB:INFO: Received write attribute messages from subject coordinator [('localhost', 20153)]
+[2016-10-16 22:21:04,245]DB:INFO: Received write attribute messages from resource coordinator [('localhost', 31594)]
+[2016-10-16 22:21:05,249]DB:INFO: Received write attribute messages from subject coordinator [('localhost', 16921)]
+[2016-10-16 22:21:06,253]DB:INFO: Received write attribute messages from resource coordinator [('localhost', 31594)]
+[2016-10-16 22:21:15,266]DB:INFO: Received write attribute messages from subject coordinator [('localhost', 31594)]
+[2016-10-16 22:21:16,273]DB:INFO: 
+========== Database Data ==========
+ Subject {"Eto'o": {'goals': (1, 1476670856.2773607),
+           'id': ("Eto'o", 1476670856.2773626),
+           'position': ('forward', 1476670856.2773635)},
+ 'Messi': {'goals': (1, 1476670856.2018816),
+           'id': ('Messi', 1476670856.2018845),
+           'position': ('forward', 1476670856.2018862)},
+ 'Ronaldino': {'goals': (1, 1476670856.2087774),
+               'id': ('Ronaldino', 1476670856.2087793),
+               'position': ('forward', 1476670856.2087803)}}
+ Resource {'goal1': {'id': ('goal1', 1476670856.227754)}}
+
+[2016-10-16 22:21:16,279]DB:INFO: 
+========== Database Data ==========
+ Subject {"Eto'o": {'goals': (1, 1476670856.2773607),
+           'id': ("Eto'o", 1476670856.2773626),
+           'position': ('forward', 1476670856.2773635)},
+ 'Messi': {'goals': (1, 1476670856.2018816),
+           'id': ('Messi', 1476670856.2018845),
+           'position': ('forward', 1476670856.2018862)},
+ 'Ronaldino': {'goals': (1, 1476670856.2087774),
+               'id': ('Ronaldino', 1476670856.2087793),
+               'position': ('forward', 1476670856.2087803)}}
+ Resource {'goal1': {'id': ('goal1', 1476670856.227754)}}
+
+[2016-10-16 22:21:16,284]DB:INFO: 
+========== Database Data ==========
+ Subject {"Eto'o": {'goals': (1, 1476670856.2773607),
+           'id': ("Eto'o", 1476670856.2773626),
+           'position': ('forward', 1476670856.2773635)},
+ 'Messi': {'goals': (1, 1476670856.2018816),
+           'id': ('Messi', 1476670856.2018845),
+           'position': ('forward', 1476670856.2018862)},
+ 'Ronaldino': {'goals': (1, 1476670856.2087774),
+               'id': ('Ronaldino', 1476670856.2087793),
+               'position': ('forward', 1476670856.2087803)}}
+ Resource {'goal1': {'id': ('goal1', 1476670856.227754)}}
+
+[2016-10-16 22:21:16,289]DB:INFO: 
+========== Database Data ==========
+ Subject {"Eto'o": {'goals': (1, 1476670856.2773607),
+           'id': ("Eto'o", 1476670856.2773626),
+           'position': ('forward', 1476670856.2773635)},
+ 'Messi': {'goals': (1, 1476670856.2018816),
+           'id': ('Messi', 1476670856.2018845),
+           'position': ('forward', 1476670856.2018862)},
+ 'Ronaldino': {'goals': (1, 1476670856.2087774),
+               'id': ('Ronaldino', 1476670856.2087793),
+               'position': ('forward', 1476670856.2087803)}}
+ Resource {'goal1': {'id': ('goal1', 1476670856.227754)}}
+
+[2016-10-16 22:21:21,204]DB:INFO: 
+========== Database Data ==========
+ Subject {"Eto'o": {'goals': (1, 1476670856.2773607),
+           'id': ("Eto'o", 1476670856.2773626),
+           'position': ('forward', 1476670856.2773635)},
+ 'Messi': {'goals': (1, 1476670856.2018816),
+           'id': ('Messi', 1476670856.2018845),
+           'position': ('forward', 1476670856.2018862)},
+ 'Ronaldino': {'goals': (1, 1476670856.2087774),
+               'id': ('Ronaldino', 1476670856.2087793),
+               'position': ('forward', 1476670856.2087803)}}
+ Resource {'goal1': {'id': ('goal1', 1476670856.227754)}}
+
+[2016-10-16 22:21:26,211]DB:INFO: 
+========== Database Data ==========
+ Subject {"Eto'o": {'goals': (1, 1476670856.2773607),
+           'id': ("Eto'o", 1476670856.2773626),
+           'position': ('forward', 1476670856.2773635)},
+ 'Messi': {'goals': (1, 1476670856.2018816),
+           'id': ('Messi', 1476670856.2018845),
+           'position': ('forward', 1476670856.2018862)},
+ 'Ronaldino': {'goals': (1, 1476670856.2087774),
+               'id': ('Ronaldino', 1476670856.2087793),
+               'position': ('forward', 1476670856.2087803)}}
+ Resource {'goal1': {'id': ('goal1', 1476670856.227754)}}
+
+[2016-10-16 22:21:31,217]DB:INFO: 
+========== Database Data ==========
+ Subject {"Eto'o": {'goals': (1, 1476670856.2773607),
+           'id': ("Eto'o", 1476670856.2773626),
+           'position': ('forward', 1476670856.2773635)},
+ 'Messi': {'goals': (1, 1476670856.2018816),
+           'id': ('Messi', 1476670856.2018845),
+           'position': ('forward', 1476670856.2018862)},
+ 'Ronaldino': {'goals': (1, 1476670856.2087774),
+               'id': ('Ronaldino', 1476670856.2087793),
+               'position': ('forward', 1476670856.2087803)}}
+ Resource {'goal1': {'id': ('goal1', 1476670856.227754)}}
+
+[2016-10-16 22:21:36,222]DB:INFO: 
+========== Database Data ==========
+ Subject {"Eto'o": {'goals': (1, 1476670856.2773607),
+           'id': ("Eto'o", 1476670856.2773626),
+           'position': ('forward', 1476670856.2773635)},
+ 'Messi': {'goals': (1, 1476670856.2018816),
+           'id': ('Messi', 1476670856.2018845),
+           'position': ('forward', 1476670856.2018862)},
+ 'Ronaldino': {'goals': (1, 1476670856.2087774),
+               'id': ('Ronaldino', 1476670856.2087793),
+               'position': ('forward', 1476670856.2087803)}}
+ Resource {'goal1': {'id': ('goal1', 1476670856.227754)}}
+
+Error in atexit._run_exitfuncs:
+Traceback (most recent call last):
+  File "/usr/lib/python3.5/multiprocessing/popen_fork.py", line 29, in poll
+    pid, sts = os.waitpid(self.pid, flag)
+KeyboardInterrupt

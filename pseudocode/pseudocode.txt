@@ -258,6 +258,13 @@ enqueue(reqid)
 
 # 2.Handle evaluation response from worker
 receive(msg=('respeval', resp), from_=p)
+    # If decision is False, then no need to update cache or continue
+    if resp.decision == False
+        dequeue(resp.id)
+        set_state(resp.id, State.complete)
+        cleanup_admin_sc(resp)
+        send(('reqapp', resp.seq, False), to=resp.app)
+
     # If delay is necessary, wait for dependent request complete
     while True
         result, depid = is_tattr_or_sub_conflict(resp)
@@ -318,7 +325,7 @@ set_state(reqid, state)
 
 commit_sub_to_db(resp)
     scadmin.commit_sub(resp.subject)
-    subcommit = copy from scadmin.cache.subcache without reqid
+    subcommit = copy from scadmin.cache.subcache[resp.subject] without reqid
     send(('writesubattr', subcommit), to=scadmin.db)
 ```
 

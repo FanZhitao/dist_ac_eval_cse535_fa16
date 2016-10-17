@@ -39,7 +39,7 @@ class StateMac:
         for attr, (reqid, val, ts) in tattrs.items():
             self.subdep[attr] = (reqid, val, ts)
         self.state = State.reqapp
-        log.info('SC - Subject attr dependency of #seq-[%d]: %s', self.seq, pprint.pformat(self.subdep))
+        log.info('SC - Subject attr dependency of #seq-[%d]:\n %s', self.seq, pprint.pformat(self.subdep))
 
     def respeval(self, subrattr, deps, tattrs):
         log.info('SC - Checking... tattr cache is: %s', pprint.pformat(tattrs))
@@ -77,7 +77,7 @@ class StateMac:
         for attr, (val, ts) in attrs.items():
             self.resdep[attr] = (val, ts)
         self.state = State.reqeval
-        log.info('RC - Resource attr dependency of #seq-[%d]: %s', self.seq, pprint.pformat(self.resdep))
+        log.info('RC - Resource attr dependency of #seq-[%d]:\n %s', self.seq, pprint.pformat(self.resdep))
 
     def reqcommit(self, resp, attrs):
         log.info('RC - Checking... resource cache is: %s', pprint.pformat(attrs))
