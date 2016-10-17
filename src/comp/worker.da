@@ -93,23 +93,23 @@ class Worker(process):
             log.debug('rule:%s vs record:%s', value_condition, value_record)
             # need to deal with different value forms
             # case 1: $subject.ATTRIBUTE or $resource.ATTRIBUTE
-            if value_condition.startswith("$"):
+            # keep replacing it with value it points until constant
+            while value_condition.startswith("$"):
                 dot_index = value_condition.index(".")
                 attribute_key = value_condition[dot_index + 1 :]
-                sub_or_res = value_condition[0 : dot_index]
+                sub_or_res = value_condition[1 : dot_index]
                 if sub_or_res == 'subject':
-                    value = req.subraddr[attribute_key]
+                    value = req.subrattr[attribute_key]
                 elif sub_or_res == 'resource':
-                    value = req.resraddr[attribute_key]
+                    value = req.resrattr[attribute_key]
                 else:
                     # TODO: Throw invalid policy exception
-                    pass
+                    return
 
-                if value != value_record:
-                    return False
+                value_condition = value
 
             # case 2: <constant or >constant
-            elif value_condition.startswith("<"):
+            if value_condition.startswith("<"):
                 num_str = value_condition[1:]
                 if not num_str.isnumeric():
                     # the attribute value is not a numberic string
@@ -143,21 +143,63 @@ class Worker(process):
         # subject attributes
         for attribute_name in req.subattr:
             resp.subrattr.append(attribute_name) # read attributes
-            resp.subwattr[attribute_name] = req.subattr.get(attribute_name) # write attributes with initial values from request
+            value_original = req.subattr.get(attribute_name)
+            # replace $subject.ATTRIBUTE with original value
+            while value_original != None and value_original.startswith("$"):
+                dot_index = value_original.index(".")
+                attribute_key = value_original[dot_index + 1 :]
+                sub_or_res = value_original[1 : dot_index]
+                if sub_or_res == 'subject':
+                    value = req.subattr[attribute_key]
+                elif sub_or_res == 'resource':
+                    value = req.resattr[attribute_key]
+                else:
+                    # TODO: Throw invalid policy exception
+                    return
+
+                value_original = value
+
+            resp.subwattr[attribute_name] = value_original
+
         # resource attributes
         for attribute_name in req.resattr:
             resp.resrattr.append(attribute_name) # read attributes
-            resp.reswattr[attribute_name] = req.resattr.get(attribute_name) # write attributes
+            value_original = req.resattr.get(attribute_name)
+            # replace $resource.ATTRIBUTE with original value
+            while value_original != None and value_original.startswith("$"):
+                dot_index = value_original.index(".")
+                attribute_key = value_original[dot_index + 1 :]
+                sub_or_res = value_original[1 : dot_index]
+                if sub_or_res == 'subject':
+                    value = req.subattr[attribute_key]
+                elif sub_or_res == 'resource':
+                    value = req.resattr[attribute_key]
+                else:
+                    # TODO: Throw invalid policy exception
+                    return
+
+                value_original = value
+
+            resp.reswattr[attribute_name] = value_original
+
 
         # Modify write attributes according to obligation
         # subject attributes update
-        fulfill_obligation(rule, 'subjectUpdate', resp.subwattr)
+        fulfill_obligation(rule, 'subjectUpdate', resp)
         # resource attributes update
-        fulfill_obligation(rule, 'resourceUpdate', resp.reswattr)
+        fulfill_obligation(rule, 'resourceUpdate', resp)
         return resp
 
-    def fulfill_obligation(rule:Element, sub_or_res:str, attrs_to_update:dict):
-        log.debug('Checking if %s obligation exists in rule:%s.', sub_or_res, rule) 
+    def fulfill_obligation(rule:Element, sub_or_res:str, resp:EvalResp):
+        log.debug('Checking if %s obligation exists in rule:%s.', sub_or_res, rule)
+        if sub_or_res == 'subjectUpdate':
+            attrs_to_update = resp.subwattr 
+        elif sub_or_res == 'resourceUpdate':
+            attrs_to_update = resp.reswattr
+        else:
+            # TODO: throw wrong 'sub_or_res' parameter
+            return
+
         obligation_element = rule.find(sub_or_res)
         if obligation_element != None:
             log.debug("Fulfilling obligation.")
@@ -166,6 +208,23 @@ class Worker(process):
                 value_to_update = attributes[attribute_name]
                 log.debug("rule: %s=%s", attribute_name, value_to_update)
                 # different update value forms
+                # replace $subject.ATTRIBUTE with original value
+                while value_to_update != None and value_to_update.startswith("$"):
+                    dot_index = value_to_update.index(".")
+                    attribute_key = value_to_update[dot_index + 1 :]
+                    sub_or_res = value_to_update[1 : dot_index]
+                    log.debug("Found $..., %s, %s", sub_or_res, attribute_key)
+                    if sub_or_res == 'subject':
+                        value = resp.subwattr[attribute_key]
+                    elif sub_or_res == 'resource':
+                        value = resp.reswattr[attribute_key]
+                    else:
+                        # TODO: Throw invalid policy exception
+                        return
+
+                    log.debug("replacing %s with %s", value_to_update, value)
+                    value_to_update = value
+
                 # case 1: ++ or --
                 if value_to_update == '++' or value_to_update == '--':
                     # case 1.1: no such key exists -> create a new k,v pair with value 0
