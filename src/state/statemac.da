@@ -97,7 +97,8 @@ class StateMac:
         log.info('SC - Check if update in tentative cache could be rollback')
 
         # Find attr updated by current request
-        for attr, (_, _, reqid) in tattr.items():
+        for attr in list(tattr):
+            reqid = tattr[attr][ID]
             if reqid != self.id:
                 continue
 
@@ -117,5 +118,8 @@ class StateMac:
 
             if issafe:
                 log.info('SC - Rollback attribute value from [%s] to [%s]', tattr.get(attr), subcache.get(attr))
-                tattr[attr] = subcache[attr] # no copy, since tuple is immutable
+                if attr in subcache:
+                    tattr[attr] = subcache[attr] # no copy, since tuple is immutable
+                else:
+                    tattr.pop(attr, None)
 
