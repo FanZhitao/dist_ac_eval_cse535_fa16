@@ -21,6 +21,7 @@ Please note that: subject1, subject2, resource1 and resource2 refer to Leo, LeBr
 
 6) Outcome: No conflict or failure happened. The evaluation result is supposed to be True.
 
+[workload8] simulates almost as same scenario as [workload1] except that it uses $subject.ATTRIBUTE and $resource.ATTRIBUTE form conditions in the policy file.
 
 == Case 2: Evaluation Failed ==
 
@@ -100,8 +101,6 @@ Please note that: subject1, subject2, resource1 and resource2 refer to Leo, LeBr
 
  Request #2: Carry subject2, resource1
              Read and update resource1
-
- Request #3: Carry subject2, resource2
              Read subject1 and update subject1
 
  Delay: Block #1 and #2 in each SC separately before sending commit request to same RC. Delay #3 to force it to read updated data by #2 and wait for #2 to complete. But due to resource update conflict, #2 failed. So both #2 and #3 will be restarted and try again. 
@@ -157,4 +156,3 @@ Please note that: subject1, subject2, resource1 and resource2 refer to Leo, LeBr
 5) Log file: 
 
 6) Outcome: No error in log and attributes value in database should equal total request
-

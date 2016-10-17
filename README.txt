@@ -6,7 +6,7 @@ Here is the instructions to build and run your system:
 
 Please run bin/startup.sh. This script makes all source file using Makefile first and then run Master using DistAlgo runtime with parameters such as log location, log level, workload and program configuration file.
 
-The default workload is "workload1". Please run bin/startup.sh [workloadX] for other test cases. By now we have workload1 ~ workload7 which are described in testing.txt.  
+The default workload is "workload1". Please run bin/startup.sh [workloadX] for other test cases. By now we have workload1 ~ workload8 which are described in testing.txt.  
 
 For example: To perform functional test which is workload1, please run: bin/startup.sh workload1
 
@@ -25,7 +25,8 @@ src/
 │   ├── stress_test_record.xml
 │   ├── stress_test_policy.xml
 │   ├── record.xml
-│   └── policy.xml
+│   ├── policy.xml
+│   └── policy2.xml    : policy with $subject.ATTRIBUTE and $resource.ATTRIBUTE case. 
 ├── master.da          : The bootstrap process which read configuration file and start up all other processes to make whole system ready for test.
 ├── msg                : All request and response class. EvalReq/Resp and CommitReq/Resp inherit from base class Request/Response.
 │   ├── commitreq.da

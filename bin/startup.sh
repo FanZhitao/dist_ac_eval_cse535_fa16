@@ -13,6 +13,8 @@ fi
 
 if [ "$workload" = "workload7" ]; then
     config="config/stresstest.config"
+elif [ "$workload" = "workload8" ]; then
+    config="config/test2.config"
 else
     config="config/test.config"
 fi
