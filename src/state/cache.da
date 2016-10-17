@@ -53,7 +53,6 @@ class Cache:
     def commit_tattr(self, subid):
         for attr, (newval, ts, reqid) in self.tattrs[subid].items():
             self.subcache[subid][attr] = (newval, ts, reqid)
-        #log.info('##### Subject [%s] cache: %s', subid, pprint.pformat(self.subcache))
 
     def query_rescache(self, resid):
         if resid not in self.rescache:

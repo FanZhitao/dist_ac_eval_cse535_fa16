@@ -220,10 +220,11 @@ class Coordinator(process):
         self.scadmin.commit_sub(resp.subject)
         log.info("SC - Send subject tentative update attributes to db [%s]", self.scadmin.db)
         subcommit = dict()
-        for sub, attrs in self.scadmin.cache.subcache.items():
-            subcommit[sub] = dict()
-            for attr, (val, ts, _) in attrs.items():
-                subcommit[sub][attr] = (val, ts)
+        sub = resp.subject
+        attrs = self.scadmin.cache.subcache[resp.subject]
+        subcommit[sub] = dict()
+        for attr, (val, ts, _) in attrs.items():
+            subcommit[sub][attr] = (val, ts)
         send(('writesubattr', subcommit), to=self.scadmin.db)
 
     def commit_res_to_db(req):
