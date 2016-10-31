@@ -1,0 +1,12 @@
+
+from msg.response import Response
+
+class EvalResp(Response):
+
+    def __init__(self, req = None):
+        Response.__init__(self, req)
+        self.decision = True
+        self.subrattr = list()
+        self.subwattr = dict()
+        self.resrattr = list()
+        self.reswattr = dict()

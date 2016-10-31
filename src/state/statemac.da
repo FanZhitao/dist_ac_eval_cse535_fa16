@@ -1,0 +1,125 @@
+import logging
+import pprint
+import time
+from enum import Enum
+
+log = logging.getLogger("Coordinator")
+
+State = Enum('State', 
+        'init, reqapp, respeval, respcommit, reqeval, reqcommit, restart, complete') 
+
+Conflict = Enum('Conflict', 'yes no delay')
+
+VAL = 0
+TS = 1
+ID = 2
+
+"""
+ Transit among states and validate (check conflict) before performing actual transition.
+"""
+class StateMac:
+
+    def __init__(self, req):
+        """
+        subdep: subject of current evaluation dependency info
+                <attr, (val, ts, reqid)>
+        resdep: resource of current evaluation dependency info
+                <attr, (val, ts)>
+        """
+        self.state = State.init
+        self.seq = req.seq
+        self.id = req.id
+        self.subid = req.subject
+        self.resid = req.resource
+        self.subdep = dict()
+        self.resdep = dict()
+        self.subrattr = None
+
+    def reqapp(self, tattrs):
+        for attr, (reqid, val, ts) in tattrs.items():
+            self.subdep[attr] = (reqid, val, ts)
+        self.state = State.reqapp
+        log.info('SC - Subject attr dependency of #seq-[%d]:\n %s', self.seq, pprint.pformat(self.subdep))
+
+    def respeval(self, subrattr, deps, tattrs):
+        log.info('SC - Checking... tattr cache is: %s', pprint.pformat(tattrs))
+        # 1.Tentative update dependency check
+        for attr in subrattr:
+            depid = self.subdep[attr][ID]
+            if depid is None:
+                continue
+
+            #log.info('##### dep %s', pprint.pformat(deps[depid].state))
+            depstate = deps[depid].state
+            if depstate == State.restart:
+                log.warn("***** Conflict *****: Request #seq-[%d] depends on tentative-update #seq-[%d] which failed on attr-[%s]", self.seq, deps[depid].seq, attr)
+                self.state = State.restart
+                return Conflict.yes, None
+
+            if depstate != State.complete:
+                log.warn("***** Conflict *****: Request #seq-[%d] wait for #seq-[%d] complete on attr-[%s]", self.seq, deps[depid].seq, attr)
+                depstate = deps[depid].state
+                #time.sleep(5) #cause dependent request blocked
+                return Conflict.delay, depid
+
+        # 2.Subject update conflict check
+        for attr in subrattr:
+            if self.subdep[attr][TS] != tattrs[attr][TS]:
+                log.warn("***** Conflict *****: Request #seq-[%d] subject-update conflict with #seq-[%d] on attr-[%s]", self.seq, deps[tattrs[attr][ID]].seq, attr)
+                self.state = State.restart
+                return Conflict.yes, None
+
+        # Save subject read attributes in case of rollback
+        self.subrattr = set(subrattr)
+        return Conflict.no, None
+
+    def reqeval(self, attrs):
+        for attr, (val, ts) in attrs.items():
+            self.resdep[attr] = (val, ts)
+        self.state = State.reqeval
+        log.info('RC - Resource attr dependency of #seq-[%d]:\n %s', self.seq, pprint.pformat(self.resdep))
+
+    def reqcommit(self, resp, attrs):
+        log.info('RC - Checking... resource cache is: %s', pprint.pformat(attrs))
+        for attr in resp.resrattr:
+            if self.resdep[attr][TS] != attrs[attr][TS]:
+                log.warn("***** Conflict *****: Request #seq-[%d] resource-update conflict on attr-[%s]", resp.seq, attr)
+                self.state = State.restart
+                return False
+        self.state = State.reqcommit
+        return True
+
+    def rollback(self, tattr, subcache, q):
+        """
+        Just rollback updated value which cause dependent request being restarted as well. 
+        Instead of leaving this work to last dependent request, this can prevent the live lock.
+        """
+        log.info('SC - Check if update in tentative cache could be rollback')
+
+        # Find attr updated by current request
+        for attr in list(tattr):
+            reqid = tattr[attr][ID]
+            if reqid != self.id:
+                continue
+
+            # Deprecated!
+            # Check active request (come after current) in queue:
+            # If any request has read attr updated by current request
+            issafe = True
+            """
+            for i in range(q.qsize()-1, 0, -1):
+                sm = q[i]
+                if sm.id == self.id:
+                    break
+                if self.id in sm.subrattr:
+                    issafe = False
+                    break
+            """
+
+            if issafe:
+                log.info('SC - Rollback attribute value from [%s] to [%s]', tattr.get(attr), subcache.get(attr))
+                if attr in subcache:
+                    tattr[attr] = subcache[attr] # no copy, since tuple is immutable
+                else:
+                    tattr.pop(attr, None)
+

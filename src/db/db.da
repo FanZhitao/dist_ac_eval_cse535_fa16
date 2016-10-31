@@ -1,0 +1,131 @@
+import sys
+import xml.etree.ElementTree as ET
+import random
+import logging
+import asyncio
+import time
+import pprint
+
+from msg.commitresp import CommitResp
+
+log = logging.getLogger('DB')
+
+class DB(process):
+    def setup(policy_filename:str, record_filename:str, minDBlatency:str, maxDBlatency:str, workers:set):
+        log.debug("%s is setting up.", self)
+        log.debug("Parsing policy file: %s", policy_filename)
+        tree = ET.parse(policy_filename)
+        self.rules = tree.getroot()
+        log.debug("Parsing record file: %s", record_filename)
+        tree = ET.parse(record_filename)
+        record = tree.getroot()
+
+        # convert record to attributes dict
+        self.subrecords = convert(record, 'subject')
+        self.resrecords = convert(record, 'resource')
+
+        self.actions = []
+        # save possible actions
+        for rule in self.rules.iter('rule'):
+            action_element = rule.find('action')
+            action = action_element.attrib.get('name')
+            if action != None:
+                self.actions.append(action)
+  
+        log.debug("Parsing finished.")
+        log.debug("subject records: %s", self.subrecords)
+        log.debug("resource records: %s", self.resrecords)
+        self.subattrs = {}
+        self.resattrs = {}
+
+        log.debug("min and max latency: %s, %s", minDBlatency, maxDBlatency)
+        if not minDBlatency.isnumeric() or not maxDBlatency.isnumeric():
+            # TODO: throw exception
+            pass
+        minDBlatency = int(minDBlatency)
+        maxDBlatency = int(maxDBlatency)
+        log.debug("DB setup finished.")
+
+    def run():
+        log.info("%s is up.", self)
+        while True:
+            await(received(()))
+
+    def receive(msg=('getpolicy'), from_=p):
+        log.info("Received policy request message from worker %s", p)
+        send(('policy', self.rules), to=p)
+
+    def receive(msg=('writesubattr', tattr), from_=p):
+        # tattr format: {subid, [{attr, (val, ts, _)},]}
+        log.info("Received write attribute messages from subject coordinator [%s]", p)
+        handle_write_message(tattr, self.subattrs) 
+        send(('writefinish', True), to=p)
+
+    def receive(msg=('writeresattr', rescache), from_=p):
+        # rescache format: {resid, [{attr, (val, ts)},]}
+        log.info("Received write attribute messages from resource coordinator [%s]", p)
+        handle_write_message(rescache, self.resattrs) 
+        send(('writefinish', True), to=p)
+
+    def receive(msg=('getsubs'), from_=p):
+        log.info("Received subjects request from coordinator [%s]", p)
+        log.info("Send subjects back to coordinator [%s]", p)
+        send(('subs', self.subrecords), to=p)
+
+    def receive(msg=('getresos'), from_=p):
+        log.info("Received resources request from coordinator [%s]", p)
+        log.info("Send resources back to coordinator [%s]", p)
+        send(('resos', self.resrecords), to=p)
+
+    def receive(msg=('getacts'), from_=p):
+        log.info("Received actions request from coordinator [%s]", p)
+        log.info("Send actions back to coordinator [%s]", p)
+        send(('acts', self.actions), to=p)
+
+    def receive(msg=('dumpdb'), from_=p):
+        log.info("\n" + "=" * 10 + " Database Data " + "=" * 10 
+                    + "\n Subject %s\n Resource %s\n", 
+                        pprint.pformat(self.subattrs), pprint.pformat(self.resattrs))
+
+    def handle_write_message(attrs_recved, attrs_in_db):
+        id = next(iter(attrs_recved))
+        record_in_db = attrs_in_db.get(id)
+        record_received = attrs_recved.get(id)
+        log.debug("Trying to write (id=%s) with attributes %s if necessary.", id, record_received)
+        # Write if 1. no such record exists currently,
+        #       or 2. received record is newer then current in database.
+        if record_in_db == None:
+            log.debug("Writing new record.")
+            write(attrs_in_db, id, record_received)
+        else:
+            tuple_temp = next(iter(record_in_db.values()))
+            value_in_db = tuple_temp[0]
+            ts_in_db = tuple_temp[1]
+            tuple_temp = next(iter(record_received.values()))
+            value_received = tuple_temp[0]
+            ts_received = tuple_temp[1]
+            log.debug("Record existed, comparing timestamps (database: %f vs. attentive: %f)", ts_in_db, ts_received)
+            if ts_in_db < ts_received:
+                write(attrs_in_db, id, record_received)
+
+        # delay the visibility of updates
+        l = random.randrange(minDBlatency, maxDBlatency, 1)
+        log.debug("Delay %d seconds...", l)
+        time.sleep(l / 100)
+
+    def convert(record:Element, key:str):
+        # convert {'id': id1, 'position': 'employee'}
+        # to {'id1': {'position': 'employee'}
+        result = {}
+        attributes = record.findall(key)
+        for element in attributes:
+            attr = element.attrib
+            if 'id' in attr:
+                result[attr['id']] = attr
+                #result[attr['id']].pop('id')
+        return result
+
+    def write(attributes, key:str, value):
+        attributes[key] = value
+        log.debug("Writing (%s, %s) finished.", str, value)
+        log.debug("After write, %s", attributes)

@@ -1,0 +1,244 @@
+import logging
+from msg.evalreq import EvalReq
+from msg.evalresp import EvalResp
+from msg.commitreq import CommitReq
+from msg.commitresp import CommitResp
+
+log = logging.getLogger('Worker')
+
+class Worker(process):
+    def setup(db:set):
+        self.policy = None
+        
+    def run():
+        log.info("Worker %s is up.", self)
+        p = next(iter(db))
+        send(('getpolicy'), to=p)
+        log.info("Sending message to database %s to fetch policy and waiting for response.", db)
+        while True:
+            await(received(()))
+
+    def receive(msg=('assigneval', req), from_=rc):
+        log.info("Received evaluation request from resource coodinator: %s", rc)
+
+        # In case not received policy from database yet.
+        if self.policy == None:
+            log.debug("No policy received yet. Waiting for response from database.")
+            await(received(('records')))
+
+        # Evaluate request and send the result back to subject coordinator.
+        resp, rule = evaluate(req)
+        if resp.decision == True:
+            # Has found a matched rule.
+            # Add read and write attributes into
+            # resq.{subrattr, subwattr, resrattr, reswattr}.
+            resp = add_read_write_attributes(req, resp, rule)
+        log.info("Send response to subject coordinator [%s] (Decision=%s)", req.sc, resp.decision)
+        send(('respeval', resp), to=req.sc)
+
+    def receive(msg=('policy', policy), from_=p):
+        log.info("Received policy data from database: %s", p)
+        log.debug("policy: %s", policy)
+        self.policy = policy
+
+    def evaluate(req:EvalReq):
+        log.info("Start to evaluate req: [%d]", req.seq)
+        resp = EvalResp(req) # construct response based on request
+        resp.decision = False
+        matched_rule = None
+
+        for rule in policy.iter('rule'): # rule is an ElementTree instance
+            log.debug("Trying to match rule [%s]", rule.attrib['name'])
+            # check if conditions satisfy the current rule
+            should_try_next_rule = False # flag used to continue outter for loop
+
+            # subject
+            should_try_next_rule = not do_attributes_match(rule.find('subjectCondition'), req.subattr, req)
+            if should_try_next_rule == True:
+                continue
+            log.debug("Subject condition satisfied.")
+
+            # resource
+            should_try_next_rule = not do_attributes_match(rule.find('resourceCondition'), req.resattr, req)
+            if should_try_next_rule == True:
+                continue
+            log.debug("Resource condition satisfied.")
+
+            # action
+            action_rule = rule.find('action')
+            action_rule = action_rule.attrib['name']
+            log.debug("Comparing action in rule: %s with %s", action_rule, req.action)
+            if action_rule == req.action:
+                # all subject, resource, and action satisfied
+                log.debug("Action matched.")
+                log.info("Corresponding rule found: [%s]. granting access...", rule.attrib['name'])
+                resp.decision = True
+                matched_rule = rule
+                break
+
+        return (resp, matched_rule)
+
+    def do_attributes_match(condition:Element, attributes_record:dict, req:EvalReq):
+        log.debug("Comparing rule %s with %s", condition.attrib, attributes_record)
+        for attribute_name in iter(condition.attrib):
+            if attribute_name not in attributes_record.keys():
+                # keys do not match
+                log.debug('Key "%s" not found', attribute_name)
+                return False
+
+            # keys match, then check values
+            log.debug('Key "%s" mathced, comparing values.', attribute_name)
+            value_condition = condition.attrib[attribute_name]
+            value_record = attributes_record.get(attribute_name)
+            log.debug('rule:%s vs record:%s', value_condition, value_record)
+            # need to deal with different value forms
+            # case 1: $subject.ATTRIBUTE or $resource.ATTRIBUTE
+            # keep replacing it with value it points until constant
+            while isinstance(value_condition, str) and value_condition.startswith("$"):
+                dot_index = value_condition.index(".")
+                attribute_key = value_condition[dot_index + 1 :]
+                sub_or_res = value_condition[1 : dot_index]
+                if sub_or_res == 'subject':
+                    value = req.subrattr[attribute_key]
+                elif sub_or_res == 'resource':
+                    value = req.resrattr[attribute_key]
+                else:
+                    # TODO: Throw invalid policy exception
+                    return
+
+                value_condition = value
+
+            # case 2: <constant or >constant
+            if isinstance(value_condition, str) and value_condition.startswith("<"):
+                num_str = value_condition[1:]
+                if not num_str.isnumeric():
+                    # the attribute value is not a numberic string
+                    return False
+
+                # valid, then compare them
+                num_condition = int(num_str)
+                if value_record >= num_condition:
+                    return False
+
+            elif isinstance(value_condition, str) and value_condition.startswith(">"):
+                num_str = value_condition[1:]
+                if not num_str.isnumeric():
+                    # the attribute value is not a numberic string
+                    return False
+
+                # valid, then compare them
+                num_condition = int(num_str)
+                if value_record <= num_condition:
+                    return False
+
+            # case 3: constant
+            elif value_condition != value_record:
+                return False
+
+        # all passed
+        return True
+
+    def add_read_write_attributes(req:EvalReq, resp:EvalResp, rule:Element):
+        # Copy attributes from request.
+        # subject attributes
+        for attribute_name in req.subattr:
+            resp.subrattr.append(attribute_name) # read attributes
+            value_original = req.subattr.get(attribute_name)
+            # replace $subject.ATTRIBUTE with original value
+            while value_original != None and isinstance(value_original, str) and value_original.startswith("$"):
+                dot_index = value_original.index(".")
+                attribute_key = value_original[dot_index + 1 :]
+                sub_or_res = value_original[1 : dot_index]
+                if sub_or_res == 'subject':
+                    value = req.subattr[attribute_key]
+                elif sub_or_res == 'resource':
+                    value = req.resattr[attribute_key]
+                else:
+                    # TODO: Throw invalid policy exception
+                    return
+
+                value_original = value
+
+            resp.subwattr[attribute_name] = value_original
+
+        # resource attributes
+        for attribute_name in req.resattr:
+            resp.resrattr.append(attribute_name) # read attributes
+            value_original = req.resattr.get(attribute_name)
+            # replace $resource.ATTRIBUTE with original value
+            while value_original != None and isinstance(value_original, str) and value_original.startswith("$"):
+                dot_index = value_original.index(".")
+                attribute_key = value_original[dot_index + 1 :]
+                sub_or_res = value_original[1 : dot_index]
+                if sub_or_res == 'subject':
+                    value = req.subattr[attribute_key]
+                elif sub_or_res == 'resource':
+                    value = req.resattr[attribute_key]
+                else:
+                    # TODO: Throw invalid policy exception
+                    return
+
+                value_original = value
+
+            resp.reswattr[attribute_name] = value_original
+
+
+        # Modify write attributes according to obligation
+        # subject attributes update
+        fulfill_obligation(rule, 'subjectUpdate', resp)
+        # resource attributes update
+        fulfill_obligation(rule, 'resourceUpdate', resp)
+        return resp
+
+    def fulfill_obligation(rule:Element, sub_or_res:str, resp:EvalResp):
+        log.debug('Checking if %s obligation exists in rule:%s.', sub_or_res, rule)
+        if sub_or_res == 'subjectUpdate':
+            attrs_to_update = resp.subwattr 
+        elif sub_or_res == 'resourceUpdate':
+            attrs_to_update = resp.reswattr
+        else:
+            # TODO: throw wrong 'sub_or_res' parameter
+            return
+
+        obligation_element = rule.find(sub_or_res)
+        if obligation_element != None:
+            log.debug("Fulfilling obligation.")
+            attributes = obligation_element.attrib
+            for attribute_name in attributes:
+                value_to_update = attributes[attribute_name]
+                log.debug("rule: %s=%s", attribute_name, value_to_update)
+                # different update value forms
+                # replace $subject.ATTRIBUTE with original value
+                while value_to_update != None and isinstance(value_to_update, str) and value_to_update.startswith("$"):
+                    dot_index = value_to_update.index(".")
+                    attribute_key = value_to_update[dot_index + 1 :]
+                    sub_or_res = value_to_update[1 : dot_index]
+                    log.debug("Found $..., %s, %s", sub_or_res, attribute_key)
+                    if sub_or_res == 'subject':
+                        value = resp.subwattr[attribute_key]
+                    elif sub_or_res == 'resource':
+                        value = resp.reswattr[attribute_key]
+                    else:
+                        # TODO: Throw invalid policy exception
+                        return
+
+                    log.debug("replacing %s with %s", value_to_update, value)
+                    value_to_update = value
+
+                # case 1: ++ or --
+                if value_to_update == '++' or value_to_update == '--':
+                    # case 1.1: no such key exists -> create a new k,v pair with value 0
+                    # e.g. viewCount
+                    if not attribute_name in attrs_to_update:
+                        attrs_to_update[attribute_name] = 0
+                    attrs_to_update[attribute_name] += 1
+                    log.debug("Obligation: %s=%s. New value: %d", attribute_name, value_to_update, attrs_to_update[attribute_name])
+                    continue
+
+                # case 2: constant -> write (or overwrite) the value
+                attrs_to_update[attribute_name] = value_to_update
+                log.debug("Obligation: %s=%s. New value: %s", attribute_name, value_to_update, attrs_to_update[attribute_name])
+
+def main():
+    # test cases to simlulate messages from resource coordinators
+    resp = EvalResp()

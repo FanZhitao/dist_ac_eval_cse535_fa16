@@ -1,0 +1,58 @@
+import logging
+import time
+import random
+
+from msg.evalreq import EvalReq
+from util.router import Router
+
+log = logging.getLogger("Application")
+
+"""
+ Each application process will start sending request to correspendent coordinator immediately upon running up. 
+ The requests carry payload which is described in the configuration file.
+"""
+class Application(process):
+
+    def setup(router:Router, seqfrom:int, seqto:int, cfg, subjects, resources, actions):
+        pass
+        log.info('Application [%s] is up', self)
+
+    def run():
+        log.info("App - [%s] get ready to send request from [%d] to [%d]", self, seqfrom, seqto - 1)
+        for i in range(seqfrom, seqto):
+            req = EvalReq()
+            req.seq = i
+
+            # 1.Generate specific or random payload
+            prefix = 'req' + str(i)
+            if prefix + '.subject' in cfg:
+                req.subject = cfg[prefix + '.subject']
+            else:
+                req.subject = random.choice(subjects)
+
+            if prefix + '.resource' in cfg:
+                req.resource= cfg[prefix + '.resource']
+            else:
+                req.resource = random.choice(resources)
+
+            if prefix + '.action' in cfg:
+                req.action = cfg[prefix + '.action']
+            else:
+                req.action = random.choice(actions)
+
+            # 2.Send to correspondent subject coordinator
+            sc = router.get_sc(req.subject)
+            log.info("App - Send request #seq [%d] to SC %s", i, sc)
+            send(('reqapp', req,), to=sc)
+
+            if prefix + 'interval' in cfg:
+                time.sleep(float(cfg[prefix + 'interval']))
+            elif 'reqinterval' in cfg:
+                time.sleep(float(cfg['reqinterval']))
+
+        # 3.Wait for exit command
+        log.info("App - Waiting for response")
+        await(received('done'))
+
+    def receive(msg=('respapp', seq, result,), from_=sc):
+        log.info("App - Received request #seq-[%d] result: %s from SC %s", seq, result, sc)

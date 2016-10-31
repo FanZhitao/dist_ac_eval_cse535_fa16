@@ -1,0 +1,65 @@
+import logging
+import pprint
+import time
+
+log = logging.getLogger("Coordinator")
+
+"""
+ Cache manager of the tentative cache, subject database cache and resource database cache.
+"""
+class Cache:
+
+    def __init__(self):
+        """
+        tattr: Tentative update cache - <subid, <attr, (val, ts, reqid)>>
+        subcache: Subject DB cache - <subid, <attr, (val, ts, reqid)>>
+        rescache: Resource DB cache - <resid, <attr, (val, ts)>>
+        """
+        self.tattrs = dict()
+        self.subcache = dict()
+        self.rescache = dict()
+
+    def init_subcache(self, subattrs):
+        subid = subattrs[0]
+        data = subattrs[1]
+        self.tattrs[subid] = dict()
+        self.subcache[subid] = dict()
+        for attr, val in data.items():
+            ts = time.time()
+            self.tattrs[subid][attr] = (val, ts, None) # Initially, reqid field are all None
+            self.subcache[subid][attr] = (val, ts, None)
+        log.info('SC - Init tentative and subject cache \n%s', pprint.pformat(subattrs))
+
+    def init_rescache(self, resattrs):
+        resid = resattrs[0]
+        data = resattrs[1]
+        self.rescache[resid] = dict()
+        for attr, val in data.items():
+            self.rescache[resid][attr] = (val, time.time())
+        log.info('RC - Init resource cache \n%s', pprint.pformat(resattrs))
+
+    def query_tattr(self, subid):
+        if subid not in self.tattrs:
+            log.warn("SC - Subject [%s] doesn't exist in cache", subid)
+        return self.tattrs[subid]
+
+    def query_subcache(self, subid): # only for rollback at final phase
+        return self.subcache[subid]
+
+    def update_tattr(self, subid, attrs, reqid):
+        for attr, newval in attrs.items():
+            self.tattrs[subid][attr] = (newval, time.time(), reqid)
+
+    def commit_tattr(self, subid):
+        for attr, (newval, ts, reqid) in self.tattrs[subid].items():
+            self.subcache[subid][attr] = (newval, ts, reqid)
+
+    def query_rescache(self, resid):
+        if resid not in self.rescache:
+            log.warn("RC - Resource [%s] doesn't exist in cache", resid)
+        return self.rescache[resid]
+
+    def commit_rescache(self, resid, attrs):
+        for attr, newval in attrs.items():
+            self.rescache[resid][attr] = (newval, time.time())
+

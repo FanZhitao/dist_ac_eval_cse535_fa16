@@ -1,0 +1,120 @@
+import sys
+import time
+import logging
+import pprint
+import configparser
+
+from comp.application import Application
+from comp.coordinator import Coordinator
+from comp.worker import Worker
+from db.db import DB
+from util.router import Router
+
+log = logging.getLogger('Master')
+
+"""
+ Master is the bootstrap process of whole system which reads configuration file 
+ and starts all other processes to make system ready for testing.
+"""
+class Master(process):
+
+    def setup():
+        self.subjects = None
+        self.resources = None
+        self.actions = None
+
+    def run():
+        cfg = configparser.ConfigParser()
+        cfg.read(sys.argv[1]);
+        workload = sys.argv[2]
+
+        print_config(cfg, workload)
+
+        # 1.Create and start DB and workers
+        db = new(DB, num=1)
+
+        # Start workers
+        w = new(Worker, (db,), num=int(cfg['master']['workers']))
+        start(w)
+
+        # database setup paramters
+        # 1st: policy filename
+        # 2nd: record filename
+        # 3nd: min latency
+        # 4rd: max latency
+        path_policy = './src/db/' + cfg['db']['policy']
+        path_record = './src/db/' + cfg['db']['record']
+        setup(db, (path_policy, path_record, cfg['db']['minDBlatency'], cfg['db']['maxDBlatency'], w))
+        start(db)
+
+        # 2.Create and start coordinators
+        co = new(Coordinator, (w, db, cfg[workload],), num=int(cfg['master']['coordinators']))
+        start(co)
+
+        # 3.Prefetch subject and resource list from database
+        send('getsubs', to=db)
+        send('getresos', to=db)
+        send('getacts', to=db)
+        log.info("Send request to prefetch subjects, resources, and actions from database [%s]", db)
+        await(some(received(('subs', subs))) and some(received(('resos', resos))) and some(received(('acts', acts))))
+
+        # 4.Assign role to coordinators according to total number of subjects and resources
+        router = Router()
+        router.assign(self.subjects, self.resources, co)
+
+        # 5.Prepare coordinator with router table and subject/resource list
+        for c in co:
+            subattrs = dict()
+            resattrs = dict()
+            for sub, c2 in router.scmap.items():
+                if c == c2:
+                    subattrs[sub] = self.subjects[sub]
+            for res, c2 in router.rcmap.items():
+                if c == c2:
+                    resattrs[res] = self.resources[res]
+            send(('prepare', router, subattrs, resattrs), to=c)
+        log.info("Wait for all coordinators to start serving")
+        time.sleep(2)
+
+        # 6.Create application as client and start testing
+        #   Divide total requests evenly and assign sequence number of request to each application
+        appno = int(cfg['master']['clients'])
+        reqno = int(int(cfg[workload]['reqno']) / appno)
+        apps = new(Application, num=appno)
+        for i, app in zip(range(0, appno), apps):
+            setup(app, (router, i * reqno + 1, (i + 1) * reqno + 1, cfg[workload], list(self.subjects.keys()), list(self.resources.keys()), self.actions))
+        start(apps)
+
+        # Dump database content periodically for testing
+        while True:
+            time.sleep(5)
+            send(('dumpdb'), to=db)
+
+    def print_config(cfg, workload):
+        log.info('=' * 20)
+        for section in cfg.keys():
+            if section.startswith('workload') and section != workload:
+                continue
+            log.info('[%s]', section)
+            for key, val in cfg[section].items():
+                log.info('%s=%s', key, val)
+            log.info('')
+        log.info('=' * 20)
+
+    def receive(msg=('subs', subs), from_=db):
+        self.subjects = subs
+        log.info("Master - Received subjects list from database: [%s]", pprint.pformat(self.subjects))
+
+    def receive(msg=('resos', resos), from_=db):
+        self.resources = resos
+        log.info("Master - Received Resources list from database: [%s]", pprint.pformat(self.resources))
+
+    def receive(msg=('acts', acts), from_=db):
+        self.actions = acts
+        log.info("Master - Recevied actions list form database: [%s]", pprint.pformat(self.actions))
+
+def main():
+    m = new(Master)
+    setup(m)
+    start(m)
+

@@ -1,0 +1,19 @@
+
+class Request:
+
+    def __init__(self, resp = None):
+        if resp is None:
+            self.seq = 0
+            self.id = None
+            self.app = None
+            self.subject = ""
+            self.resource = ""
+            self.action = ""
+        else:
+            self.seq = resp.seq
+            self.id = resp.id
+            self.app = resp.app
+            self.subject = resp.subject
+            self.resource = resp.resource
+            self.action = resp.action
+

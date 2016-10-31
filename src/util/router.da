@@ -1,0 +1,59 @@
+import logging
+import pprint
+
+log = logging.getLogger('Router')
+
+"""
+ Router assigns subject and resource onto coordinators in pool. 
+ The following algorithm tries to distribute uniformly. 
+ And if conflict, use linear probing simply to address that.
+"""
+class Router:
+
+    def __init__(self):
+        self.scmap = dict()
+        self.rcmap = dict()
+
+    def assign(self, subjects, resources, coordinators):
+        co = list(coordinators)
+        total = len(co)
+        free = total
+        occupy = [False] * total
+
+        # 1.Assign subject to coordinator
+        # If found conflict, find next free coordinator (linear probing)
+        for sub in subjects:
+            idx = hash(sub) % total
+            if occupy[idx] is True and free > 0:
+                idx = self.search_free_co(free, occupy)
+            log.info("Assign subject=[%s] to coordinator=[%s]", sub, co[idx]) 
+            self.scmap[sub] = co[idx]
+            occupy[idx] = True
+            free -= 1
+
+        # 2.Assign resource to coordinator, same as above if conflict
+        for res in resources:
+            idx = hash(res) % total
+            if occupy[idx] is True and free > 0:
+                idx = self.search_free_co(free, occupy)
+            log.info("Assign resource=[%s] to coordinator=[%s]", res, co[idx]) 
+            self.rcmap[res] = co[idx]
+            occupy[idx] = True
+            free -= 1
+
+        log.debug('Router table of subject %s', pprint.pformat(self.scmap))
+        log.debug('Router table of resource %s', pprint.pformat(self.rcmap))
+
+    def search_free_co(self, free, occupy):
+        log.debug('free=%d occupy=%s', free, pprint.pformat(occupy))
+        for i in range(len(occupy)):
+            if occupy[i] is False:
+                occupy[i] = True
+                return i
+
+    def get_sc(self, sub):
+        return self.scmap[sub]
+
+    def get_rc(self, res):
+        return self.rcmap[res]
+

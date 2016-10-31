@@ -1,0 +1,76 @@
+import logging
+import pprint
+import queue
+import threading
+#from collections import deque
+
+from state.cache import Cache
+from state.statemac import StateMac
+
+log = logging.getLogger("Admin")
+
+"""
+ A Facade to access low-level class such as Cache and State Machine.
+"""
+class Admin:
+
+    def __init__(self, db):
+        """
+        states: <reqid, StateMachine>
+        queue: [reqid1, reqid2...]
+        """
+        self.db = db
+        self.cache = Cache()
+        self.states = dict()
+        self.q = queue.Queue() # name 'queue' conflict with module
+
+    def setup(self, req):
+        self.states[req.id] = StateMac(req)
+
+    def init_subcache(self, subattrs):
+        for sub, attrs in subattrs.items():
+            self.cache.init_subcache((sub, attrs))
+
+    def init_rescache(self, resattrs):
+        for res, attrs in resattrs.items():
+            self.cache.init_rescache((res, attrs))
+
+    def clean_state(self, reqid):
+        # keep state for dependency check and restart
+        self.states[reqid].subdep = None
+        self.states[reqid].resdep = None
+        self.states[reqid].subrattr = None
+
+    def tattr_cache(self, subid):
+        return self.cache.query_tattr(subid)
+
+    def res_cache(self, resid):
+        return self.cache.query_rescache(resid)
+
+    def is_tattr_or_sub_conflict(self, reqid, subrattr):
+        sm = self.states[reqid]
+        deps = self.states
+        tattr = self.tattr_cache(sm.subid)
+        return sm.respeval(subrattr, deps, tattr)
+
+    def update_tattr(self, subid, attrs, reqid):
+        self.cache.update_tattr(subid, attrs, reqid)
+
+    def push_into_queue(self, reqid):
+        self.q.put(self.states[reqid])
+
+    def remove_from_queue(self, reqid):
+        return self.q.get()
+
+    def commit_sub(self, subid):
+        self.cache.commit_tattr(subid)
+
+    def commit_res(self, resid, attrs):
+        self.cache.commit_rescache(resid, attrs)
+
+    def rollback_tattr(self, reqid):
+        sm = self.states[reqid]
+        tattr = self.cache.query_tattr(sm.subid)
+        subcache = self.cache.query_subcache(sm.subid)
+        sm.rollback(tattr, subcache, self.q)
+

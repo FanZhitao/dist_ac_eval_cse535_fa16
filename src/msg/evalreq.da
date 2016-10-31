@@ -1,0 +1,10 @@
+
+from msg.request import Request
+
+class EvalReq(Request):
+
+    def __init__(self, resp = None):
+        Request.__init__(self, resp)
+        self.sc = None
+        self.subattr = None
+        self.resattr = None

@@ -1,0 +1,256 @@
+import logging
+import time
+
+from db.db import DB
+from state.admin import Admin
+from state.statemac import Conflict
+from state.statemac import State
+from util.router import Router
+from util.idgen import IdGen
+from msg.evalreq import EvalReq
+from msg.evalresp import EvalResp
+from msg.commitreq import CommitReq
+from msg.commitresp import CommitResp
+
+log = logging.getLogger("Coordinator")
+
+class Coordinator(process):
+
+    def setup(workers:set, db:DB, cfg):
+        self.router = None
+        self.scadmin = Admin(db)
+        self.rcadmin = Admin(db)
+        self.idgen = IdGen()
+
+    def run():
+        log.info("Coordinator [%s] is up", self)
+        while True:
+            await(received(('done')))
+
+    def receive(msg=('prepare', router, subattrs, resattrs)):
+        """
+        SC/RC: Receive route table and subject/resource attribute list from master process
+        """
+        log.debug("Received route table and subject/resource attribute list")
+        self.router = router
+        self.scadmin.init_subcache(subattrs)
+        self.rcadmin.init_rescache(resattrs)
+
+    def receive(msg=('reqapp', req,), from_=p):
+        """
+        SC: Received request from client
+        """
+        log.info("SC - Incoming application request: #seq=[%d] subject=[%s]", req.seq, req.subject)
+        delay(req.seq, 'reqapp')
+
+        # Create context for current request
+        generate_global_id(req)
+        setup_admin_sc(req)
+        prepare_evalreq_sc(req, p)
+        enqueue(req.id)
+
+        rc = router.get_rc(req.resource)
+        log.info("SC - Send evaluation request to RC: #seq=[%d], rc=%s\n",req.seq, rc)
+        send(('reqeval', req), to=rc)
+
+    def receive(msg=('respeval', resp), from_=p):
+        """
+        SC: Receive evaluation result from worker
+        """
+        log.info("SC - Incoming evaluation response from worker: #seq=[%d], subrattr=[%s], subwattr=[%s], resrattr=[%s], reswattr=[%s]", resp.seq, resp.subrattr, resp.subwattr, resp.resrattr, resp.reswattr)
+        delay(resp.seq, 'respeval')
+
+        # 1.Policy doesn't explictly deny, so return immediately if no rule matched
+        if resp.decision == False:
+            log.info("No rule matched, send deny response to application.")
+            dequeue(resp.id)
+            cleanup_admin_sc(resp)
+            set_state(resp.id, State.complete)
+            send(('respapp', resp.seq, False,), to=resp.app) 
+            return
+
+        # 2.If delay is necessary, wait for dependent request complete
+        while True:
+            result, depid = is_tattr_or_sub_conflict(resp)
+            if result != Conflict.delay:
+                break
+            await(some(received(('respcommit', depresp)), has= depresp.id==depid))
+            log.info('SC - Dependency [%s] complete, current request [%s] can continue!', depid, resp.id)
+
+        # 3.Request RC to commit. Restart current request if RC report conflict
+        if result == Conflict.yes:
+            log.info('SC - Conflict found, restart: #seq=[%d]', resp.seq)
+            dequeue(resp.id)
+            cleanup_admin_sc(resp)
+            send(('reqapp', EvalReq(resp)), to=router.get_sc(resp.subject))
+        else:
+            log.info('SC - No conflict found, update tattr cache: #seq=[%d]', resp.seq)
+            update_tattr(resp)
+            req = prepare_commitreq(resp)
+            log.info("SC - Send commit request to RC: #seq=[%d]\n", resp.seq)
+            send(('reqcommit', req), to=router.get_rc(req.resource))
+
+    def receive(msg=('respcommit', resp,), from_=p):
+        """
+        SC: Receive RC commit result, check if success.
+        """
+        log.info("SC - Incoming commit response from RC: #seq=[%d]", resp.seq)
+        delay(resp.seq, 'respcommit')
+
+        # Commit then respond application or rollback and restart if RC failed to commit due to conflict
+        if resp.conflict:
+            log.info('SC - Commit conflict found: #seq=[%d], cleanup, rollback and restart', resp.seq)
+            dequeue(resp.id)
+            rollback_tattr(resp)
+            set_state(resp.id, State.restart)
+            cleanup_admin_sc(resp)
+            send(('reqapp', EvalReq(resp)), to=router.get_sc(resp.subject))
+        else:
+            log.info('SC - No conflict found, commit subject updates to db: #seq=[%d]', resp.seq)
+            dequeue(resp.id)
+            commit_sub_to_db(resp)
+            set_state(resp.id, State.complete)
+            log.info("SC - Send application response: #seq=[%d]\n", resp.seq)
+            send(('respapp', resp.seq, True,), to=resp.app)
+
+    def receive(msg=('reqeval', req,), from_=p):
+        """
+        RC: Receive evaluation request from SC
+        """
+        log.info("RC - Incoming evaluation request: #seq=[%d] resource=[%s] sc=%s", req.seq, req.resource, p)
+        delay(req.seq, 'reqeval')
+
+        # Prepare request then send to work which is chosen in Round-Robin style
+        setup_admin_rc(req)
+        prepare_evalreq_rc(req, p)
+        worker = next(iter(workers))
+        log.info("RC - Assign evalution request: #seq=[%d] to worker=[%s]\n", req.seq, worker)
+        send(('assigneval', req), to=worker)
+
+    def receive(msg=('reqcommit', req,), from_=p):
+        """
+        RC: Receive commit request from SC
+        """
+        log.info("RC - Incoming commit request: #seq=[%d] resource=[%s] sc=%s", req.seq, req.resource, p)
+        delay(req.seq, 'reqcommit')
+
+        # Commit to database or report failure to SC to make current request restart
+        resp = prepare_commitresp(req)
+        if is_res_conflict(req):
+            log.info('RC - Conflict found: #seq=[%d], cleanup and send back to SC to handle', req.seq)
+            cleanup_admin_rc(req)
+            resp.conflict = True
+        else:
+            log.info('RC - No conflict found, commit resource updates to db: #seq=[%d]', req.seq)
+            commit_res_to_db(req)
+            set_state(req.id, State.complete)
+            resp.conflict = False
+        log.info("RC - Send commit response to SC: #seq=[%d] sc=%s\n", req.seq, p)
+        send(('respcommit', resp), to=p)
+
+    def generate_global_id(req):
+        """
+        Generate global ID via IdGen utility
+        """
+        req.id = self.idgen.next()
+        log.info('SC - Assign globalID=[%s] to #seq=[%s]', req.id, req.seq)
+
+    def setup_admin_sc(req):
+        """
+        Setup state machine in Admin and transit state to 'reqapp'
+        """
+        self.scadmin.setup(req)
+        tattrs = self.scadmin.tattr_cache(req.subject)
+        sm = self.scadmin.states[req.id]
+        sm.reqapp(tattrs)
+
+    def setup_admin_rc(req):
+        if req.id in self.rcadmin.states:
+            self.rcadmin.clean_state(req.id)
+        self.rcadmin.setup(req)
+        attrs = self.rcadmin.res_cache(req.resource)
+        sm = self.rcadmin.states[req.id]
+        sm.reqeval(attrs)
+
+    def prepare_evalreq_sc(req, p):
+        """
+        Prepare parameter in evaluation request
+        """
+        if req.app is None: # app isn't None if request from restart
+            req.app = p
+        req.subattr = dict()
+        tattrs = self.scadmin.tattr_cache(req.subject) 
+        for attr, (val, _, _) in tattrs.items():
+            req.subattr[attr] = val
+
+    def prepare_evalreq_rc(req, p):
+        req.sc = p
+        req.resattr = dict()
+        attrs = self.rcadmin.res_cache(req.resource)
+        for attr, (val, _) in attrs.items():
+            req.resattr[attr] = val
+
+    def prepare_commitreq(resp):
+        req = CommitReq(resp)
+        req.resrattr = resp.resrattr
+        req.reswattr = resp.reswattr
+        return req
+
+    def prepare_commitresp(req):
+        return CommitResp(req)
+
+    def enqueue(reqid):
+        self.scadmin.push_into_queue(reqid)
+
+    def dequeue(reqid):
+        self.scadmin.remove_from_queue(reqid)
+
+    def is_tattr_or_sub_conflict(resp):
+        return self.scadmin.is_tattr_or_sub_conflict(resp.id, resp.subrattr)
+
+    def is_res_conflict(req):
+        sm = self.rcadmin.states[req.id]
+        attrs = self.rcadmin.res_cache(req.resource)
+        return sm.reqcommit(req, attrs) == False
+
+    def update_tattr(resp):
+        self.scadmin.update_tattr(resp.subject, resp.subwattr, resp.id)
+
+    def commit_sub_to_db(resp):
+        self.scadmin.commit_sub(resp.subject)
+        log.info("SC - Send subject tentative update attributes to db [%s]", self.scadmin.db)
+        subcommit = dict()
+        sub = resp.subject
+        attrs = self.scadmin.cache.subcache[resp.subject]
+        subcommit[sub] = dict()
+        for attr, (val, ts, _) in attrs.items():
+            subcommit[sub][attr] = (val, ts)
+        send(('writesubattr', subcommit), to=self.scadmin.db)
+
+    def commit_res_to_db(req):
+        self.rcadmin.commit_res(req.resource, req.reswattr)
+        log.info("RC - Send resource update attributes to db [%s]", self.rcadmin.db)
+        send(('writeresattr', self.rcadmin.cache.rescache), to=self.rcadmin.db)
+
+    def set_state(reqid, state):
+        if reqid in self.scadmin.states:
+            sm = self.scadmin.states[reqid]
+        else:
+            sm = self.rcadmin.states[reqid]
+        sm.state = state
+
+    def rollback_tattr(resp):
+        self.scadmin.rollback_tattr(resp.id)
+
+    def cleanup_admin_sc(resp):
+        self.scadmin.clean_state(resp.id)
+
+    def cleanup_admin_rc(req):
+        self.rcadmin.clean_state(req.id)
+
+    def delay(seq, method):
+        key = 'req' + str(seq) + '.delay.' + method
+        if key in cfg:
+            log.info('***** Delay *****: #seq=[%d] %f(s) at [%s]', seq, float(cfg[key]), key)
+            time.sleep(float(cfg[key]))
+
