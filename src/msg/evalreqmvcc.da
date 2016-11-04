@@ -1,7 +1,7 @@
 
 from msg.request import Request
 
-class MvccReq(Request):
+class EvalReqMvcc(Request):
 
     def __init__(self, resp = None):
         Request.__init__(self, resp)

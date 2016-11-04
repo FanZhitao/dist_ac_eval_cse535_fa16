@@ -1,7 +1,7 @@
 
 from msg.response import Response
 
-class MvccResp(Response):
+class EvalRespMvcc(Response):
 
     def __init__(self, req = None):
         Response.__init__(self, req)

@@ -1,0 +1,81 @@
+import logging
+import time
+
+log = logging.getLogger("Coordinator")
+
+class CoordinatorMvcc(process):
+
+    def setup(workers:set, db:DB, cfg):
+        self.router = None
+        self.admin = Admin(db)
+        self.idgen = IdGen()
+
+    def run():
+        log.info("Coordinator [%s] is up", self)
+        while True:
+            await(received(('done')))
+
+    def receive(msg=('prepare', router, subattrs, resattrs)):
+        """
+        Receive route table and subject/resource attribute list from master process
+        """
+        log.debug("CO - Received route table and subject/resource attribute list")
+        self.router = router
+        self.admin.init_subcache(subattrs)
+        self.admin.init_rescache(resattrs)
+
+    def receive(msg=('reqapp', req,), from_=p):
+        """
+        Received request from Application
+        """
+        log.info("Coord-1 - Incoming application request: #seq=[%d] subject=[%s]", req.seq, req.subject)
+        delay(req.seq, 'reqapp')
+
+        obj = obj(req, 1)
+        prepare(req, obj)
+
+        sc = router.get_rc(obj)
+        log.info("Coord-2 - Send evaluation request to Coord-2: #seq=[%d], rc=%s\n",req.seq, sc)
+        send(('reqeval', req), to=sc)
+
+    def receive(msg=('reqeval', req,), from_=p):
+        """
+        Received request from Coordinator 1
+        """
+        log.info("Coord-2 - Incoming application request: #seq=[%d] subject=[%s]", req.seq, req.subject)
+        delay(req.seq, 'reqapp')
+        obj = obj(req, 2)
+        prepare(req, obj)
+
+        worker = next(iter(workers))
+        log.info("Coord2 - Assign evalution request: #seq=[%d] to worker=[%s]\n", req.seq, worker)
+        send(('assigneval', req), to=worker)
+
+    def receive(msg=('respeval', resp), from_=p):
+        """
+        coordW: Receive evaluation result from worker
+        """
+        log.info("SC - Incoming evaluation response from worker: #seq=[%d], subrattr=[%s], subwattr=[%s], resrattr=[%s], reswattr=[%s]", resp.seq, resp.subrattr, resp.subwattr, resp.resrattr, resp.reswattr)
+        delay(resp.seq, 'respeval')
+
+    def receive(msg=('readAttr', resp), from_=p):
+        pass
+
+    def obj(req, idx):
+        pass
+
+    def prepare(req, obj):
+        # 1.Generate unique global ID
+        if req.id is None:
+            req.id = self.idgen.next()
+            log.info('SC - Assign globalID=[%s] to #seq=[%s]', req.id, req.seq)
+        # 2.Setup administration
+
+        # 3.Populate into request
+
+    def delay(seq, method):
+        key = 'req' + str(seq) + '.delay.' + method
+        if key in cfg:
+            log.info('***** Delay *****: #seq=[%d] %f(s) at [%s]', seq, float(cfg[key]), key)
+            time.sleep(float(cfg[key]))
+
