@@ -1,0 +1,68 @@
+import logging
+import pprint
+import time
+
+log = logging.getLogger("AdminMvcc")
+
+class AdminMvcc:
+
+    def __init__(self):
+        self.subcache = dict()
+        self.rescache = dict()
+        self.versions = dict()
+
+    def init_subcache(self, subattrs):
+        subid = subattrs[0]
+        data = subattrs[1]
+        self.subcache[subid] = dict()
+        for attr, val, ts in data.items():
+            self.subcache[subid][attr] = (val, ts)
+        log.info('Init subject cache \n%s', pprint.pformat(subattrs))
+
+    def init_rescache(self, resattrs):
+        resid = resattrs[0]
+        data = resattrs[1]
+        self.rescache[resid] = dict()
+        for attr, val, ts in data.items():
+            self.rescache[resid][attr] = (val, ts)
+        log.info('Init resource cache \n%s', pprint.pformat(resattrs))
+
+    def commit_subcache(self, subid, attrs, ts):
+        for attr, newval in attrs.items():
+            self.subcache[subid][attr] = (newval, ts)
+
+    def commit_rescache(self, resid, attrs, ts):
+        for attr, newval in attrs.items():
+            self.rescache[resid][attr] = (newval, ts)
+
+    def now():
+        return time.time()
+
+    def defReadAttr(obj, req):
+        pass
+
+    def mightReadAttr(obj, req):
+        pass
+
+    def cachedUpates(obj, req):
+        pass
+
+    def latestVersionBefore(obj, attr, ts):
+        if obj not in versions:
+            versions[obj] = dict()
+        #if attr not in versions[obj]:
+        #    versions[obj][attr] = Version()
+        # what if v[obj][attr] is empty?
+        return versions[obj][attr][-1]
+
+
+    def latestVersion(obj, attr):
+        return latestVersionBefore(obj, attr, now())
+
+class Version:
+
+    def __init__(self):
+        self.rts = 0
+        self.wts = 0
+        self.pendingMightRead = list()
+
