@@ -44,6 +44,9 @@ class AdminMvcc:
     def mightReadAttr(obj, req):
         pass
 
+    def mightWriteAttr(obj, req):
+        pass
+
     def cachedUpates(obj, req):
         pass
 
@@ -54,7 +57,6 @@ class AdminMvcc:
         #    versions[obj][attr] = Version()
         # what if v[obj][attr] is empty?
         return versions[obj][attr][-1]
-
 
     def latestVersion(obj, attr):
         return latestVersionBefore(obj, attr, now())

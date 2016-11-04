@@ -26,27 +26,22 @@ class CoordinatorMvcc(process):
 
     def receive(msg=('reqapp', req,), from_=p):
         """
-        Received request from Application
+        coord1: Received request from Application
         """
         log.info("Coord-1 - Incoming application request: #seq=[%d] subject=[%s]", req.seq, req.subject)
         delay(req.seq, 'reqapp')
-
-        obj = obj(req, 1)
-        prepare(req, obj)
-
-        sc = router.get_rc(obj)
-        log.info("Coord-2 - Send evaluation request to Coord-2: #seq=[%d], rc=%s\n",req.seq, sc)
+        prepare(req, 1)
+        sc = router.get_rc(obj(req, 1))
+        log.info("Coord-2 - Send evaluation request to Coord-2: #seq=[%d], sc=%s\n", req.seq, sc)
         send(('reqeval', req), to=sc)
 
     def receive(msg=('reqeval', req,), from_=p):
         """
-        Received request from Coordinator 1
+        coord2: Received request from Coordinator 1
         """
-        log.info("Coord-2 - Incoming application request: #seq=[%d] subject=[%s]", req.seq, req.subject)
+        log.info("Coord-2 - Incoming application request: #seq=[%d] object=[%s]", req.seq, obj(req, 2))
         delay(req.seq, 'reqapp')
-        obj = obj(req, 2)
-        prepare(req, obj)
-
+        prepare(req, 2)
         worker = next(iter(workers))
         log.info("Coord2 - Assign evalution request: #seq=[%d] to worker=[%s]\n", req.seq, worker)
         send(('assigneval', req), to=worker)
@@ -55,23 +50,60 @@ class CoordinatorMvcc(process):
         """
         coordW: Receive evaluation result from worker
         """
-        log.info("SC - Incoming evaluation response from worker: #seq=[%d], subrattr=[%s], subwattr=[%s], resrattr=[%s], reswattr=[%s]", resp.seq, resp.subrattr, resp.subwattr, resp.resrattr, resp.reswattr)
+        log.info("CoordW - Incoming evaluation response from worker: #seq=[%d]", resp.seq)
         delay(resp.seq, 'respeval')
+        x = obj(resp, resp.updatedObj)
+        if not conflict():
+            await()
+            if not conflict():
+                # commit update
+                # update update ts
 
-    def receive(msg=('readAttr', resp), from_=p):
-        pass
+                send(('readAttr', resp, resp.rdonlydObj), to=get(obj(resp, resp.rdonlydObj)))
+            else:
+                pass
+        else:
+            pass
+
+
+
+    def receive(msg=('readAttr', resp, i), from_=p):
+        """
+        coordR: Get notified that which attr in mightReadAttr is actually read
+        """
+        x = obj(req, i)
+        log.info("Coord-%d - Incoming application request: #seq=[%d] object=[%s]", i, resp.seq, x)
+        for attr in self.admin.mightReadAttr(x, req):
+            v = self.admin.latestVersionBefore(x, attr, resp.ts)
+            v.pendingMightRead.remove((resp.id, _))
+            if attr in req.readAttr[i]:
+                v.rts = req.ts
 
     def obj(req, idx):
         pass
 
-    def prepare(req, obj):
+    def prepare(req, i):
         # 1.Generate unique global ID
         if req.id is None:
             req.id = self.idgen.next()
             log.info('SC - Assign globalID=[%s] to #seq=[%s]', req.id, req.seq)
-        # 2.Setup administration
 
-        # 3.Populate into request
+        # 2.Setup administration
+        x = obj(req, i)
+        req.ts = self.admin.now()
+        defR = self.admin.defReadAttr(x, req)
+        mgtR = self.admin.mightReadAttr(x, req)
+        if read: #TODO App predefine req type or Coord analyze on its own?
+            for attr in defR:
+                self.admin.latestVersion(x, attr).rts = req.ts
+            for attr in mgtR:
+                self.admin.latestVersion(x, attr).pendingMightRead.add((req.id, req.ts))
+        else:
+            for attr in defR | mgtR:
+                self.admin.latestVersion(x, attr).pendingMightRead.add((req.id, req.ts))
+
+        # 3.Populate data piggybacked to request
+        req.cachedUpdates[i] = self.admin.cacheUpdates(x, req)
 
     def delay(seq, method):
         key = 'req' + str(seq) + '.delay.' + method
