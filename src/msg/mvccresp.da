@@ -1,0 +1,13 @@
+
+from msg.response import Response
+
+class MvccResp(Response):
+
+    def __init__(self, req = None):
+        Response.__init__(self, req)
+        self.ts = req.ts
+        self.decision = True
+        self.readAttr = [None] * 2
+        self.updates  = set()
+        self.updatedObj = None
+        self.rdonlydObj = None
