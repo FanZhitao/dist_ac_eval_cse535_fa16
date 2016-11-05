@@ -27,13 +27,10 @@ class AdminMvcc:
             self.rescache[resid][attr] = (val, ts)
         log.info('Init resource cache \n%s', pprint.pformat(resattrs))
 
-    def commit_subcache(self, subid, attrs, ts):
+    def commit_cache(self, x, attrs, ts):
+        cache = self.subcache if x in self.subcache else self.rescache
         for attr, newval in attrs.items():
-            self.subcache[subid][attr] = (newval, ts)
-
-    def commit_rescache(self, resid, attrs, ts):
-        for attr, newval in attrs.items():
-            self.rescache[resid][attr] = (newval, ts)
+            cache[x][attr] = (newval, ts)
 
     def now():
         return time.time()

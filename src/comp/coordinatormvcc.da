@@ -1,5 +1,13 @@
 import logging
 import time
+import queue
+
+from db.db import DB
+from util.router import Router
+from util.idgen import IdGen
+from state.adminmvcc import AdminMvcc
+from msg.evalreqmvcc import EvalReqMvcc
+from msg.evalrespmvcc import EvalRespMvcc
 
 log = logging.getLogger("Coordinator")
 
@@ -9,6 +17,8 @@ class CoordinatorMvcc(process):
         self.router = None
         self.admin = Admin(db)
         self.idgen = IdGen()
+        self.hasPendingWrtReq = False
+        self.rdonlyPendingQ = queue.Queue()
 
     def run():
         log.info("Coordinator [%s] is up", self)
@@ -30,17 +40,33 @@ class CoordinatorMvcc(process):
         """
         log.info("Coord-1 - Incoming application request: #seq=[%d] subject=[%s]", req.seq, req.subject)
         delay(req.seq, 'reqapp')
-        prepare(req, 1)
-        sc = router.get_rc(obj(req, 1))
-        log.info("Coord-2 - Send evaluation request to Coord-2: #seq=[%d], sc=%s\n", req.seq, sc)
-        send(('reqeval', req), to=sc)
+
+        if readonly(req):
+            # Pending readonly request to prevent pending write request starvation
+            self.rdonlyPendingQ.put(req)
+            if self.hasPendingWrtReq:
+                log.warn("Coord-1 - pending application request due to pending write request: #seq=[%d], to=%s\n", req.seq, nextco)
+                return
+
+            # Handle all pending readonly request after the waiting write request complete
+            while not self.rdonlyPendingQ.empty():
+                preq = self.rdonlyPendingQ.get()
+                prepare(preq, 1)
+                nextco = self.router.route(preq, obj(preq, 2))
+                log.info("Coord-1 - Send evaluation request to Coord-2: #seq=[%d], to=%s\n", preq.seq, nextco)
+                send(('reqeval', preq), to=nextco)
+        else:
+            prepare(req, 1)
+            nextco = self.router.route(req, obj(req, 2))
+            log.info("Coord-1 - Send evaluation request to Coord-2: #seq=[%d], to=%s\n", req.seq, nextco)
+            send(('reqeval', req), to=nextco)
 
     def receive(msg=('reqeval', req,), from_=p):
         """
         coord2: Received request from Coordinator 1
         """
         log.info("Coord-2 - Incoming application request: #seq=[%d] object=[%s]", req.seq, obj(req, 2))
-        delay(req.seq, 'reqapp')
+        delay(req.seq, 'reqeval')
         prepare(req, 2)
         worker = next(iter(workers))
         log.info("Coord2 - Assign evalution request: #seq=[%d] to worker=[%s]\n", req.seq, worker)
@@ -52,27 +78,39 @@ class CoordinatorMvcc(process):
         """
         log.info("CoordW - Incoming evaluation response from worker: #seq=[%d]", resp.seq)
         delay(resp.seq, 'respeval')
+
         x = obj(resp, resp.updatedObj)
         if not conflict():
-            await()
+            # Wait for all pending read complete
+            self.hasPendingWrtReq = True
+            await(each((attr, val) in resp.updates,
+                has= (not self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead) or
+                        all(v.wts == resp.ts for v in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead)))
+            self.hasPendingWrtReq = False
+
             if not conflict():
-                # commit update
-                # update update ts
+                # Commit update to cache and database
+                commit_to_cache_and_db(resp)
 
-                send(('readAttr', resp, resp.rdonlydObj), to=get(obj(resp, resp.rdonlydObj)))
+                # Update ts
+
+                # Notify application the evaluation result
+                send(('respapp', resp.seq, resp.decision), to=resp.app)
+
+                # Notify other coordinator to update rts for attributes read
+                coordR = self.router.route(resp, resp.rdonlydObj)
+                send(('readAttr', resp, resp.rdonlydObj), to=coordR)
             else:
-                pass
+                restart(resp)
         else:
-            pass
-
-
+            restart(resp)
 
     def receive(msg=('readAttr', resp, i), from_=p):
         """
         coordR: Get notified that which attr in mightReadAttr is actually read
         """
         x = obj(req, i)
-        log.info("Coord-%d - Incoming application request: #seq=[%d] object=[%s]", i, resp.seq, x)
+        log.info("Coord-%d - Incoming readAttr request: #seq=[%d] object=[%s]", i, resp.seq, x)
         for attr in self.admin.mightReadAttr(x, req):
             v = self.admin.latestVersionBefore(x, attr, resp.ts)
             v.pendingMightRead.remove((resp.id, _))
@@ -80,7 +118,14 @@ class CoordinatorMvcc(process):
                 v.rts = req.ts
 
     def obj(req, idx):
-        pass
+        #TODO Suppose we always handle subject first
+        if idx == 1:
+            return req.subject
+        else:
+            return req.resource
+
+    def readonly(req):
+        return True
 
     def prepare(req, i):
         # 1.Generate unique global ID
@@ -93,7 +138,7 @@ class CoordinatorMvcc(process):
         req.ts = self.admin.now()
         defR = self.admin.defReadAttr(x, req)
         mgtR = self.admin.mightReadAttr(x, req)
-        if read: #TODO App predefine req type or Coord analyze on its own?
+        if readonly(req): #TODO App predefine req type or Coord analyze on its own?
             for attr in defR:
                 self.admin.latestVersion(x, attr).rts = req.ts
             for attr in mgtR:
@@ -104,6 +149,16 @@ class CoordinatorMvcc(process):
 
         # 3.Populate data piggybacked to request
         req.cachedUpdates[i] = self.admin.cacheUpdates(x, req)
+
+    def commit_to_cache_and_db(resp):
+        self.admin.commit_cache(resp.updatedObj, resp.updates, resp.ts) #TODO use which ts?
+        log.info("RC - Send resource update attributes to db [%s]", self.rcadmin.db)
+        send(('writeattr', resp.updates), to=self.db)
+
+    def restart(resp):
+        req = EvalReqMvcc(resp)
+        prevco = self.router.route(req, obj(req, 1))
+        send(('reqapp', req), to=prevco)
 
     def delay(seq, method):
         key = 'req' + str(seq) + '.delay.' + method
