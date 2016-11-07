@@ -47,11 +47,10 @@ class Application(process):
                 log.info("App - Send request #seq [%d] to SC %s", i, sc)
                 send(('reqapp', req,), to=sc)
             else:
-                wrtobj = self.analyzer.mightWriteObj(req)
-                if len(wrtobj) == 1:
-                    co = router.get_sc(req.subject) if req.subject != wrtobj[0] else router.get_rc(req.resource)
-                else:
-                    pass
+                x = self.analyzer.obj(req, 1)
+                co = router.route(x)
+                log.info("App - Send request #seq [%d] to CO %s", i, co)
+                send(('reqapp', req,), to=co)
 
             if prefix + 'interval' in cfg:
                 time.sleep(float(cfg[prefix + 'interval']))
