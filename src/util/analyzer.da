@@ -1,0 +1,21 @@
+
+class Analyzer:
+
+    def __init__():
+        pass
+
+    def obj(req, i):
+        wrtobj = mightWriteObj(req)
+        # If written object is decided, choose it as second to process
+        # Otherwise (readonly request or written object cannot be decided
+        if len(wrtobj) == 1:
+            rdobj = req.subject if req.subject != wrtobj[0] else req.resource
+            return rdobj if i == 1 else wrtobj[0]
+        else:
+            return req.subject if i == 1 else req.resource
+
+    def readonly(req):
+        return not mightWriteObj(req)
+
+    def mightWriteObj(req):
+        pass

@@ -3,6 +3,7 @@ import time
 import random
 
 from msg.evalreq import EvalReq
+from msg.evalreqmvcc import EvalReqMvcc
 from util.router import Router
 
 log = logging.getLogger("Application")
@@ -13,14 +14,14 @@ log = logging.getLogger("Application")
 """
 class Application(process):
 
-    def setup(router:Router, seqfrom:int, seqto:int, cfg, subjects, resources, actions):
+    def setup(router:Router, seqfrom:int, seqto:int, cfg, subjects, resources, actions, analyzer, mode):
         pass
         log.info('Application [%s] is up', self)
 
     def run():
         log.info("App - [%s] get ready to send request from [%d] to [%d]", self, seqfrom, seqto - 1)
         for i in range(seqfrom, seqto):
-            req = EvalReq()
+            req = EvalReq() if mode == oplock else EvalReqMvcc()
             req.seq = i
 
             # 1.Generate specific or random payload
@@ -41,9 +42,16 @@ class Application(process):
                 req.action = random.choice(actions)
 
             # 2.Send to correspondent subject coordinator
-            sc = router.get_sc(req.subject)
-            log.info("App - Send request #seq [%d] to SC %s", i, sc)
-            send(('reqapp', req,), to=sc)
+            if mode == oplock:
+                sc = router.get_sc(req.subject)
+                log.info("App - Send request #seq [%d] to SC %s", i, sc)
+                send(('reqapp', req,), to=sc)
+            else:
+                wrtobj = self.analyzer.mightWriteObj(req)
+                if len(wrtobj) == 1:
+                    co = router.get_sc(req.subject) if req.subject != wrtobj[0] else router.get_rc(req.resource)
+                else:
+                    pass
 
             if prefix + 'interval' in cfg:
                 time.sleep(float(cfg[prefix + 'interval']))

@@ -5,6 +5,7 @@ import queue
 from db.db import DB
 from util.router import Router
 from util.idgen import IdGen
+from util.analyzer import Analyzer
 from state.adminmvcc import AdminMvcc
 from msg.evalreqmvcc import EvalReqMvcc
 from msg.evalrespmvcc import EvalRespMvcc
@@ -13,7 +14,7 @@ log = logging.getLogger("Coordinator")
 
 class CoordinatorMvcc(process):
 
-    def setup(workers:set, db:DB, cfg):
+    def setup(workers:set, db:DB, cfg, analyzer:Analyzer):
         self.router = None
         self.admin = Admin(db)
         self.idgen = IdGen()
@@ -117,16 +118,6 @@ class CoordinatorMvcc(process):
             if attr in req.readAttr[i]:
                 v.rts = req.ts
 
-    def obj(req, idx):
-        #TODO Suppose we always handle subject first
-        if idx == 1:
-            return req.subject
-        else:
-            return req.resource
-
-    def readonly(req):
-        return True
-
     def prepare(req, i):
         # 1.Generate unique global ID
         if req.id is None:
@@ -138,7 +129,7 @@ class CoordinatorMvcc(process):
         req.ts = self.admin.now()
         defR = self.admin.defReadAttr(x, req)
         mgtR = self.admin.mightReadAttr(x, req)
-        if readonly(req): #TODO App predefine req type or Coord analyze on its own?
+        if readonly(req):
             for attr in defR:
                 self.admin.latestVersion(x, attr).rts = req.ts
             for attr in mgtR:
@@ -148,7 +139,7 @@ class CoordinatorMvcc(process):
                 self.admin.latestVersion(x, attr).pendingMightRead.add((req.id, req.ts))
 
         # 3.Populate data piggybacked to request
-        req.cachedUpdates[i] = self.admin.cacheUpdates(x, req)
+        req.cachedUpdates[i] = self.admin.cachedUpdates(x, req)
 
     def commit_to_cache_and_db(resp):
         self.admin.commit_cache(resp.updatedObj, resp.updates, resp.ts) #TODO use which ts?

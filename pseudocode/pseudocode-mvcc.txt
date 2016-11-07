@@ -1,0 +1,71 @@
+
+------------------
+# 1.Data Structure
+
+```
+EvalReqMvcc:
+# Basic fields same as Phase 1 and 2
+    seq
+    id
+    app
+    subject
+    resource
+    action
+# Specific fields of MVCC
+    ts
+    cachedUpdates
+```
+
+```
+EvalRespMvcc:
+# Basic fields populated from Request
+    seq, id, app, subject, resource, action
+# Specific fields of MVCC
+    ts
+    decision
+    readAttr
+    updates
+    updatedObj
+    rdonlydObj
+```
+
+
+----------
+# 2.Master
+
+Create static analyzer and specify running mode (normal or mvcc)
+
+```
+
+```
+
+
+----------
+# 3.Client (Application)
+
+Client determine the objects possibly involved in write by the content of request and by using static analyzer which preread policy file.
+
+```
+
+```
+
+---------------
+# 4.Coordinator
+
+```
+
+```
+
+## AdminMvcc (State managment helper class)
+
+```
+
+```
+
+
+----------
+# 5.Worker
+
+
+------------
+# 6.Database
