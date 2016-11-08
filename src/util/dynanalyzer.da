@@ -1,0 +1,17 @@
+
+from util.analyzer import Analyzer
+
+class DynAnalyzer(Analyzer):
+
+    def __init():
+        self.admin = None
+
+    def defReadAttr(obj, req):
+        pass
+
+    def mightReadAttr(obj, req):
+        pass
+
+    def mightWriteAttr(obj, req):
+        pass
+

@@ -27,36 +27,34 @@ class AdminMvcc:
             self.rescache[resid][attr] = (val, ts)
         log.info('Init resource cache \n%s', pprint.pformat(resattrs))
 
-    def commit_cache(self, x, attrs, ts):
+    def commit_cache(self, x, updates, ts):
         cache = self.subcache if x in self.subcache else self.rescache
-        for attr, newval in attrs.items():
+        for attr, newval in updates.items():
             cache[x][attr] = (newval, ts)
+
+    def update_version(self, x, updates, ts):
+        for attr, _ in updates.items():
+            versions[x][attr].append(Version(ts, ts))
 
     def now():
         return time.time()
 
-    def defReadAttr(obj, req):
-        pass
+    def cachedUpates(x, req):
+        if x in self.subcache:
+            return self.subcache[x]
+        else:
+            return self.rescache[x]
 
-    def mightReadAttr(obj, req):
-        pass
+    def latestVersionBefore(x, attr, ts):
+        if x not in versions:
+            versions[x] = dict()
+        if attr not in versions[x]:
+            versions[x][attr] = list()
+            versions[x][attr].append(Version(0, 0))
+        return versions[x][attr][-1]
 
-    def mightWriteAttr(obj, req):
-        pass
-
-    def cachedUpates(obj, req):
-        pass
-
-    def latestVersionBefore(obj, attr, ts):
-        if obj not in versions:
-            versions[obj] = dict()
-        #if attr not in versions[obj]:
-        #    versions[obj][attr] = Version()
-        # what if v[obj][attr] is empty?
-        return versions[obj][attr][-1]
-
-    def latestVersion(obj, attr):
-        return latestVersionBefore(obj, attr, now())
+    def latestVersion(x, attr):
+        return latestVersionBefore(x, attr, now())
 
 class Version:
 

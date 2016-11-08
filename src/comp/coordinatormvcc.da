@@ -6,6 +6,7 @@ from db.db import DB
 from util.router import Router
 from util.idgen import IdGen
 from util.analyzer import Analyzer
+from util.dynanalyzer import DynAnalyzer
 from state.adminmvcc import AdminMvcc
 from msg.evalreqmvcc import EvalReqMvcc
 from msg.evalrespmvcc import EvalRespMvcc
@@ -14,12 +15,13 @@ log = logging.getLogger("Coordinator")
 
 class CoordinatorMvcc(process):
 
-    def setup(workers:set, db:DB, cfg, analyzer:Analyzer):
+    def setup(workers:set, db:DB, cfg, analyzer:DynAnalyzer):
         self.router = None
         self.admin = Admin(db)
         self.idgen = IdGen()
         self.hasPendingWrtReq = False
         self.rdonlyPendingQ = queue.Queue()
+        self.analyzer.admin = self.admin
 
     def run():
         log.info("Coordinator [%s] is up", self)
@@ -42,7 +44,7 @@ class CoordinatorMvcc(process):
         log.info("Coord-1 - Incoming application request: #seq=[%d] subject=[%s]", req.seq, req.subject)
         delay(req.seq, 'reqapp')
 
-        if readonly(req):
+        if self.analyzer.readonly(req):
             # Pending readonly request to prevent pending write request starvation
             self.rdonlyPendingQ.put(req)
             if self.hasPendingWrtReq:
@@ -53,12 +55,12 @@ class CoordinatorMvcc(process):
             while not self.rdonlyPendingQ.empty():
                 preq = self.rdonlyPendingQ.get()
                 prepare(preq, 1)
-                nextco = self.router.route(preq, obj(preq, 2))
+                nextco = self.router.route(preq, self.analyzer.obj(preq, 2))
                 log.info("Coord-1 - Send evaluation request to Coord-2: #seq=[%d], to=%s\n", preq.seq, nextco)
                 send(('reqeval', preq), to=nextco)
         else:
             prepare(req, 1)
-            nextco = self.router.route(req, obj(req, 2))
+            nextco = self.router.route(req, self.analyzer.obj(req, 2))
             log.info("Coord-1 - Send evaluation request to Coord-2: #seq=[%d], to=%s\n", req.seq, nextco)
             send(('reqeval', req), to=nextco)
 
@@ -80,7 +82,7 @@ class CoordinatorMvcc(process):
         log.info("CoordW - Incoming evaluation response from worker: #seq=[%d]", resp.seq)
         delay(resp.seq, 'respeval')
 
-        x = obj(resp, resp.updatedObj)
+        x = self.analyzer.obj(resp, resp.updatedObj)
         if not conflict():
             # Wait for all pending read complete
             self.hasPendingWrtReq = True
@@ -90,16 +92,20 @@ class CoordinatorMvcc(process):
             self.hasPendingWrtReq = False
 
             if not conflict():
-                # Commit update to cache and database
-                commit_to_cache_and_db(resp)
+                # Commit update to database
+                log.info("CoordW - Send attribute updates to database [%s]", self.db)
+                send(('writeattr', resp.updates), to=self.db)
 
-                # Update ts
+                # Commit update to cache and update version
+                self.admin.commit_cache(resp.updatedObj, resp.updates, resp.ts)
+                self.admin.update_version(resp.updatedObj, resp.updates, resp.ts)
 
                 # Notify application the evaluation result
                 send(('respapp', resp.seq, resp.decision), to=resp.app)
 
                 # Notify other coordinator to update rts for attributes read
                 coordR = self.router.route(resp, resp.rdonlydObj)
+                log.info("CoordW - Send attribute read to CoordR [%s]", coordR)
                 send(('readAttr', resp, resp.rdonlydObj), to=coordR)
             else:
                 restart(resp)
@@ -125,11 +131,11 @@ class CoordinatorMvcc(process):
             log.info('SC - Assign globalID=[%s] to #seq=[%s]', req.id, req.seq)
 
         # 2.Setup administration
-        x = obj(req, i)
+        x = self.analyzer.obj(req, i)
         req.ts = self.admin.now()
         defR = self.admin.defReadAttr(x, req)
         mgtR = self.admin.mightReadAttr(x, req)
-        if readonly(req):
+        if self.analyzer.readonly(req):
             for attr in defR:
                 self.admin.latestVersion(x, attr).rts = req.ts
             for attr in mgtR:
@@ -140,11 +146,6 @@ class CoordinatorMvcc(process):
 
         # 3.Populate data piggybacked to request
         req.cachedUpdates[i] = self.admin.cachedUpdates(x, req)
-
-    def commit_to_cache_and_db(resp):
-        self.admin.commit_cache(resp.updatedObj, resp.updates, resp.ts) #TODO use which ts?
-        log.info("RC - Send resource update attributes to db [%s]", self.rcadmin.db)
-        send(('writeattr', resp.updates), to=self.db)
 
     def restart(resp):
         req = EvalReqMvcc(resp)

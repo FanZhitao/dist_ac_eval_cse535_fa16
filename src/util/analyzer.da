@@ -1,4 +1,10 @@
 
+"""
+Static analyzer that preread policy rule from database to make decision of:
+    Which object could possibly be involved in write
+    Which object should be accessed first to reduce latency
+    Is the request readonly
+"""
 class Analyzer:
 
     def __init__():
@@ -7,7 +13,8 @@ class Analyzer:
     def obj(req, i):
         wrtobj = mightWriteObj(req)
         # If written object is decided, choose it as second to process
-        # Otherwise (readonly request or written object cannot be decided
+        # Otherwise (readonly request or more than 1 written object which cannot be decided)
+        # Choose subject as the first object to handle randomly
         if len(wrtobj) == 1:
             rdobj = req.subject if req.subject != wrtobj[0] else req.resource
             return rdobj if i == 1 else wrtobj[0]

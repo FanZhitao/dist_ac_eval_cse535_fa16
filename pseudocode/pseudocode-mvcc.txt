@@ -32,7 +32,7 @@ EvalRespMvcc:
 ----------
 # 2.Master
 
-Create static analyzer and specify running mode (normal or mvcc)
+The main change of Master is the improvement by adding static analyzer and specifying running mode (normal or mvcc) to distinguish code flow of Phase 3 from Phase 2.
 
 ```
 
@@ -42,7 +42,7 @@ Create static analyzer and specify running mode (normal or mvcc)
 ----------
 # 3.Client (Application)
 
-Client determine the objects possibly involved in write by the content of request and by using static analyzer which preread policy file.
+Client determine the objects possibly involved in write by the information available in current request and by using static analyzer (described in the following Coordinator section).
 
 ```
 router:     Router that has knowledge of which coordinator takes care of the object
@@ -92,6 +92,33 @@ def receive(msg=('respapp', seq, result,), from_=sc):
 
 ```
 
+```
+
+## Analyzer (Static analysis helper class)
+
+Static analyzer that preread policy rule to make decision of:
+    Which object could possibly be involved in write
+    Which object should be accessed first to reduce latency
+    Is the request readonly?
+
+```
+def obj(req, i):
+    wrtobj = mightWriteObj(req)
+
+    # If written object is decided, choose it as second to process
+    # Otherwise (readonly request or more than 1 written object which cannot be decided)
+    # Choose subject as the first object to handle randomly
+    if len(wrtobj) == 1:
+        rdobj = req.subject if req.subject != wrtobj[0] else req.resource
+        return rdobj if i == 1 else wrtobj[0]
+    else:
+        return req.subject if i == 1 else req.resource
+
+def readonly(req):
+    return not mightWriteObj(req)
+
+def mightWriteObj(req):
+    pass
 ```
 
 
