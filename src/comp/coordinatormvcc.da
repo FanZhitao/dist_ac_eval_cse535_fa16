@@ -32,7 +32,7 @@ class CoordinatorMvcc(process):
         """
         Receive route table and subject/resource attribute list from master process
         """
-        log.debug("CO - Received route table and subject/resource attribute list")
+        log.debug("Coord - Received route table and subject/resource attribute list")
         self.router = router
         self.admin.init_subcache(subattrs)
         self.admin.init_rescache(resattrs)
@@ -83,7 +83,7 @@ class CoordinatorMvcc(process):
         delay(resp.seq, 'respeval')
 
         x = self.analyzer.obj(resp, resp.updatedObj)
-        if not conflict():
+        if not conflict(resp):
             # Wait for all pending read complete
             self.hasPendingWrtReq = True
             await(each((attr, val) in resp.updates,
@@ -91,7 +91,7 @@ class CoordinatorMvcc(process):
                         all(v.wts == resp.ts for v in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead)))
             self.hasPendingWrtReq = False
 
-            if not conflict():
+            if not conflict(resp):
                 # Commit update to database
                 log.info("CoordW - Send attribute updates to database [%s]", self.db)
                 send(('writeattr', resp.updates), to=self.db)
@@ -128,7 +128,7 @@ class CoordinatorMvcc(process):
         # 1.Generate unique global ID
         if req.id is None:
             req.id = self.idgen.next()
-            log.info('SC - Assign globalID=[%s] to #seq=[%s]', req.id, req.seq)
+            log.info('Coord-%d - Assign globalID=[%s] to #seq=[%s]', req.id, req.seq)
 
         # 2.Setup administration
         x = self.analyzer.obj(req, i)
@@ -146,6 +146,13 @@ class CoordinatorMvcc(process):
 
         # 3.Populate data piggybacked to request
         req.cachedUpdates[i] = self.admin.cachedUpdates(x, req)
+
+    def conflict(resp):
+        for (attr, _) in resp.updates:
+            v = latestVersionBefore(x, attr, resp.ts)
+            if v.rts > resp.ts:
+                return True
+        return False
 
     def restart(resp):
         req = EvalReqMvcc(resp)

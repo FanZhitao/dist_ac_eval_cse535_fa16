@@ -5,10 +5,27 @@ Static analyzer that preread policy rule from database to make decision of:
     Which object should be accessed first to reduce latency
     Is the request readonly
 """
+
+SUB_READ = 1
+SUB_UPD =  2
+RES_READ = 3
+RES_UPD =  4
+
 class Analyzer:
 
-    def __init__():
-        pass
+    def __init__(policyfile):
+        self.policy = dict()
+        tree = ET.parse(policyfile)
+	for rule in tree.getroot().iter('rule'):
+            subject = rule.find('subjectCondition').attrib.get('position')
+            resource = rule.find('resourceCondition').attrib.get('id')
+            action = rule.find('action').attrib.get('name')
+            if policy[(subject, resource, action)] is None:
+                policy[(subject, resource, action)] = []
+                policy[(subject, resource, action)][SUB_READ] = list()
+                policy[(subject, resource, action)][SUB_UPD] = list()
+                policy[(subject, resource, action)][RES_READ] = list()
+                policy[(subject, resource, action)][RES_UPD] = list()
 
     def obj(req, i):
         wrtobj = mightWriteObj(req)
@@ -25,4 +42,10 @@ class Analyzer:
         return not mightWriteObj(req)
 
     def mightWriteObj(req):
-        pass
+        wrtobj = 0
+        if policy[(req.subject, req.resource, req.action)][SUB_UPD]:
+            wrtobj = wrtobj + 1
+        if policy[(req.subject, req.resource, req.action)][RES_UPD]:
+            wrtobj = wrtobj + 1
+        return wrtobj
+

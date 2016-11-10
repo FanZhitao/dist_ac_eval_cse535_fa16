@@ -80,20 +80,6 @@ def receive(msg=('respapp', seq, result,), from_=sc):
     output decision or perform other operation
 ```
 
-
----------------
-# 4.Coordinator
-
-```
-
-```
-
-## AdminMvcc (State managment helper class)
-
-```
-
-```
-
 ## Analyzer (Static analysis helper class)
 
 Static analyzer that preread policy rule to make decision of:
@@ -119,6 +105,26 @@ def readonly(req):
 
 def mightWriteObj(req):
     pass
+```
+
+
+---------------
+# 4.Coordinator
+
+```
+
+```
+
+## AdminMvcc (State managment helper class)
+
+```
+
+```
+
+## DynAnalyzer (Dynamic analysis helper class)
+
+```
+
 ```
 
 
