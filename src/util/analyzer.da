@@ -1,20 +1,22 @@
 
+SUB_READ = 1
+SUB_UPD  = 2
+RES_READ = 3
+RES_UPD  = 4
+
 """
 Static analyzer that preread policy rule from database to make decision of:
     Which object could possibly be involved in write
     Which object should be accessed first to reduce latency
     Is the request readonly
 """
-
-SUB_READ = 1
-SUB_UPD =  2
-RES_READ = 3
-RES_UPD =  4
-
 class Analyzer:
 
     def __init__(policyfile):
         self.policy = dict()
+        parse_policy(policyfile, self.policy)
+
+    def parse_policy(policyfile, policy):
         tree = ET.parse(policyfile)
 	for rule in tree.getroot().iter('rule'):
             subject = rule.find('subjectCondition').attrib.get('position')
@@ -26,6 +28,18 @@ class Analyzer:
                 policy[(subject, resource, action)][SUB_UPD] = list()
                 policy[(subject, resource, action)][RES_READ] = list()
                 policy[(subject, resource, action)][RES_UPD] = list()
+            for attr, val in rule.find('subjectCondition').attrib:
+                if attr == 'subjectCondition': continue
+                policy[(subject, resource, action)][SUB_READ].append((attr, val)
+            for attr, val in rule.find('resourceCondition').attrib:
+                if attr == 'resourceCondition': continue
+                policy[(subject, resource, action)][RES_READ].append((attr, val)
+            if rule.find('subjectUpdate'):
+                for attr, _ in rule.find('subjectUpdate').attrib:
+                    policy[(subject, resource, action)][SUB_UPD].append(attr)
+            if rule.find('resourceUpdate'):
+                for attr, _ in rule.find('resourceUpdate').attrib:
+                    policy[(subject, resource, action)][RES_UPD].append(attr)
 
     def obj(req, i):
         wrtobj = mightWriteObj(req)
@@ -42,10 +56,10 @@ class Analyzer:
         return not mightWriteObj(req)
 
     def mightWriteObj(req):
-        wrtobj = 0
+        wrtobj = list()
         if policy[(req.subject, req.resource, req.action)][SUB_UPD]:
-            wrtobj = wrtobj + 1
+            wrtobj.append(req.subject)
         if policy[(req.subject, req.resource, req.action)][RES_UPD]:
-            wrtobj = wrtobj + 1
+            wrtobj.append(req.resource)
         return wrtobj
 

@@ -66,18 +66,25 @@ def run():
 
         # 2.Send to correspondent coordinator
         if mode == oplock:
-            sc = router.get_sc(req.subject)
-            send(('reqapp', req,), to=sc)
+            coord = router.get_sc(req.subject)
         else:
-            x = self.analyzer.obj(req, 1)
-            co = router.route(x)
-            send(('reqapp', req,), to=co)
+            x = analyzer.obj(req, 1)
+            coord = router.route(x)
+        send(('reqapp', req,), to=coord)
+        sentreq[i] = (req, coord, current timestamp)
 
     # 3.Wait for exit command
     await(received('done'))
 
 def receive(msg=('respapp', seq, result,), from_=sc):
     output decision or perform other operation
+    delete entry sentreq[seq]
+ 
+    # Re-submit request if timeout which is configured in config file
+    for seq, req, coord, ts in sentreq.items():
+        if current timestamp - ts > cfg['timeout']:
+            send(('reqapp', req,), to=coord)
+            sentreq[seq] = (req, coord, current timestamp)
 ```
 
 ## Analyzer (Static analysis helper class)
@@ -112,13 +119,163 @@ def mightWriteObj(req):
 # 4.Coordinator
 
 ```
+router: Router that has knowledge of which coordinator takes care of the object
+admin:  Administrator of local state (cache and version)
+idgen:  Generator of global unique ID which is exactly same as Phase 2.
+hasPendingWrtReq:   Mark if any pending write request which is set to False initially
+rdonlyPendingQ:     Queue for waiting readonly request coming after the pending write request
 
+# Run and up until receiving stop command 'done'
+def run():
+    while True:
+        await(received(('done')))
+
+# Receive route table and subject/resource attribute list from master process
+def receive(msg=('prepare', router)):
+    self.router = router
+
+# Coord1: Received request from Application
+def receive(msg=('reqapp', req,), from_=p):
+    if analyzer.readonly(req):
+        # Pending readonly request to prevent pending write request starvation
+        rdonlyPendingQ.put(req)
+        if hasPendingWrtReq:
+            return
+
+        # Handle all pending readonly request after the waiting write request complete
+        while not rdonlyPendingQ.empty():
+            preq = rdonlyPendingQ.remove()
+            handle_request(preq, 1)
+            nextco = router.route(preq, analyzer.obj(preq, 2))
+            send(('reqeval', preq), to=nextco)
+    else:
+        handle_request(req, 1)
+        nextco = router.route(req, analyzer.obj(req, 2))
+        send(('reqeval', req), to=nextco)
+
+# Coord2: Received request from Coordinator 1
+def receive(msg=('reqeval', req,), from_=p):
+    handle_request(req, 2)
+    worker = next(iter(workers))
+    send(('assigneval', req), to=worker)
+
+# CoordW: Receive evaluation result from worker
+def receive(msg=('respeval', resp), from_=p):
+    x = analyzer.obj(resp, resp.updatedObj)
+    if not conflict(resp):
+        # Wait for all pending read complete
+        hasPendingWrtReq = True
+        await(each((attr, val) in resp.updates,
+            has= (not admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead) or
+                    all(v.wts == resp.ts for v in admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead)))
+        hasPendingWrtReq = False
+
+        if not conflict(resp):
+            # Commit update to database
+            send(('writeattr', resp.updates), to=db)
+
+            # Commit update to cache and update version
+            admin.commit_cache(resp.updatedObj, resp.updates, resp.ts)
+            admin.update_version(resp.updatedObj, resp.updates, resp.ts)
+
+            # Notify application the evaluation result
+            send(('respapp', resp.seq, resp.decision), to=resp.app)
+
+            # Notify other coordinator to update rts for attributes read
+            coordR = router.route(resp, resp.rdonlydObj)
+            send(('readAttr', resp, resp.rdonlydObj), to=coordR)
+        else:
+            restart(resp)
+    else:
+        restart(resp)
+
+# CoordR: Get notified that which attr in mightReadAttr is actually read
+def receive(msg=('readAttr', resp, i), from_=p):
+    x = obj(req, i)
+    for attr in admin.mightReadAttr(x, req):
+        v = admin.latestVersionBefore(x, attr, resp.ts)
+        v.pendingMightRead.remove((resp.id, _))
+        if attr in req.readAttr[i]:
+            v.rts = req.ts
+
+def handle_request(req, i):
+    # 1.Generate unique global ID
+    if req.id is None:
+        req.id = idgen.next()
+
+    # 2.Setup administration
+    x = analyzer.obj(req, i)
+    req.ts = admin.now()
+    defR = admin.defReadAttr(x, req)
+    mgtR = admin.mightReadAttr(x, req)
+    if analyzer.readonly(req):
+        for attr in defR:
+            admin.latestVersion(x, attr).rts = req.ts
+        for attr in mgtR:
+            admin.latestVersion(x, attr).pendingMightRead.add((req.id, req.ts))
+    else:
+        for attr in defR | mgtR:
+            admin.latestVersion(x, attr).pendingMightRead.add((req.id, req.ts))
+
+    # 3.Populate data piggybacked to request
+    req.cachedUpdates[i] = admin.cachedUpdates(x, req)
+
+def conflict(resp):
+    for (attr, _) in resp.updates:
+        v = latestVersionBefore(x, attr, resp.ts)
+        if v.rts > resp.ts:
+            return True
+    return False
+
+def restart(resp):
+    req = EvalReqMvcc(resp)
+    prevco = router.route(req, obj(req, 1))
+    send(('reqapp', req), to=prevco)
 ```
 
 ## AdminMvcc (State managment helper class)
 
 ```
+subcache: Subject cache that contains <obj, <attr, (value, timestamp)>>
+rescache: Resource cache that contains <obj, <attr, (value, timestamp)>>
+versions: Version map <obj, <attr, [v1, v2...]>> wherein each Version contains: rts (read timestamp), wts (write timestamp) and pendingMightRead (pending queue for uncertain read request)
+window:   Inconsistent time window of attribute database
 
+def commit_cache(x, updates, ts):
+    cache = subcache if x in subcache else rescache
+    for attr, newval in updates.items():
+        cache[x][attr] = (newval, ts)
+
+def update_version(x, updates, ts):
+    for attr, _ in updates.items():
+        versions[x][attr].append(Version(ts, ts))
+
+def now():
+    return current timestamp
+
+def cachedUpates(x, req):
+    cache = dict()
+    if x in subcache:
+        return subcache[x]
+    elif x in rescache:
+        return rescache[x]
+
+    # Remove entry if alive longer than inconsitent window of attribute DB
+    for attr, _, ts in cache:
+        if now() - ts >= window:
+            del cache[attr]
+    return cache
+
+def latestVersionBefore(x, attr, ts):
+    if x not in versions:
+        versions[x] = dict()
+    if attr not in versions[x]:
+        versions[x][attr] = list()
+        versions[x][attr].append(Version(0, 0))
+    return versions[x][attr][-1]
+
+def latestVersion(x, attr):
+    return latestVersionBefore(x, attr, now())
 ```
 
 ## DynAnalyzer (Dynamic analysis helper class)

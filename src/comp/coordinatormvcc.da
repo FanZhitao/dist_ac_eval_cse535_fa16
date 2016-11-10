@@ -54,12 +54,12 @@ class CoordinatorMvcc(process):
             # Handle all pending readonly request after the waiting write request complete
             while not self.rdonlyPendingQ.empty():
                 preq = self.rdonlyPendingQ.get()
-                prepare(preq, 1)
+                handle_request(preq, 1)
                 nextco = self.router.route(preq, self.analyzer.obj(preq, 2))
                 log.info("Coord-1 - Send evaluation request to Coord-2: #seq=[%d], to=%s\n", preq.seq, nextco)
                 send(('reqeval', preq), to=nextco)
         else:
-            prepare(req, 1)
+            handle_request(req, 1)
             nextco = self.router.route(req, self.analyzer.obj(req, 2))
             log.info("Coord-1 - Send evaluation request to Coord-2: #seq=[%d], to=%s\n", req.seq, nextco)
             send(('reqeval', req), to=nextco)
@@ -70,7 +70,7 @@ class CoordinatorMvcc(process):
         """
         log.info("Coord-2 - Incoming application request: #seq=[%d] object=[%s]", req.seq, obj(req, 2))
         delay(req.seq, 'reqeval')
-        prepare(req, 2)
+        handle_request(req, 2)
         worker = next(iter(workers))
         log.info("Coord2 - Assign evalution request: #seq=[%d] to worker=[%s]\n", req.seq, worker)
         send(('assigneval', req), to=worker)
@@ -124,7 +124,7 @@ class CoordinatorMvcc(process):
             if attr in req.readAttr[i]:
                 v.rts = req.ts
 
-    def prepare(req, i):
+    def handle_request(req, i):
         # 1.Generate unique global ID
         if req.id is None:
             req.id = self.idgen.next()

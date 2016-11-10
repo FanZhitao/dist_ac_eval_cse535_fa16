@@ -15,8 +15,8 @@ log = logging.getLogger("Application")
 class Application(process):
 
     def setup(router:Router, seqfrom:int, seqto:int, cfg, subjects, resources, actions, analyzer, mode):
-        pass
         log.info('Application [%s] is up', self)
+        self.sentreq = dict()
 
     def run():
         log.info("App - [%s] get ready to send request from [%d] to [%d]", self, seqfrom, seqto - 1)
@@ -43,14 +43,13 @@ class Application(process):
 
             # 2.Send to correspondent subject coordinator
             if mode == oplock:
-                sc = router.get_sc(req.subject)
-                log.info("App - Send request #seq [%d] to SC %s", i, sc)
-                send(('reqapp', req,), to=sc)
+                coord = router.get_sc(req.subject)
             else:
                 x = self.analyzer.obj(req, 1)
-                co = router.route(x)
-                log.info("App - Send request #seq [%d] to CO %s", i, co)
-                send(('reqapp', req,), to=co)
+                coord = router.route(x)
+            log.info("App - Send request #seq [%d] to Coord %s", i, coord)
+            send(('reqapp', req,), to=coord)
+            self.sentreq[i] = (req, coord, time.time())
 
             if prefix + 'interval' in cfg:
                 time.sleep(float(cfg[prefix + 'interval']))
@@ -63,3 +62,11 @@ class Application(process):
 
     def receive(msg=('respapp', seq, result,), from_=sc):
         log.info("App - Received request #seq-[%d] result: %s from SC %s", seq, result, sc)
+        del self.sentreq[seq]
+
+        # Re-submit request if timeout
+        now = time.time()
+        for seq, req, coord, ts in self.sentreq.items():
+            if now - ts > cfg['timeout']:
+                send(('reqapp', req,), to=coord)
+                self.sentreq[seq] = (req, coord, time.time())
