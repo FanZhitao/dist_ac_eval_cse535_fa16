@@ -23,23 +23,23 @@ class Analyzer:
             resource = rule.find('resourceCondition').attrib.get('id')
             action = rule.find('action').attrib.get('name')
             if policy[(subject, resource, action)] is None:
-                policy[(subject, resource, action)] = []
-                policy[(subject, resource, action)][SUB_READ] = list()
-                policy[(subject, resource, action)][SUB_UPD] = list()
-                policy[(subject, resource, action)][RES_READ] = list()
-                policy[(subject, resource, action)][RES_UPD] = list()
+                policy[(subject, resource, action)] = list()
+
+            # Analyze potential read/update attributes in each rule
+            cur = [list()] * 4
             for attr, val in rule.find('subjectCondition').attrib:
                 if attr == 'subjectCondition': continue
-                policy[(subject, resource, action)][SUB_READ].append((attr, val)
+                cur[SUB_READ].append((attr, val))
             for attr, val in rule.find('resourceCondition').attrib:
                 if attr == 'resourceCondition': continue
-                policy[(subject, resource, action)][RES_READ].append((attr, val)
+                cur[RES_READ].append((attr, val))
             if rule.find('subjectUpdate'):
                 for attr, _ in rule.find('subjectUpdate').attrib:
-                    policy[(subject, resource, action)][SUB_UPD].append(attr)
+                    cur[SUB_UPD].append(attr)
             if rule.find('resourceUpdate'):
                 for attr, _ in rule.find('resourceUpdate').attrib:
-                    policy[(subject, resource, action)][RES_UPD].append(attr)
+                    cur[RES_UPD].append(attr)
+            policy[(subject, resource, action)].append(cur)
 
     def obj(req, i):
         wrtobj = mightWriteObj(req)

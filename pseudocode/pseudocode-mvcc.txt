@@ -2,7 +2,9 @@
 ------------------
 # 1.Data Structure
 
-```
+For the MVCC implementation in the Phase 3, we add two more message classes EvalReqMvcc and EvalRespMvcc.
+
+```py
 EvalReqMvcc:
 # Basic fields same as Phase 1 and 2
     seq:        Sequence number indicating different request in test case
@@ -16,7 +18,7 @@ EvalReqMvcc:
     cachedUpdates:  piggybacked cached data in coordinator
 ```
 
-```
+```py
 EvalRespMvcc:
 # Fields populated from Request
     seq, id, app, subject, resource, action, ts
@@ -32,9 +34,9 @@ EvalRespMvcc:
 ----------
 # 2.Master
 
-The main change of Master is the improvement by adding static analyzer and specifying running mode (normal or mvcc) to distinguish code flow of Phase 3 from Phase 2.
+The main change of Master is the initialization of static analyzer and running mode (normal or mvcc) to distinguish code flow of Phase 3 from Phase 2.
 
-```
+```py
 
 ```
 
@@ -44,7 +46,7 @@ The main change of Master is the improvement by adding static analyzer and speci
 
 Client determine the objects possibly involved in write by the information available in current request and by using static analyzer (described in the following Coordinator section).
 
-```
+```py
 router:     Router that has knowledge of which coordinator takes care of the object
 seqfrom:    First sequence number for which current client is responsble
 seqto:      Last sequence number for which current client is responsble
@@ -54,6 +56,7 @@ resources:  Resource ID list
 actions:    Action name list
 analyzer:   Static analyzer that decides which object should process first
 mode:       Running mode (oplock for Phase 1/2 or mvcc for Phase 3)
+sentreq:    List of request that has been sent used for timeout check
  
 def run():
     for i from seqfrom to seqto:
@@ -77,8 +80,8 @@ def run():
     await(received('done'))
 
 def receive(msg=('respapp', seq, result,), from_=sc):
-    output decision or perform other operation
-    delete entry sentreq[seq]
+    Output decision or perform other operation
+    Delete entry sentreq[seq]
  
     # Re-submit request if timeout which is configured in config file
     for seq, req, coord, ts in sentreq.items():
@@ -90,17 +93,46 @@ def receive(msg=('respapp', seq, result,), from_=sc):
 ## Analyzer (Static analysis helper class)
 
 Static analyzer that preread policy rule to make decision of:
-    Which object could possibly be involved in write
-    Which object should be accessed first to reduce latency
-    Is the request readonly?
 
-```
+ + Which object could possibly be involved in write
+ + Which object should be accessed first to reduce latency
+ + Is the request readonly?
+
+```py
+policy: Analysis result of policy file
+    <(subject,resource,action),
+        <rule-id, [subject-read-attrs, 
+                subject-update-attrs, 
+                resource-read-attrs,
+                resource-update-attrs]>>
+
+def parse_policy(policyfile, policy):
+    tree = ET.parse(policyfile)
+
+    # Analyze rules one by one
+    for rule in tree.getroot().iter('rule'):
+        subject = find subject ID attribute value
+        resource = find resource ID attribute value
+        action = find action name value
+
+        # Analyze and save read/update attributes in each rule
+        # cur is analysis result of current rule
+        for attr, val in subject read attributes:
+            cur[SUB_READ].append((attr, val))
+        for attr, val in resource read attributes:
+            cur[RES_READ].append((attr, val))
+        if rule has subject update attributes:
+            for attr, _ in subject update attributes:
+                cur[SUB_UPD].append(attr)
+        if rule has resource update attributes:
+            for attr, _ in resource update attributes:
+                cur[RES_UPD].append(attr)
+        policy[(subject, resource, action)].append(cur)
+
+# If written object is decided, choose it as second to process
+# Otherwise (readonly request or more than 1 written object which cannot be decided). Choose subject as the first object to handle randomly.
 def obj(req, i):
     wrtobj = mightWriteObj(req)
-
-    # If written object is decided, choose it as second to process
-    # Otherwise (readonly request or more than 1 written object which cannot be decided)
-    # Choose subject as the first object to handle randomly
     if len(wrtobj) == 1:
         rdobj = req.subject if req.subject != wrtobj[0] else req.resource
         return rdobj if i == 1 else wrtobj[0]
@@ -111,14 +143,19 @@ def readonly(req):
     return not mightWriteObj(req)
 
 def mightWriteObj(req):
-    pass
+    wrtobj = list()
+    if policy[(req.subject, req.resource, req.action)][SUB_UPD]:
+        wrtobj.append(req.subject)
+    if policy[(req.subject, req.resource, req.action)][RES_UPD]:
+        wrtobj.append(req.resource)
+    return wrtobj
 ```
 
 
 ---------------
 # 4.Coordinator
 
-```
+```py
 router: Router that has knowledge of which coordinator takes care of the object
 admin:  Administrator of local state (cache and version)
 idgen:  Generator of global unique ID which is exactly same as Phase 2.
@@ -235,7 +272,9 @@ def restart(resp):
 
 ## AdminMvcc (State managment helper class)
 
-```
+Due to important changes, we add a new class AdminMvcc for MVCC state management.
+
+```py
 subcache: Subject cache that contains <obj, <attr, (value, timestamp)>>
 rescache: Resource cache that contains <obj, <attr, (value, timestamp)>>
 versions: Version map <obj, <attr, [v1, v2...]>> wherein each Version contains: rts (read timestamp), wts (write timestamp) and pendingMightRead (pending queue for uncertain read request)
@@ -260,10 +299,10 @@ def cachedUpates(x, req):
     elif x in rescache:
         return rescache[x]
 
-    # Remove entry if alive longer than inconsitent window of attribute DB
+    # Remove entry if live longer than inconsitent window of attribute DB
     for attr, _, ts in cache:
         if now() - ts >= window:
-            del cache[attr]
+            delete cache[attr]
     return cache
 
 def latestVersionBefore(x, attr, ts):

@@ -1,3 +1,4 @@
+from collections import Counter
 
 from util.analyzer import Analyzer
 
@@ -7,7 +8,9 @@ class DynAnalyzer(Analyzer):
         self.admin = None
 
     def defReadAttr(obj, req):
-        pass
+        """
+        Determine definite read attributes as those appear in every matched rule
+        """
 
     def mightReadAttr(obj, req):
         pass
@@ -15,3 +18,16 @@ class DynAnalyzer(Analyzer):
     def mightWriteAttr(obj, req):
         pass
 
+    def stat(obj, req):
+        rules = self.policy[(req.subject, req.resource, req.action)]
+        cnt = Counter()
+        idx = SUB_READ if obj == req.subject else RES_READ
+        for rule in rules:
+            for attr, _ in rule[idx]:
+                cnt[attr] += 1
+
+        defR = list()
+        for attr, c in cnt.items():
+            if c == len(rules): # == def, < might
+                defR.append(attr)
+        return defR
