@@ -34,12 +34,9 @@ EvalRespMvcc:
 ----------
 # 2.Master
 
-The main change of Master is the initialization of static analyzer and running mode (normal or mvcc) to distinguish code flow of Phase 3 from Phase 2.
+The only change of Master is the initialization of static analyzer and running mode (normal or mvcc) to distinguish code flow of Phase 3 from Phase 2. Pass analyzer and mode to client, coordinator and worker as needed.
 
-```py
-
-```
-
+**Note**: To make it clear, we keep the function name as provided and will make it consistent with existing functions later in term of naming convention.
 
 ----------
 # 3.Client (Application)
@@ -151,9 +148,26 @@ def mightWriteObj(req):
     return wrtobj
 ```
 
+## Router (Object routing helper class)
 
----------------
-# 4.Coordinator
+Same as that in Phase 2 which makes use of hash function to assign role to coordinator except add a new function to determine responsbile coordinator without knowing object type in advance.
+
+```py
+scmap = <subjectID, coordinator>
+rcmap = <resourceID, coordinator>
+
+# assign(subjects, resources, co), get_sc(sub), get_rc(res) exactly the same as before, so omit details here
+
+def route(req, x):
+    if x in scmap:
+        return scmap[x]
+    else:
+        return rcmap[x]
+```
+
+
+-------------------
+# 4.CoordinatorMvcc
 
 ```py
 router: Router that has knowledge of which coordinator takes care of the object
@@ -319,8 +333,33 @@ def latestVersion(x, attr):
 
 ## DynAnalyzer (Dynamic analysis helper class)
 
-```
+Extends Analyzer class to improve by incorporating more analyzing apporaches. Since functions here are relevant to specific rule, we omit them here and only present other irrelevant functions.
 
+```py
+# Determine definite read attributes as those appear in every matched rules
+def defReadAttr(obj, req)
+    return predict(obj, req, operator.eq)
+
+# Others that are uncertain to be affected would be considered as might read attributes.
+def mightReadAttr(obj, req)
+    return predict(obj, req, operator.lt)
+
+def predict(obj, req, compare):
+    rules = policy[(req.subject, req.resource, req.action)]
+    cnt = create a bag of <attr, counter>
+    idx = SUB_READ if obj == req.subject else RES_READ
+    for rule in rules:
+        for attr, _ in rule[idx]:
+            cnt[attr] += 1
+
+    # Only keep what meets to compare operator
+    # eq(=) means: attribute appear in each rule
+    # lt(<) means: attribute appear in some of the rules
+    defR = list()
+    for attr, c in cnt.items():
+        if compare(c, len(rules)):
+            defR.append(attr)
+    return defR
 ```
 
 

@@ -58,7 +58,7 @@ class AdminMvcc:
             versions[x] = dict()
         if attr not in versions[x]:
             versions[x][attr] = list()
-            versions[x][attr].append(Version(0, 0))
+            versions[x][attr].append(Version())
         return versions[x][attr][-1]
 
     def latestVersion(self, x, attr):

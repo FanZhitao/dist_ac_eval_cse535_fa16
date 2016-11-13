@@ -7,18 +7,19 @@ class DynAnalyzer(Analyzer):
     def __init():
         self.admin = None
 
-    def defReadAttr(obj, req):
+    def defReadAttr(self, obj, req):
         """
         Determine definite read attributes as those appear in every matched rule
         """
+        return predict(obj, req, operator.eq)
 
-    def mightReadAttr(obj, req):
+    def mightReadAttr(self, obj, req):
+        return predict(obj, req, operator.lt)
+
+    def mightWriteAttr(self, obj, req):
         pass
 
-    def mightWriteAttr(obj, req):
-        pass
-
-    def stat(obj, req):
+    def predict(self, obj, req, compare):
         rules = self.policy[(req.subject, req.resource, req.action)]
         cnt = Counter()
         idx = SUB_READ if obj == req.subject else RES_READ
@@ -28,6 +29,6 @@ class DynAnalyzer(Analyzer):
 
         defR = list()
         for attr, c in cnt.items():
-            if c == len(rules): # == def, < might
+            if compare(c, len(rules)):
                 defR.append(attr)
         return defR
