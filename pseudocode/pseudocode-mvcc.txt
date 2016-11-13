@@ -309,9 +309,9 @@ def now():
 def cachedUpates(x, req):
     cache = dict()
     if x in subcache:
-        return subcache[x]
+        cache = subcache[x]
     elif x in rescache:
-        return rescache[x]
+        cache = rescache[x]
 
     # Remove entry if live longer than inconsitent window of attribute DB
     for attr, _, ts in cache:

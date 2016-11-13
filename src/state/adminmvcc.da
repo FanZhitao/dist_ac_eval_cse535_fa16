@@ -43,9 +43,9 @@ class AdminMvcc:
     def cachedUpates(self, x, req):
         cache = dict()
         if x in self.subcache:
-            return self.subcache[x]
+            cache = self.subcache[x]
         elif x in self.rescache:
-            return self.rescache[x]
+            cahce = self.rescache[x]
 
         # Remove entry if alive longer than inconsitent window of attribute DB
         for attr, _, ts in cache:
