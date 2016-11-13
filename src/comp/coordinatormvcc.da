@@ -120,7 +120,7 @@ class CoordinatorMvcc(process):
         log.info("Coord-%d - Incoming readAttr request: #seq=[%d] object=[%s]", i, resp.seq, x)
         for attr in self.admin.mightReadAttr(x, req):
             v = self.admin.latestVersionBefore(x, attr, resp.ts)
-            v.pendingMightRead.remove((resp.id, _))
+            v.pendingMightRead.remove(resp.id)
             if attr in req.readAttr[i]:
                 v.rts = req.ts
 
@@ -139,10 +139,10 @@ class CoordinatorMvcc(process):
             for attr in defR:
                 self.admin.latestVersionBefore(x, attr, req.ts).rts = req.ts
             for attr in mgtR:
-                self.admin.latestVersionBefore(x, attr, req.ts).pendingMightRead.add((req.id, req.ts))
+                self.admin.latestVersionBefore(x, attr, req.ts).pendingMightRead.append(req.id)
         else:
             for attr in defR | mgtR:
-                self.admin.latestVersionBefore(x, attr, req.ts).pendingMightRead.add((req.id, req.ts))
+                self.admin.latestVersionBefore(x, attr, req.ts).pendingMightRead.append(req.id)
 
         # 3.Populate data piggybacked to request
         req.cachedUpdates[i] = self.admin.cachedUpdates(x, req)

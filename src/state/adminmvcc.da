@@ -45,7 +45,7 @@ class AdminMvcc:
         if x in self.subcache:
             cache = self.subcache[x]
         elif x in self.rescache:
-            cahce = self.rescache[x]
+            cache = self.rescache[x]
 
         # Remove entry if alive longer than inconsitent window of attribute DB
         for attr, _, ts in cache:
@@ -56,10 +56,15 @@ class AdminMvcc:
     def latestVersionBefore(self, x, attr, ts):
         if x not in versions:
             versions[x] = dict()
+
         if attr not in versions[x]:
             versions[x][attr] = list()
             versions[x][attr].append(Version())
-        return versions[x][attr][-1]
+
+        for v in versions[x][attr]:
+            if v.wts < ts and latest.wts < v.wts:
+                latest = v
+        return latest
 
     def latestVersion(self, x, attr):
         return self.latestVersionBefore(x, attr, self.now())

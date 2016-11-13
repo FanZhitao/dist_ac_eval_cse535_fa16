@@ -217,8 +217,7 @@ def receive(msg=('respeval', resp), from_=p):
         # Wait for all pending read complete
         hasPendingWrtReq = True
         await(each((attr, val) in resp.updates,
-            has= (not admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead) or
-                    all(v.wts == resp.ts for v in admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead)))
+            has= (not admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead) or (admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead has only 1 entry which is related to resp)))
         hasPendingWrtReq = False
 
         if not conflict(resp):
@@ -319,16 +318,20 @@ def cachedUpates(x, req):
             delete cache[attr]
     return cache
 
+# Return a special Version(rts=0, wts=0) if no version in current session
+# Otherwise return latest version before specified ts
 def latestVersionBefore(x, attr, ts):
     if x not in versions:
         versions[x] = dict()
+
     if attr not in versions[x]:
         versions[x][attr] = list()
         versions[x][attr].append(Version(0, 0))
-    return versions[x][attr][-1]
 
-def latestVersion(x, attr):
-    return latestVersionBefore(x, attr, now())
+    for v in versions[x][attr]:
+        if v.wts < ts and latest.wts < v.wts:
+            latest = v 
+    return latest
 ```
 
 ## DynAnalyzer (Dynamic analysis helper class)
