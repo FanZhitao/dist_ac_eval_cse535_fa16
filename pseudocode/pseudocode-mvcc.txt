@@ -253,20 +253,20 @@ def handle_request(req, i):
     # 1.Generate unique global ID
     if req.id is None:
         req.id = idgen.next()
+        req.ts = admin.now()
 
     # 2.Setup administration
     x = analyzer.obj(req, i)
-    req.ts = admin.now()
     defR = admin.defReadAttr(x, req)
     mgtR = admin.mightReadAttr(x, req)
     if analyzer.readonly(req):
         for attr in defR:
-            admin.latestVersion(x, attr).rts = req.ts
+            admin.latestVersionBefore(x, attr, req.ts).rts = req.ts
         for attr in mgtR:
-            admin.latestVersion(x, attr).pendingMightRead.add((req.id, req.ts))
+            admin.latestVersionBefore(x, attr, req.ts).pendingMightRead.add((req.id, req.ts))
     else:
         for attr in defR | mgtR:
-            admin.latestVersion(x, attr).pendingMightRead.add((req.id, req.ts))
+            admin.latestVersionBefore(x, attr, req.ts).pendingMightRead.add((req.id, req.ts))
 
     # 3.Populate data piggybacked to request
     req.cachedUpdates[i] = admin.cachedUpdates(x, req)
