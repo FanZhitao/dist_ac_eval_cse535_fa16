@@ -1,6 +1,6 @@
 import logging
-from msg.evalreq import EvalReq
-from msg.evalresp import EvalResp
+from msg.evalreqmvcc import EvalReqMvcc
+from msg.evalrespmvcc import EvalRespMvcc
 from msg.commitreq import CommitReq
 from msg.commitresp import CommitResp
 
@@ -18,32 +18,33 @@ class Worker(process):
         while True:
             await(received(()))
 
-    def receive(msg=('assigneval', req), from_=rc):
-        log.info("Received evaluation request from resource coodinator: %s", rc)
+    def receive(msg=('assigneval', req), from_=c):
+        log.info("Received evaluation request from coodinator: %s", c)
 
         # In case not received policy from database yet.
         if self.policy == None:
             log.debug("No policy received yet. Waiting for response from database.")
             await(received(('records')))
 
-        # Evaluate request and send the result back to subject coordinator.
+        # Evaluate the request.
         resp, rule = evaluate(req)
         if resp.decision == Decision.permit:
             # Has found a matched rule.
             # Add read and write attributes into
             # resq.{subrattr, subwattr, resrattr, reswattr}.
             resp = add_read_write_attributes(req, resp, rule)
-        log.info("Send response to subject coordinator [%s] (Decision=%s)", req.sc, resp.decision)
-        send(('respeval', resp), to=req.sc)
+
+        if resp.updateObj == -1:
+            # req is read-only
 
     def receive(msg=('policy', policy), from_=p):
         log.info("Received policy data from database: %s", p)
         log.debug("policy: %s", policy)
         self.policy = policy
 
-    def evaluate(req:EvalReq):
+    def evaluate(req:EvalReqMvcc):
         log.info("Start to evaluate req: [%d]", req.seq)
-        resp = EvalResp(req) # construct response based on request
+        resp = EvalRespMvcc(req) # construct response based on request
         resp.decision = Decision.deny
         matched_rule = None
 
@@ -78,7 +79,7 @@ class Worker(process):
 
         return (resp, matched_rule)
 
-    def do_attributes_match(condition:Element, attributes_record:dict, req:EvalReq):
+    def do_attributes_match(condition:Element, attributes_record:dict, req:EvalReqMvcc):
         log.debug("Comparing rule %s with %s", condition.attrib, attributes_record)
         for attribute_name in iter(condition.attrib):
             if attribute_name not in attributes_record.keys():
@@ -138,7 +139,7 @@ class Worker(process):
         # all passed
         return True
 
-    def add_read_write_attributes(req:EvalReq, resp:EvalResp, rule:Element):
+    def add_read_write_attributes(req:EvalReqMvcc, resp:EvalRespMvcc, rule:Element):
         # Copy attributes from request.
         # subject attributes
         for attribute_name in req.subattr:
@@ -190,7 +191,7 @@ class Worker(process):
         fulfill_obligation(rule, 'resourceUpdate', resp)
         return resp
 
-    def fulfill_obligation(rule:Element, sub_or_res:str, resp:EvalResp):
+    def fulfill_obligation(rule:Element, sub_or_res:str, resp:EvalRespMvcc):
         log.debug('Checking if %s obligation exists in rule:%s.', sub_or_res, rule)
         if sub_or_res == 'subjectUpdate':
             attrs_to_update = resp.subwattr 
@@ -241,4 +242,4 @@ class Worker(process):
 
 def main():
     # test cases to simlulate messages from resource coordinators
-    resp = EvalResp()
+    resp = EvalRespMvcc()
