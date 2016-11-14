@@ -173,8 +173,8 @@ def route(req, x):
 router: Router that has knowledge of which coordinator takes care of the object
 admin:  Administrator of local state (cache and version)
 idgen:  Generator of global unique ID which is exactly same as Phase 2.
-hasPendingWrtReq:   Mark if any pending write request which is set to False initially
-rdonlyPendingQ:     Queue for waiting readonly request coming after the pending write request
+pendingUpdates: Save pending write request info for conflict check
+rdonlyPendingQ: List of waiting readonly request coming after the pending write request
 
 # Run and up until receiving stop command 'done'
 def run():
@@ -187,18 +187,9 @@ def receive(msg=('prepare', router)):
 
 # Coord1: Received request from Application
 def receive(msg=('reqapp', req,), from_=p):
-    if analyzer.readonly(req):
-        # Pending readonly request to prevent pending write request starvation
-        rdonlyPendingQ.put(req)
-        if hasPendingWrtReq:
-            return
-
-        # Handle all pending readonly request after the waiting write request complete
-        while not rdonlyPendingQ.empty():
-            preq = rdonlyPendingQ.remove()
-            handle_request(preq, 1)
-            nextco = router.route(preq, analyzer.obj(preq, 2))
-            send(('reqeval', preq), to=nextco)
+    # Pending readonly request to prevent pending write request starvation
+    if analyzer.readonly(req) and might_conflict(req):        
+        rdonlyPendingQ.append(req)
     else:
         handle_request(req, 1)
         nextco = router.route(req, analyzer.obj(req, 2))
@@ -215,10 +206,10 @@ def receive(msg=('respeval', resp), from_=p):
     x = analyzer.obj(resp, resp.updatedObj)
     if not conflict(resp):
         # Wait for all pending read complete
-        hasPendingWrtReq = True
+        pendingUpdates = (x, resp.updates)
         await(each((attr, val) in resp.updates,
             has= (not admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead) or (admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead has only 1 entry which is related to resp)))
-        hasPendingWrtReq = False
+        resume_pending_request(resp)
 
         if not conflict(resp):
             # Commit update to database
@@ -242,7 +233,7 @@ def receive(msg=('respeval', resp), from_=p):
 # CoordR: Get notified that which attr in mightReadAttr is actually read
 def receive(msg=('readAttr', resp, i), from_=p):
     x = obj(req, i)
-    for attr in admin.mightReadAttr(x, req):
+    for attr in analyzer.mightReadAttr(x, req):
         v = admin.latestVersionBefore(x, attr, resp.ts)
         v.pendingMightRead.remove((resp.id, _))
         if attr in req.readAttr[i]:
@@ -256,8 +247,8 @@ def handle_request(req, i):
 
     # 2.Setup administration
     x = analyzer.obj(req, i)
-    defR = admin.defReadAttr(x, req)
-    mgtR = admin.mightReadAttr(x, req)
+    defR = analyzer.defReadAttr(x, req)
+    mgtR = analyzer.mightReadAttr(x, req)
     if analyzer.readonly(req):
         for attr in defR:
             admin.latestVersionBefore(x, attr, req.ts).rts = req.ts
@@ -276,6 +267,26 @@ def conflict(resp):
         if v.rts > resp.ts:
             return True
     return False
+
+# Check if upcoming readonly request might conflict with pending write request if there is any
+def might_conflict(req):
+    x = pendingUpdates[0]
+    updates = pendingUpdates[1]
+    defR = analyzer.defReadAttr(x, req)
+    mgtR = analyzer.mightReadAttr(x, req)
+    return (updates.keys() intersect (defR union mgtR)) is not empty
+
+# Handle all pending readonly request after the waiting write request complete
+def resume_pending_request(resp):
+    x = analyzer.obj(resp, resp.updatedObj)
+    for req in list(rdonlyPendingQ):
+        if analyzer.obj(req, 1) != x:
+            continue
+        rdonlyPendingQ.remove(req)
+        handle_request(req, 1)
+        nextco = router.route(req, analyzer.obj(req, 2))
+        send(('reqeval', req), to=nextco)
+    delete pendingUpdates[x]
 
 def restart(resp):
     req = EvalReqMvcc(resp)

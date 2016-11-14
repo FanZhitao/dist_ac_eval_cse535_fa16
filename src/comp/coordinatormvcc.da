@@ -19,8 +19,8 @@ class CoordinatorMvcc(process):
         self.router = None
         self.admin = Admin(db)
         self.idgen = IdGen()
-        self.hasPendingWrtReq = False
-        self.rdonlyPendingQ = queue.Queue()
+        self.pendingUpdates = dict()
+        self.rdonlyPendingQ = list()
         self.analyzer.admin = self.admin
 
     def run():
@@ -44,20 +44,10 @@ class CoordinatorMvcc(process):
         log.info("Coord-1 - Incoming application request: #seq=[%d] subject=[%s]", req.seq, req.subject)
         delay(req.seq, 'reqapp')
 
-        if self.analyzer.readonly(req):
-            # Pending readonly request to prevent pending write request starvation
-            self.rdonlyPendingQ.put(req)
-            if self.hasPendingWrtReq:
-                log.warn("Coord-1 - pending application request due to pending write request: #seq=[%d], to=%s\n", req.seq, nextco)
-                return
-
-            # Handle all pending readonly request after the waiting write request complete
-            while not self.rdonlyPendingQ.empty():
-                preq = self.rdonlyPendingQ.get()
-                handle_request(preq, 1)
-                nextco = self.router.route(preq, self.analyzer.obj(preq, 2))
-                log.info("Coord-1 - Send evaluation request to Coord-2: #seq=[%d], to=%s\n", preq.seq, nextco)
-                send(('reqeval', preq), to=nextco)
+        # Pending readonly request to prevent pending write request starvation
+        if self.analyzer.readonly(req) and might_conflict(req):
+            self.rdonlyPendingQ.append(req)
+            log.warn("Coord-1 - pending application request due to pending write request: #seq=[%d], to=%s\n", req.seq, nextco)
         else:
             handle_request(req, 1)
             nextco = self.router.route(req, self.analyzer.obj(req, 2))
@@ -85,11 +75,11 @@ class CoordinatorMvcc(process):
         x = self.analyzer.obj(resp, resp.updatedObj)
         if not conflict(resp):
             # Wait for all pending read complete
-            self.hasPendingWrtReq = True
+            self.pendingUpdates[x] = resp.updates
             await(each((attr, val) in resp.updates,
                 has= (not self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead) or
                         all(v.wts == resp.ts for v in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead)))
-            self.hasPendingWrtReq = False
+            resume_pending_request(resp)
 
             if not conflict(resp):
                 # Commit update to database
@@ -118,7 +108,7 @@ class CoordinatorMvcc(process):
         """
         x = obj(req, i)
         log.info("Coord-%d - Incoming readAttr request: #seq=[%d] object=[%s]", i, resp.seq, x)
-        for attr in self.admin.mightReadAttr(x, req):
+        for attr in self.analyzer.mightReadAttr(x, req):
             v = self.admin.latestVersionBefore(x, attr, resp.ts)
             v.pendingMightRead.remove(resp.id)
             if attr in req.readAttr[i]:
@@ -133,8 +123,8 @@ class CoordinatorMvcc(process):
 
         # 2.Setup administration
         x = self.analyzer.obj(req, i)
-        defR = self.admin.defReadAttr(x, req)
-        mgtR = self.admin.mightReadAttr(x, req)
+        defR = self.analyzer.defReadAttr(x, req)
+        mgtR = self.analyzer.mightReadAttr(x, req)
         if self.analyzer.readonly(req):
             for attr in defR:
                 self.admin.latestVersionBefore(x, attr, req.ts).rts = req.ts
@@ -153,6 +143,28 @@ class CoordinatorMvcc(process):
             if v.rts > resp.ts:
                 return True
         return False
+
+    def might_conflict(req):
+        x = self.analyzer.obj(req, 1)
+        if self.pendingUpdates[x]:
+            return False
+        updates = self.pendingUpdates[x]
+        defR = self.analyzer.defReadAttr(x, req)
+        mgtR = self.analyzer.mightReadAttr(x, req)
+        return not (updates.keys() & (defR | mgtR))
+
+    def resume_pending_request(resp):
+        # Handle all pending readonly request after the waiting write request complete
+        x = self.analyzer.obj(resp, resp.updatedObj)
+        for req in list(self.rdonlyPendingQ):
+            if self.analyzer.obj(req, 1) != x:
+                continue
+            self.rdonlyPendingQ.remove(req)
+            handle_request(req, 1)
+            nextco = self.router.route(req, self.analyzer.obj(req, 2))
+            log.info("Coord-1 - Send evaluation request to Coord-2: #seq=[%d], to=%s\n", req.seq, nextco)
+            send(('reqeval', req), to=nextco)
+        del self.pendingUpdates[x]
 
     def restart(resp):
         req = EvalReqMvcc(resp)
