@@ -206,7 +206,7 @@ def receive(msg=('respeval', resp), from_=p):
     x = analyzer.obj(resp, resp.updatedObj)
     if not conflict(resp):
         # Wait for all pending read complete
-        pendingUpdates = (x, resp.updates)
+        pendingUpdates[x] = resp.updates
         await(each((attr, val) in resp.updates,
             has= (not admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead) or (admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead has only 1 entry which is related to resp)))
         resume_pending_request(resp)
@@ -218,6 +218,8 @@ def receive(msg=('respeval', resp), from_=p):
             # Commit update to cache and update version
             admin.commit_cache(resp.updatedObj, resp.updates, resp.ts)
             admin.update_version(resp.updatedObj, resp.updates, resp.ts)
+            update_read_ts(resp, resp.updatedObj, 
+                analyzer.defReadAttr(x, resp) union analyzer.mightReadAttr(x, resp))
 
             # Notify application the evaluation result
             send(('respapp', resp.seq, resp.decision), to=resp.app)
@@ -232,12 +234,8 @@ def receive(msg=('respeval', resp), from_=p):
 
 # CoordR: Get notified that which attr in mightReadAttr is actually read
 def receive(msg=('readAttr', resp, i), from_=p):
-    x = obj(req, i)
-    for attr in analyzer.mightReadAttr(x, req):
-        v = admin.latestVersionBefore(x, attr, resp.ts)
-        v.pendingMightRead.remove((resp.id, _))
-        if attr in req.readAttr[i]:
-            v.rts = req.ts
+    x = obj(resp, i)
+    update_read_ts(resp, i, analyzer.mightReadAttr(x, resp))
 
 def handle_request(req, i):
     # 1.Generate unique global ID
@@ -260,6 +258,14 @@ def handle_request(req, i):
 
     # 3.Populate data piggybacked to request
     req.cachedUpdates[i] = admin.cachedUpdates(x, req)
+
+def update_read_ts(resp, i, attrs):
+    x = obj(resp, i)
+    for attr in attrs:
+        v = admin.latestVersionBefore(x, attr, resp.ts)
+        v.pendingMightRead.remove(resp.id)
+        if attr in resp.readAttr[i]:
+            v.rts = resp.ts
 
 def conflict(resp):
     for (attr, _) in resp.updates:

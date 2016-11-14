@@ -89,6 +89,8 @@ class CoordinatorMvcc(process):
                 # Commit update to cache and update version
                 self.admin.commit_cache(resp.updatedObj, resp.updates, resp.ts)
                 self.admin.update_version(resp.updatedObj, resp.updates, resp.ts)
+                update_read_ts(resp, resp.updatedObj, 
+                        self.analyzer.defReadAttr(x, resp) | self.analyzer.mightReadAttr(x, resp))
 
                 # Notify application the evaluation result
                 send(('respapp', resp.seq, resp.decision), to=resp.app)
@@ -106,13 +108,9 @@ class CoordinatorMvcc(process):
         """
         coordR: Get notified that which attr in mightReadAttr is actually read
         """
-        x = obj(req, i)
+        x = self.analyzer.obj(resp, i)
         log.info("Coord-%d - Incoming readAttr request: #seq=[%d] object=[%s]", i, resp.seq, x)
-        for attr in self.analyzer.mightReadAttr(x, req):
-            v = self.admin.latestVersionBefore(x, attr, resp.ts)
-            v.pendingMightRead.remove(resp.id)
-            if attr in req.readAttr[i]:
-                v.rts = req.ts
+        update_read_ts(resp, i, self.analyzer.mightReadAttr(x, resp))
 
     def handle_request(req, i):
         # 1.Generate unique global ID
@@ -136,6 +134,14 @@ class CoordinatorMvcc(process):
 
         # 3.Populate data piggybacked to request
         req.cachedUpdates[i] = self.admin.cachedUpdates(x, req)
+
+    def update_read_ts(resp, i, attrs):
+        x = obj(resp, i)
+        for attr in attrs:
+            v = self.admin.latestVersionBefore(x, attr, resp.ts)
+            v.pendingMightRead.remove(resp.id)
+            if attr in resp.readAttr[i]:
+                v.rts = resp.ts
 
     def conflict(resp):
         for (attr, _) in resp.updates:
