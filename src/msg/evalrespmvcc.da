@@ -1,12 +1,14 @@
 
 from msg.response import Response
 
+Decision = Enum('Permit', 'Deny') 
+
 class EvalRespMvcc(Response):
 
     def __init__(self, req = None):
         Response.__init__(self, req)
         self.ts = req.ts
-        self.decision = True
+        self.decision = Permit
         self.readAttr = [None] * 2
         self.updates  = set()
         self.updatedObj = None
