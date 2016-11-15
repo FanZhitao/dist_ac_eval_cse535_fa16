@@ -402,7 +402,7 @@ def predict(obj, req, compare):
 class Worker(process):
     def setup(db:set):
         self.policy = None
-        self.result = None
+        self.result = None # latest version
         
     def run():
         # Get policy from DB.
@@ -611,7 +611,7 @@ class Worker(process):
 ```py
 class DB(process):
     def setup(policy_filename:str, record_filename:str, 
-                minDBlatency:str, maxDBlatency:str, workers:set):
+                minDBlatency:str, maxDBlatency:str, workers:set, dbs:set):
         tree = ET.parse(policy_filename)
         self.rules = tree.getroot()
         tree = ET.parse(record_filename)
@@ -633,6 +633,7 @@ class DB(process):
     def run():
         while True:
             await(received(()))
+            predically call garbageCollection()
 
     def receive(msg=('getpolicy'), from_=p):
         send(('policy', self.rules), to=p)
@@ -646,14 +647,19 @@ class DB(process):
     def receive(msg=('getacts'), from_=p):
         send(('acts', self.actions), to=p)
 
-    def receive(msg=(('write'), T, Q), from_=p):
-        # T: transaction
-        # Q: data item
-        if TS(T) = W-timestamp(version(Q)):
-            self.version(Q) = Q
-        elif TS(T) > R-timestmp(version(Q)):
-            v = new Version(Q)
+    def receive(msg=(('writeattr'), updates), from_=p):
+        if any self.versions.ts = updates.ts:
+            version_in_db = self.versions.atTimestamp(ts)
+            # check if values have any change
+            is_version_changed = version_in_db.getAttr(updates.keys) == updates
+            if version_changed:
+                version_in_db.updateWith(updates)
+                propagate(updates)
+        elif latest_version in self.versions < updates.ts:
+            v = new Version(latest_version)
+            v.updateWith(updates)
             self.versions.insert(v)
+            propagate(updates)
 
     def receive(msg=('query', req_ts), from_=worker):
         latest_version = new Version(ts=0)
@@ -661,5 +667,11 @@ class DB(process):
             if req_ts > latest_version.ts:
                 latest_version = v
         return latest_version
-```
 
+    def propagate(updates):
+        # the attribute databsae propagates updates from one replica to another. send updates to the attribute database with timestamp req.ts.
+        send(('writeattr'), updates, to=next(iter(dbs), self)
+
+    def garbageCollection():
+        pass
+```
