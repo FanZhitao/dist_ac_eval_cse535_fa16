@@ -322,7 +322,6 @@ versions: Version map <obj, <attr, [v1, v2...]>> wherein each Version contains:
     pendingMightRead (pending queue for uncertain read request)
 window:   Inconsistent time window of attribute database
 
-# By now we only keep the most recent update in cache and improve if necessary
 def commit_cache(x, updates, ts):
     cache = subcache if x in subcache else rescache
     for attr, newval in updates.items():
@@ -672,7 +671,8 @@ class DB(process):
         return latest_version
 
     def propagate(updates):
-        # the attribute databsae propagates updates from one replica to another. send updates to the attribute database with timestamp req.ts.
+        # the attribute databsae propagates updates from one replica to another. 
+        # send updates to the attribute database with timestamp req.ts.
         send(('writeattr'), updates, to=next(iter(dbs), self)
 
     def garbageCollection():
