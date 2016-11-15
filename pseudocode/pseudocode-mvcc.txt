@@ -18,6 +18,7 @@ EvalReqMvcc:
 # Specific fields of MVCC
     ts:             Timestamp of current request
     cachedUpdates:  piggybacked cached data in coordinator
+    worker:         worker assigned to evaluate the request
 ```
 
 ```py
@@ -648,15 +649,17 @@ class DB(process):
         send(('acts', self.actions), to=p)
 
     def receive(msg=(('writeattr'), updates), from_=p):
-        if any self.versions.ts = updates.ts:
+        # check if database has this version already
+        if latestVersionBefore(updates.ts).ts = updates.ts:
             version_in_db = self.versions.atTimestamp(ts)
             # check if values have any change
             is_version_changed = version_in_db.getAttr(updates.keys) == updates
             if version_changed:
                 version_in_db.updateWith(updates)
                 propagate(updates)
-        elif latest_version in self.versions < updates.ts:
-            v = new Version(latest_version)
+        else:
+            # create a new version based on latest version before the timestamp of updates
+            v = new Version(latestVersionBefore(updates.ts))
             v.updateWith(updates)
             self.versions.insert(v)
             propagate(updates)
@@ -674,4 +677,10 @@ class DB(process):
 
     def garbageCollection():
         pass
+
+    def latestVersionBefore(ts):
+        v = self.versions.first
+        while v.ts <= ts:
+            v = next(iter(self.versions))
+        return v
 ```
