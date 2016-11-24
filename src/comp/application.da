@@ -21,7 +21,7 @@ class Application(process):
     def run():
         log.info("App - [%s] get ready to send request from [%d] to [%d]", self, seqfrom, seqto - 1)
         for i in range(seqfrom, seqto):
-            req = EvalReq() if mode == oplock else EvalReqMvcc()
+            req = EvalReq() if mode == "oplock" else EvalReqMvcc()
             req.seq = i
 
             # 1.Generate specific or random payload
@@ -42,7 +42,7 @@ class Application(process):
                 req.action = random.choice(actions)
 
             # 2.Send to correspondent subject coordinator
-            if mode == oplock:
+            if mode == "oplock":
                 coord = router.get_sc(req.subject)
             else:
                 x = self.analyzer.obj(req, 1)

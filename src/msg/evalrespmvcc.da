@@ -1,14 +1,15 @@
+from enum import Enum
 
 from msg.response import Response
 
-Decision = Enum('Permit', 'Deny') 
+Decision = Enum('Decision', 'permit, deny') 
 
 class EvalRespMvcc(Response):
 
     def __init__(self, req = None):
         Response.__init__(self, req)
         self.ts = req.ts
-        self.decision = Permit
+        self.decision = Decision.Permit
         self.readAttr = [None] * 2
         self.updates  = set()
         self.updatedObj = None

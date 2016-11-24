@@ -17,7 +17,7 @@ class CoordinatorMvcc(process):
 
     def setup(workers:set, db:DB, cfg, analyzer:DynAnalyzer):
         self.router = None
-        self.admin = Admin(db)
+        self.admin = AdminMvcc(db)
         self.idgen = IdGen()
         self.pendingUpdates = dict()
         self.rdonlyPendingQ = list()
@@ -47,7 +47,7 @@ class CoordinatorMvcc(process):
         # Pending readonly request to prevent pending write request starvation
         if self.analyzer.readonly(req) and might_conflict(req):
             self.rdonlyPendingQ.append(req)
-            log.warn("Coord-1 - pending application request due to pending write request: #seq=[%d], to=%s\n", req.seq, nextco)
+            log.warn("Coord-1 - pending application request due to pending write request: #seq=[%d]\n", req.seq)
         else:
             handle_request(req, 1)
             nextco = self.router.route(req, self.analyzer.obj(req, 2))
@@ -58,7 +58,7 @@ class CoordinatorMvcc(process):
         """
         coord2: Received request from Coordinator 1
         """
-        log.info("Coord-2 - Incoming application request: #seq=[%d] object=[%s]", req.seq, obj(req, 2))
+        log.info("Coord-2 - Incoming application request: #seq=[%d] object=[%s]", req.seq, self.analyzer.obj(req, 2))
         delay(req.seq, 'reqeval')
         handle_request(req, 2)
         worker = next(iter(workers))
@@ -136,7 +136,7 @@ class CoordinatorMvcc(process):
         req.cachedUpdates[i] = self.admin.cachedUpdates(x, req)
 
     def update_read_ts(resp, i, attrs):
-        x = obj(resp, i)
+        x = self.analyzer.obj(resp, i)
         for attr in attrs:
             v = self.admin.latestVersionBefore(x, attr, resp.ts)
             v.pendingMightRead.remove(resp.id)
@@ -144,8 +144,9 @@ class CoordinatorMvcc(process):
                 v.rts = resp.ts
 
     def conflict(resp):
+        x = self.analyzer.obj(resp, 1)
         for (attr, _) in resp.updates:
-            v = latestVersionBefore(x, attr, resp.ts)
+            v = self.admin.latestVersionBefore(x, attr, resp.ts)
             if v.rts > resp.ts:
                 return True
         return False
@@ -174,7 +175,7 @@ class CoordinatorMvcc(process):
 
     def restart(resp):
         req = EvalReqMvcc(resp)
-        prevco = self.router.route(req, obj(req, 1))
+        prevco = self.router.route(req, self.analyzer.obj(req, 1))
         send(('reqapp', req), to=prevco)
 
     def delay(seq, method):

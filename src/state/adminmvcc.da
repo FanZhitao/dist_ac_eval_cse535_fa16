@@ -2,6 +2,8 @@ import logging
 import pprint
 import time
 
+from adminmvcc import Version
+
 log = logging.getLogger("AdminMvcc")
 
 class AdminMvcc:
@@ -12,22 +14,6 @@ class AdminMvcc:
         self.versions = dict()
         self.window = window
 
-    def init_subcache(self, subattrs):
-        subid = subattrs[0]
-        data = subattrs[1]
-        self.subcache[subid] = dict()
-        for attr, val, ts in data.items():
-            self.subcache[subid][attr] = (val, ts)
-        log.info('Init subject cache \n%s', pprint.pformat(subattrs))
-
-    def init_rescache(self, resattrs):
-        resid = resattrs[0]
-        data = resattrs[1]
-        self.rescache[resid] = dict()
-        for attr, val, ts in data.items():
-            self.rescache[resid][attr] = (val, ts)
-        log.info('Init resource cache \n%s', pprint.pformat(resattrs))
-
     def commit_cache(self, x, updates, ts):
         cache = self.subcache if x in self.subcache else self.rescache
         for attr, newval in updates.items():
@@ -35,7 +21,7 @@ class AdminMvcc:
 
     def update_version(self, x, updates, ts):
         for attr, _ in updates.items():
-            versions[x][attr].append(Version(ts, ts))
+            self.versions[x][attr].append(Version(ts, ts))
 
     def now(self):
         return time.time()
@@ -48,30 +34,30 @@ class AdminMvcc:
             cache = self.rescache[x]
 
         # Remove entry if alive longer than inconsitent window of attribute DB
+        window = 10000 #TODO
         for attr, _, ts in cache:
             if self.now() - ts >= window:
                 del cache[attr]
         return cache
 
     def latestVersionBefore(self, x, attr, ts):
-        if x not in versions:
-            versions[x] = dict()
+        if x not in self.versions:
+            self.versions[x] = dict()
 
-        if attr not in versions[x]:
-            versions[x][attr] = list()
-            versions[x][attr].append(Version())
+        if attr not in self.versions[x]:
+            self.versions[x][attr] = list()
+            self.versions[x][attr].append(Version(0, 0))
 
-        for v in versions[x][attr]:
-            if v.wts < ts and latest.wts < v.wts:
+        # Search from beginning to find latest version
+        latest = None
+        for v in self.versions[x][attr]:
+            if v.wts <= ts and latest.wts < v.wts:
                 latest = v
         return latest
 
-    def latestVersion(self, x, attr):
-        return self.latestVersionBefore(x, attr, self.now())
-
 class Version:
 
-    def __init__(self):
+    def __init__(self, rts, wts):
         self.rts = 0
         self.wts = 0
         self.pendingMightRead = list()

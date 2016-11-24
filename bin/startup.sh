@@ -16,10 +16,16 @@ if [ "$workload" = "workload7" ]; then
 elif [ "$workload" = "workload8" ]; then
     config="config/test2.config"
 else
-    config="config/test.config"
+    #config="config/test.config"
+    config="config/testmvcc.config"
 fi
 
 make
 
-dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log src/master.da $config $workload
+
+# Kill existing dar process
+kill $(ps -ef | grep dar | grep -v grep | awk '{print $2}')
+
+dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n "AppNode" src/master.da $config $workload & \
+    sleep 2; dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n "DbNode" -D src/master.da $config $workload
 

@@ -27,11 +27,12 @@ class Master(process):
         cfg = configparser.ConfigParser()
         cfg.read(sys.argv[1]);
         workload = sys.argv[2]
+        mode = "mvcc"
 
         print_config(cfg, workload)
 
         # 1.Create and start DB and workers
-        db = new(DB, num=1)
+        db = new(DB, num=1, at='DbNode')
 
         # Start workers
         w = new(Worker, (db,), num=int(cfg['master']['workers']))
@@ -80,7 +81,7 @@ class Master(process):
         #   Divide total requests evenly and assign sequence number of request to each application
         appno = int(cfg['master']['clients'])
         reqno = int(int(cfg[workload]['reqno']) / appno)
-        apps = new(Application, num=appno)
+        apps = new(Application, (mode,), num=appno)
         for i, app in zip(range(0, appno), apps):
             setup(app, (router, i * reqno + 1, (i + 1) * reqno + 1, cfg[workload], list(self.subjects.keys()), list(self.resources.keys()), self.actions))
         start(apps)
@@ -114,7 +115,7 @@ class Master(process):
         log.info("Master - Recevied actions list form database: [%s]", pprint.pformat(self.actions))
 
 def main():
-    m = new(Master)
-    setup(m)
+    m = new(Master, ())
+    setup(m, args=())
     start(m)
 
