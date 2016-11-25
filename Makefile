@@ -2,10 +2,10 @@
 src/master.py: src/master.da src/comp/application.py src/comp/coordinator.py src/comp/coordinatormvcc.py src/msg/request.py src/msg/response.py src/util/router.py
 	dac src/master.da
 
-src/comp/application.py: src/comp/application.da src/msg/request.py src/msg/response.py src/util/router.py
+src/comp/application.py: src/comp/application.da src/msg/request.py src/msg/response.py src/util/router.py src/util/analyzer.py
 	dac src/comp/application.da
 
-src/comp/coordinator.py: src/comp/coordinator.da src/comp/worker.py src/msg/evalreq.py src/msg/evalresp.py src/msg/commitreq.py src/msg/commitresp.py src/util/router.py src/util/idgen.py src/state/admin.py 
+src/comp/coordinator.py: src/comp/coordinator.da src/comp/worker.py src/msg/evalreq.py src/msg/evalresp.py src/msg/commitreq.py src/msg/commitresp.py src/util/router.py src/util/idgen.py src/state/admin.py src/util/dynanalyzer.py
 	dac src/comp/coordinator.da
 src/comp/coordinatormvcc.py: src/comp/coordinatormvcc.da src/comp/worker.py src/msg/evalreqmvcc.py src/msg/evalrespmvcc.py src/util/router.py src/util/idgen.py src/state/adminmvcc.py 
 	dac src/comp/coordinatormvcc.da
@@ -54,6 +54,11 @@ src/util/router.py: src/util/router.da
 
 src/util/idgen.py: src/util/idgen.da
 	dac src/util/idgen.da
+
+src/util/analyzer.py: src/util/analyzer.da
+	dac src/util/analyzer.da
+src/util/dynanalyzer.py: src/util/dynanalyzer.da
+	dac src/util/dynanalyzer.da
 
 clean:
 	rm -rf src/*.py src/**/*.py src/__pycache__ src/**/__pycache__

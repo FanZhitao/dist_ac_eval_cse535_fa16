@@ -6,9 +6,11 @@ import configparser
 
 from comp.application import Application
 from comp.coordinator import Coordinator
+from comp.coordinatormvcc import CoordinatorMvcc
 from comp.worker import Worker
 from db.db import DB
 from util.router import Router
+from util.analyzer import Analyzer
 
 log = logging.getLogger('Master')
 
@@ -34,7 +36,7 @@ class Master(process):
         # 1.Create and start DB and workers
         db = new(DB, num=1, at='DbNode')
 
-        # Start workers
+        # 2.Start workers
         w = new(Worker, (db,), num=int(cfg['master']['workers']))
         start(w)
 
@@ -48,32 +50,30 @@ class Master(process):
         setup(db, (path_policy, path_record, cfg['db']['minDBlatency'], cfg['db']['maxDBlatency'], w))
         start(db)
 
-        # 2.Create and start coordinators
-        co = new(Coordinator, (w, db, cfg[workload],), num=int(cfg['master']['coordinators']))
-        start(co)
+        # 3.Create and start coordinators
+        #co = new(Coordinator, (w, db, cfg[workload],), num=int(cfg['master']['coordinators']))
+        #start(co)
+        co = list()
+        for i in range(1, num=int(cfg['master']['coordinators'])):
+            c = new(Coordinator if mode == "oplock" else CoordinatorMvcc, (w, db, cfg[workload],))
 
-        # 3.Prefetch subject and resource list from database
+        # 4.Prefetch subject and resource list from database
         send('getsubs', to=db)
         send('getresos', to=db)
         send('getacts', to=db)
         log.info("Send request to prefetch subjects, resources, and actions from database [%s]", db)
         await(some(received(('subs', subs))) and some(received(('resos', resos))) and some(received(('acts', acts))))
 
-        # 4.Assign role to coordinators according to total number of subjects and resources
+        # 5.Assign role to coordinators according to total number of subjects and resources
         router = Router()
         router.assign(self.subjects, self.resources, co)
 
-        # 5.Prepare coordinator with router table and subject/resource list
+        # 6.Analyze policy
+        analyzer = Analyzer(path_policy)
+
+        # 6.Prepare coordinator with router table and subject/resource list
         for c in co:
-            subattrs = dict()
-            resattrs = dict()
-            for sub, c2 in router.scmap.items():
-                if c == c2:
-                    subattrs[sub] = self.subjects[sub]
-            for res, c2 in router.rcmap.items():
-                if c == c2:
-                    resattrs[res] = self.resources[res]
-            send(('prepare', router, subattrs, resattrs), to=c)
+            send(('prepare', router, analyzer,), to=c)
         log.info("Wait for all coordinators to start serving")
         time.sleep(2)
 

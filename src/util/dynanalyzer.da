@@ -1,20 +1,24 @@
+
+import operator
+
 from collections import Counter
 
 from util.analyzer import Analyzer
 
 class DynAnalyzer(Analyzer):
 
-    def __init():
+    def __init__(self, analyzer):
         self.admin = None
+        self.policy = analyzer.policy
 
     def defReadAttr(self, obj, req):
         """
         Determine definite read attributes as those appear in every matched rule
         """
-        return predict(obj, req, operator.eq)
+        return self.predict(obj, req, operator.eq)
 
     def mightReadAttr(self, obj, req):
-        return predict(obj, req, operator.lt)
+        return self.predict(obj, req, operator.lt)
 
     def mightWriteAttr(self, obj, req):
         pass
@@ -22,7 +26,7 @@ class DynAnalyzer(Analyzer):
     def predict(self, obj, req, compare):
         rules = self.policy[(req.subject, req.resource, req.action)]
         cnt = Counter()
-        idx = SUB_READ if obj == req.subject else RES_READ
+        idx = self.SUB_READ if obj == req.subject else self.RES_READ
         for rule in rules:
             for attr, _ in rule[idx]:
                 cnt[attr] += 1

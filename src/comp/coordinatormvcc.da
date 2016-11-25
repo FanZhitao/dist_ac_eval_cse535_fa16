@@ -15,27 +15,27 @@ log = logging.getLogger("Coordinator")
 
 class CoordinatorMvcc(process):
 
-    def setup(workers:set, db:DB, cfg, analyzer:DynAnalyzer):
+    def setup(workers:set, db:DB, cfg):
         self.router = None
+        self.analyzer = None
         self.admin = AdminMvcc(db)
         self.idgen = IdGen()
         self.pendingUpdates = dict()
         self.rdonlyPendingQ = list()
-        self.analyzer.admin = self.admin
 
     def run():
         log.info("Coordinator [%s] is up", self)
         while True:
             await(received(('done')))
 
-    def receive(msg=('prepare', router, subattrs, resattrs)):
+    def receive(msg=('prepare', router, analyzer)):
         """
         Receive route table and subject/resource attribute list from master process
         """
         log.debug("Coord - Received route table and subject/resource attribute list")
         self.router = router
-        self.admin.init_subcache(subattrs)
-        self.admin.init_rescache(resattrs)
+        self.analyzer = analyzer
+        self.analyzer.admin = self.admin
 
     def receive(msg=('reqapp', req,), from_=p):
         """

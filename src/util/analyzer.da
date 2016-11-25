@@ -1,4 +1,7 @@
 
+import sys
+import xml.etree.ElementTree as ET
+
 SUB_READ = 1
 SUB_UPD  = 2
 RES_READ = 3
@@ -12,13 +15,13 @@ Static analyzer that preread policy rule from database to make decision of:
 """
 class Analyzer:
 
-    def __init__(policyfile):
+    def __init__(self, policyfile):
         self.policy = dict()
-        parse_policy(policyfile, self.policy)
+        self.parse_policy(policyfile, self.policy)
 
-    def parse_policy(policyfile, policy):
+    def parse_policy(self, policyfile, policy):
         tree = ET.parse(policyfile)
-	for rule in tree.getroot().iter('rule'):
+        for rule in tree.getroot().iter('rule'):
             subject = rule.find('subjectCondition').attrib.get('position')
             resource = rule.find('resourceCondition').attrib.get('id')
             action = rule.find('action').attrib.get('name')
@@ -41,8 +44,8 @@ class Analyzer:
                     cur[RES_UPD].append(attr)
             policy[(subject, resource, action)].append(cur)
 
-    def obj(req, i):
-        wrtobj = mightWriteObj(req)
+    def obj(self, req, i):
+        wrtobj = self.mightWriteObj(req)
         # If written object is decided, choose it as second to process
         # Otherwise (readonly request or more than 1 written object which cannot be decided)
         # Choose subject as the first object to handle randomly
@@ -52,14 +55,14 @@ class Analyzer:
         else:
             return req.subject if i == 1 else req.resource
 
-    def readonly(req):
-        return not mightWriteObj(req)
+    def readonly(self, req):
+        return not self.mightWriteObj(req)
 
-    def mightWriteObj(req):
+    def mightWriteObj(self, req):
         wrtobj = list()
-        if policy[(req.subject, req.resource, req.action)][SUB_UPD]:
+        if self.policy[(req.subject, req.resource, req.action)][SUB_UPD]:
             wrtobj.append(req.subject)
-        if policy[(req.subject, req.resource, req.action)][RES_UPD]:
+        if self.policy[(req.subject, req.resource, req.action)][RES_UPD]:
             wrtobj.append(req.resource)
         return wrtobj
 
