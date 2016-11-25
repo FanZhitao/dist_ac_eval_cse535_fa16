@@ -56,6 +56,8 @@ class Master(process):
         co = list()
         for i in range(1, num=int(cfg['master']['coordinators'])):
             c = new(Coordinator if mode == "oplock" else CoordinatorMvcc, (w, db, cfg[workload],))
+            start(c)
+            co.append(c)
 
         # 4.Prefetch subject and resource list from database
         send('getsubs', to=db)
@@ -116,6 +118,5 @@ class Master(process):
 
 def main():
     m = new(Master, ())
-    setup(m, args=())
     start(m)
 
