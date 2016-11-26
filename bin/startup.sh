@@ -27,5 +27,5 @@ make
 kill $(ps -ef | grep dar | grep -v grep | awk '{print $2}')
 
 dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n "AppNode" src/master.da $config $workload & \
-    sleep 2; dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n "DbNode" -D src/master.da $config $workload
+    sleep 5; dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n "DbNode" -D src/master.da $config $workload
 

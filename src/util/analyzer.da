@@ -1,5 +1,6 @@
 
 import sys
+import logging
 import xml.etree.ElementTree as ET
 
 SUB_READ = 1
@@ -13,6 +14,9 @@ Static analyzer that preread policy rule from database to make decision of:
     Which object should be accessed first to reduce latency
     Is the request readonly
 """
+
+log = logging.getLogger(__name__)
+
 class Analyzer:
 
     def __init__(self, policyfile):
@@ -20,29 +24,31 @@ class Analyzer:
         self.parse_policy(policyfile, self.policy)
 
     def parse_policy(self, policyfile, policy):
+        log.info("Start parsing policy file [%s]", policyfile)
         tree = ET.parse(policyfile)
         for rule in tree.getroot().iter('rule'):
             subject = rule.find('subjectCondition').attrib.get('position')
             resource = rule.find('resourceCondition').attrib.get('id')
             action = rule.find('action').attrib.get('name')
-            if policy[(subject, resource, action)] is None:
+            if (subject, resource, action) not in policy:
                 policy[(subject, resource, action)] = list()
 
             # Analyze potential read/update attributes in each rule
             cur = [list()] * 4
-            for attr, val in rule.find('subjectCondition').attrib:
-                if attr == 'subjectCondition': continue
-                cur[SUB_READ].append((attr, val))
-            for attr, val in rule.find('resourceCondition').attrib:
-                if attr == 'resourceCondition': continue
-                cur[RES_READ].append((attr, val))
+            for attr in rule.find('subjectCondition'):
+                if attr.name == 'subjectCondition': continue
+                cur[SUB_READ].append((attr.name, attr.val))
+            for attr in rule.find('resourceCondition'):
+                if attr.name == 'resourceCondition': continue
+                cur[RES_READ].append((attr.name, attr.val))
             if rule.find('subjectUpdate'):
-                for attr, _ in rule.find('subjectUpdate').attrib:
-                    cur[SUB_UPD].append(attr)
+                for attr in rule.find('subjectUpdate'):
+                    cur[SUB_UPD].append(attr.name)
             if rule.find('resourceUpdate'):
-                for attr, _ in rule.find('resourceUpdate').attrib:
-                    cur[RES_UPD].append(attr)
-            policy[(subject, resource, action)].append(cur)
+                for attr, _ in rule.find('resourceUpdate'):
+                    cur[RES_UPD].append(attr.name)
+            policy[(subject, resource, action)] = cur
+        log.info("Parse policy file complete")
 
     def obj(self, req, i):
         wrtobj = self.mightWriteObj(req)
