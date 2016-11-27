@@ -77,6 +77,7 @@ def main():
     analyzer = Analyzer(path_policy)
     sender = new(Sender, (co, router, analyzer))
     start(sender)
+    time.sleep(1)
 
     # 4.Create application as client and start testing
     #   Divide total requests evenly and assign sequence number of request to each application

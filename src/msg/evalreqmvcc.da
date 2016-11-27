@@ -6,4 +6,4 @@ class EvalReqMvcc(Request):
     def __init__(self, resp = None):
         Request.__init__(self, resp)
         self.ts = None
-        self.cachedUpdates = [None] * 2
+        self.cachedUpdates = [None] * 3

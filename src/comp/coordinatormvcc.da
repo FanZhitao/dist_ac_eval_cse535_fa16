@@ -16,6 +16,8 @@ log = logging.getLogger("Coordinator")
 class CoordinatorMvcc(process):
 
     def setup(workers:set, db:DB, cfg):
+        logging.basicConfig(level=logging.INFO, 
+            format='[%(asctime)s] %(name)s:%(levelname)s: %(message)s')
         self.router = None
         self.analyzer = None
         self.admin = AdminMvcc(db)
@@ -30,11 +32,11 @@ class CoordinatorMvcc(process):
 
     def receive(msg=('prepare', router, analyzer)):
         """
-        Receive route table and subject/resource attribute list from master process
+        Receive route table and analyzer from master process
         """
-        log.debug("Coord - Received route table and subject/resource attribute list")
+        log.info("Coord - Received route table and analyzer")
         self.router = router
-        self.analyzer = analyzer
+        self.analyzer = DynAnalyzer(analyzer)
         self.analyzer.admin = self.admin
 
     def receive(msg=('reqapp', req,), from_=p):
@@ -50,7 +52,7 @@ class CoordinatorMvcc(process):
             log.warn("Coord-1 - pending application request due to pending write request: #seq=[%d]\n", req.seq)
         else:
             handle_request(req, 1)
-            nextco = self.router.route(req, self.analyzer.obj(req, 2))
+            nextco = self.router.route(self.analyzer.obj(req, 2))
             log.info("Coord-1 - Send evaluation request to Coord-2: #seq=[%d], to=%s\n", req.seq, nextco)
             send(('reqeval', req), to=nextco)
 
@@ -60,9 +62,10 @@ class CoordinatorMvcc(process):
         """
         log.info("Coord-2 - Incoming application request: #seq=[%d] object=[%s]", req.seq, self.analyzer.obj(req, 2))
         delay(req.seq, 'reqeval')
+
         handle_request(req, 2)
         worker = next(iter(workers))
-        log.info("Coord2 - Assign evalution request: #seq=[%d] to worker=[%s]\n", req.seq, worker)
+        log.info("Coord-2 - Assign evalution request: #seq=[%d] to worker=[%s]\n", req.seq, worker)
         send(('assigneval', req), to=worker)
 
     def receive(msg=('respeval', resp), from_=p):
@@ -117,7 +120,7 @@ class CoordinatorMvcc(process):
         if req.id is None:
             req.id = self.idgen.next()
             req.ts = self.admin.now()
-            log.info('Coord-%d - Assign globalID=[%s] to #seq=[%s]', req.id, req.seq)
+            log.info('Coord-%d - Assign globalID=[%s] to #seq=[%s]', i, req.id, req.seq)
 
         # 2.Setup administration
         x = self.analyzer.obj(req, i)
@@ -133,7 +136,9 @@ class CoordinatorMvcc(process):
                 self.admin.latestVersionBefore(x, attr, req.ts).pendingMightRead.append(req.id)
 
         # 3.Populate data piggybacked to request
+        log.info("cachedUpdates: " + str(req.cachedUpdates))
         req.cachedUpdates[i] = self.admin.cachedUpdates(x, req)
+        log.info("Coord-%d - Handle request complete: #seq=[%d]", i, req.seq)
 
     def update_read_ts(resp, i, attrs):
         x = self.analyzer.obj(resp, i)

@@ -1,9 +1,13 @@
 
 import operator
-
 from collections import Counter
 
 from util.analyzer import Analyzer
+
+SUB_READ = 0
+RES_READ = 1
+SUB_UPD = 2
+RES_UPD = 3
 
 class DynAnalyzer(Analyzer):
 
@@ -26,13 +30,12 @@ class DynAnalyzer(Analyzer):
     def predict(self, obj, req, compare):
         rules = self.policy[(req.subject, req.resource, req.action)]
         cnt = Counter()
-        idx = self.SUB_READ if obj == req.subject else self.RES_READ
-        for rule in rules:
-            for attr, _ in rule[idx]:
-                cnt[attr] += 1
+        idx = SUB_READ if obj == req.subject else RES_READ
+        for attr in rules[idx]:
+            cnt[attr] += 1
 
-        defR = list()
+        defR = set()
         for attr, c in cnt.items():
             if compare(c, len(rules)):
-                defR.append(attr)
+                defR.add(attr)
         return defR

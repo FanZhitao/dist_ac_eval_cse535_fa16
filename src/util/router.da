@@ -57,7 +57,7 @@ class Router:
     def get_rc(self, res):
         return self.rcmap[res]
 
-    def route(self, req, x):
+    def route(self, x):
         if x in self.scmap:
             return self.scmap[x]
         else:

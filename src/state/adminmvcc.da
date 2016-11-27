@@ -26,7 +26,7 @@ class AdminMvcc:
     def now(self):
         return time.time()
 
-    def cachedUpates(self, x, req):
+    def cachedUpdates(self, x, req):
         cache = dict()
         if x in self.subcache:
             cache = self.subcache[x]
@@ -49,7 +49,7 @@ class AdminMvcc:
             self.versions[x][attr].append(Version(0, 0))
 
         # Search from beginning to find latest version
-        latest = None
+        latest = self.versions[x][attr][0]
         for v in self.versions[x][attr]:
             if v.wts <= ts and latest.wts < v.wts:
                 latest = v
