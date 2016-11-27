@@ -35,11 +35,6 @@ start_node() {
 }
 
 start_node 'AppNode' 'master' & \
-    sleep 2; start_node 'DbNode' & \
-    sleep 4; start_node 'CoordNode-1' & \
-    sleep 4; start_node 'CoordNode-2'
-
-#dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n "AppNode" src/master.da $config $workload & \
-#    sleep 5; dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n "DbNode" -D src/master.da $config $workload & \
-#    sleep 5; dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n "DbNode" -D src/master.da $config $workload
-
+    sleep 1; start_node 'DbNode' & \
+    sleep 1; start_node 'CoordNode-1' & \
+    sleep 1; start_node 'CoordNode-2'
