@@ -26,6 +26,20 @@ make
 # Kill existing dar process
 kill $(ps -ef | grep dar | grep -v grep | awk '{print $2}')
 
-dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n "AppNode" src/master.da $config $workload & \
-    sleep 5; dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n "DbNode" -D src/master.da $config $workload
+start_node() {
+    if [ "$2" = "master" ]; then
+        dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n $1 src/master.da $config $workload
+    else # -D
+        dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n $1 -D src/master.da $config $workload
+    fi
+}
+
+start_node 'AppNode' 'master' & \
+    sleep 2; start_node 'DbNode' & \
+    sleep 4; start_node 'CoordNode-1' & \
+    sleep 4; start_node 'CoordNode-2'
+
+#dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n "AppNode" src/master.da $config $workload & \
+#    sleep 5; dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n "DbNode" -D src/master.da $config $workload & \
+#    sleep 5; dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n "DbNode" -D src/master.da $config $workload
 

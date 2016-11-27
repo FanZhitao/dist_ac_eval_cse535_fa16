@@ -20,6 +20,12 @@ log = logging.LoggerAdapter(logging.getLogger("Master"), {})
  and starts all other processes to make system ready for testing.
 """
 
+class Sender(process):
+    def setup(co, router, analyzer): pass
+    def run():
+        for c in co:
+            send(('prepare', router, analyzer,), to=c)
+
 def print_config(cfg, workload):
     log.info('=' * 20)
     for section in cfg.keys():
@@ -36,71 +42,53 @@ def main():
     resources = ['bank A', 'bank B']
     actions = ['read']
 
+    # 0.Read config. Set logger.
     logging.basicConfig(level=logging.INFO, 
         format='[%(asctime)s] %(name)s:%(levelname)s: %(message)s')
     cfg = configparser.ConfigParser()
     cfg.read(sys.argv[1]);
     workload = sys.argv[2]
     mode = "mvcc"
-
     print_config(cfg, workload)
 
-    # 1.Create and start DB and workers
-    # 1st: policy filename
-    # 2nd: record filename
-    # 3nd: min latency
-    # 4rd: max latency
+    # 1.Create and start DB and workers on remote node
     path_policy = './src/db/' + cfg['db']['policy']
     path_record = './src/db/' + cfg['db']['record']
     db = new(DB, args=(path_policy, path_record, cfg['db']['minDBlatency'], cfg['db']['maxDBlatency'], None), at='DbNode')
-    start(db)
-    output("db is up!!!")
+    #start(db) TODO message too big exception?
+    log.info("Start Database instance")
 
-    # 2.Start workers
-    w = new(Worker, (db,), num=int(cfg['master']['workers']))
-    #start(w)
-
-    # 3.Create and start coordinators
-    #co = new(Coordinator, (w, db, cfg[workload],), num=int(cfg['master']['coordinators']))
-    #start(co)
+    # 2.Create and start coordinators and correspondent worker on remote node
     co = list()
     for i in range(1, int(cfg['master']['coordinators']) + 1):
-        c = new(Coordinator if mode == "oplock" else CoordinatorMvcc)
+        nodei = "CoordNode-" + str(i)
+        w = new(Worker, (db,), at=nodei)
+        c = new(Coordinator if mode == "oplock" else CoordinatorMvcc, (w, db, cfg[workload]), at=nodei)
+        start(w)
+        start(c)
         co.append(c)
+        log.info("Start a pair of Coordinator and Worker on Node [%s]", nodei) 
 
-    # 4.Prefetch subject and resource list from database
-    #send('getsubs', to=db)
-    #send('getresos', to=db)
-    #send('getacts', to=db)
-    #log.info("Send request to prefetch subjects, resources, and actions from database [%s]", db)
-    #await(some(received(('subs', subs))) and some(received(('resos', resos))) and some(received(('acts', acts))))
-
-    # 5.Assign role to coordinators according to total number of subjects and resources
+    # 3.Prepare coordinator with router table and analyzer
+    # Assign role to coordinators according to total number of subjects and resources
     router = Router()
     router.assign(subjects, resources, co)
-
-    # 6.Analyze policy
+    # Analyze policy
     analyzer = Analyzer(path_policy)
+    sender = new(Sender, (co, router, analyzer))
+    start(sender)
 
-    # 6.Prepare coordinator with router table and subject/resource list
-    for c in co:
-        #send(('prepare', router, analyzer,), to=c)
-        setup(c, (w, db, cfg[workload],))
-        start(c)
-    log.info("Wait for all coordinators to start serving")
-    time.sleep(2)
-
-    # 6.Create application as client and start testing
+    # 4.Create application as client and start testing
     #   Divide total requests evenly and assign sequence number of request to each application
     appno = int(cfg['master']['clients'])
     reqno = int(int(cfg[workload]['reqno']) / appno)
-    apps = new(Application, (mode,), num=appno)
+    apps = new(Application, num=appno)
     for i, app in zip(range(0, appno), apps):
         setup(app, (router, i * reqno + 1, (i + 1) * reqno + 1, cfg[workload], 
-            subjects, resources, actions, analyzer, mode))
+            subjects, resources, actions, analyzer, mode,))
     start(apps)
 
-    # Dump database content periodically for testing
+    # 5.Dump database content periodically for testing
     while True:
         time.sleep(5)
         send(('dumpdb'), to=db)
