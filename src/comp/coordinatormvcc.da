@@ -77,7 +77,8 @@ class CoordinatorMvcc(process):
         """
         coordW: Receive evaluation result from worker
         """
-        log.info("CoordW - Incoming evaluation response from worker: #seq=[%d] object=[%s]", resp.seq, self.analyzer.obj(resp, resp.updatedObj))
+        log.info("CoordW - Incoming evaluation response from worker: coord=[%d], #seq=[%d] object=[%s]", 
+                resp.updatedObj, resp.seq, self.analyzer.obj(resp, resp.updatedObj))
         delay(resp.seq, 'respeval')
         if invalid_message(resp):
             return
@@ -124,8 +125,9 @@ class CoordinatorMvcc(process):
         if invalid_message(resp):
             return
         x = self.analyzer.obj(resp, i)
-        log.info("Coord%d - Incoming readAttr request: #seq=[%d] object=[%s]", i, resp.seq, x)
+        log.info("CoordR - Incoming readAttr request: coord=[%d], #seq=[%d], object=[%s]", i, resp.seq, x)
         update_read_ts(resp, i, self.analyzer.mightReadAttr(x, resp))
+        log.info("CoordR - Update read ts of attr complete")
 
     def handle_request(req, i):
         # 1.Generate unique global ID
