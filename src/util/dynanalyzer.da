@@ -25,7 +25,12 @@ class DynAnalyzer(Analyzer):
         return self.predict(obj, req, operator.lt)
 
     def mightWriteAttr(self, obj, req):
-        pass
+        rules = self.policy[(req.subject, req.resource, req.action)]
+        idx = SUB_UPD if obj == req.subject else RES_UPD
+        mgtW = set()
+        for attr in rules[idx]:
+            mgtW.add(attr)
+        return mgtW
 
     def predict(self, obj, req, compare):
         rules = self.policy[(req.subject, req.resource, req.action)]

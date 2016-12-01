@@ -22,8 +22,8 @@ class CoordinatorMvcc(process):
         self.analyzer = None
         self.admin = AdminMvcc(db)
         self.idgen = IdGen()
-        self.pendingUpdates = dict()
-        self.rdonlyPendingQ = list()
+        self.activereq = set()
+        self.pendingwrt = dict()
 
     def run():
         log.info("Coordinator [%s] is up", self)
@@ -46,15 +46,10 @@ class CoordinatorMvcc(process):
         log.info("Coord-1 - Incoming application request: #seq=[%d] subject=[%s]", req.seq, req.subject)
         delay(req.seq, 'reqapp')
 
-        # Pending readonly request to prevent pending write request starvation
-        if self.analyzer.readonly(req) and might_conflict(req):
-            self.rdonlyPendingQ.append(req)
-            log.warn("Coord-1 - pending application request due to pending write request: #seq=[%d]\n", req.seq)
-        else:
-            handle_request(req, 1)
-            nextco = self.router.route(self.analyzer.obj(req, 2))
-            log.info("Coord-1 - Send evaluation request to Coord-2: #seq=[%d], to=%s\n", req.seq, nextco)
-            send(('reqeval', req), to=nextco)
+        handle_request(req, 1)
+        nextco = self.router.route(self.analyzer.obj(req, 2))
+        log.info("Coord-1 - Send evaluation request to Coord-2: #seq=[%d], to=%s\n", req.seq, nextco)
+        send(('reqeval', req), to=nextco)
 
     def receive(msg=('reqeval', req,), from_=p):
         """
@@ -74,17 +69,19 @@ class CoordinatorMvcc(process):
         """
         log.info("CoordW - Incoming evaluation response from worker: #seq=[%d]", resp.seq)
         delay(resp.seq, 'respeval')
+        if is_invalid_message(resp):
+            return
 
         x = self.analyzer.obj(resp, resp.updatedObj)
         if not conflict(resp):
             # Wait for all pending read complete
-            self.pendingUpdates[x] = resp.updates
             await(each((attr, val) in resp.updates,
                 has= (not self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead) or
                         all(v.wts == resp.ts for v in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead)))
-            resume_pending_request(resp)
 
             if not conflict(resp):
+                cleanup_pending_update(resp)
+
                 # Commit update to database
                 log.info("CoordW - Send attribute updates to database [%s]", self.db)
                 send(('writeattr', resp.updates), to=self.db)
@@ -111,6 +108,8 @@ class CoordinatorMvcc(process):
         """
         coordR: Get notified that which attr in mightReadAttr is actually read
         """
+        if is_invalid_message(resp):
+            return
         x = self.analyzer.obj(resp, i)
         log.info("Coord-%d - Incoming readAttr request: #seq=[%d] object=[%s]", i, resp.seq, x)
         update_read_ts(resp, i, self.analyzer.mightReadAttr(x, resp))
@@ -122,7 +121,11 @@ class CoordinatorMvcc(process):
             req.ts = self.admin.now()
             log.info('Coord-%d - Assign globalID=[%s] to #seq=[%s]', i, req.id, req.seq)
 
-        # 2.Setup administration
+        # 2.Handle potential starvation proactively
+        #   Pending readonly request to prevent pending write request starvation
+        prevent_starvation_proactively(req, i)
+
+        # 3.Setup administration
         x = self.analyzer.obj(req, i)
         defR = self.analyzer.defReadAttr(x, req)
         mgtR = self.analyzer.mightReadAttr(x, req)
@@ -135,10 +138,28 @@ class CoordinatorMvcc(process):
             for attr in defR | mgtR:
                 self.admin.latestVersionBefore(x, attr, req.ts).pendingMightRead.append(req.id)
 
-        # 3.Populate data piggybacked to request
+        # 4.Populate data piggybacked to request
         log.info("cachedUpdates: " + str(req.cachedUpdates))
         req.cachedUpdates[i] = self.admin.cachedUpdates(x, req)
         log.info("Coord-%d - Handle request complete: #seq=[%d]", i, req.seq)
+
+    def prevent_starvation_proactively(req, i):
+        x = self.analyzer.obj(req, i)
+        if self.analyzer.readonly(req):
+            defR = self.analyzer.defReadAttr(x, req)
+            mgtR = self.analyzer.mightReadAttr(x, req)
+            await(each(attr in defR | mgtR,
+                has= ((x not in pendingwrt) or 
+                    (attr not in pendingwrt[x]) or 
+                    all(req2.ts > req.ts for req2 in pendingwrt[x][attr]))))
+            log.warn("Coord-%d - pending application request due to pending write request: #seq=[%d]", i, req.seq)
+        else:
+            for attr in self.analyzer.mightWriteAttr(x, req):
+                if x not in pendingwrt:
+                    pendingwrt[x] = dict()
+                if attr not in pendingwrt[x]:
+                    pendingwrt[x][attr] = set()
+                pendingwrt[x][attr].add((req.id, req.ts))
 
     def update_read_ts(resp, i, attrs):
         x = self.analyzer.obj(resp, i)
@@ -156,32 +177,17 @@ class CoordinatorMvcc(process):
                 return True
         return False
 
-    def might_conflict(req):
-        x = self.analyzer.obj(req, 1)
-        if self.pendingUpdates[x]:
-            return False
-        updates = self.pendingUpdates[x]
-        defR = self.analyzer.defReadAttr(x, req)
-        mgtR = self.analyzer.mightReadAttr(x, req)
-        return not (updates.keys() & (defR | mgtR))
-
-    def resume_pending_request(resp):
-        # Handle all pending readonly request after the waiting write request complete
-        x = self.analyzer.obj(resp, resp.updatedObj)
-        for req in list(self.rdonlyPendingQ):
-            if self.analyzer.obj(req, 1) != x:
-                continue
-            self.rdonlyPendingQ.remove(req)
-            handle_request(req, 1)
-            nextco = self.router.route(req, self.analyzer.obj(req, 2))
-            log.info("Coord-1 - Send evaluation request to Coord-2: #seq=[%d], to=%s\n", req.seq, nextco)
-            send(('reqeval', req), to=nextco)
-        del self.pendingUpdates[x]
-
     def restart(resp):
+        cleanup_pending_update(resp)
         req = EvalReqMvcc(resp)
         prevco = self.router.route(req, self.analyzer.obj(req, 1))
         send(('reqapp', req), to=prevco)
+
+    def is_invalid_message(msg):
+        pass
+
+    def cleanup_pending_update(resp):
+        pass
 
     def delay(seq, method):
         key = 'req' + str(seq) + '.delay.' + method
