@@ -9,8 +9,8 @@ class EvalRespMvcc(Response):
     def __init__(self, req = None):
         Response.__init__(self, req)
         self.ts = req.ts
-        self.decision = Decision.Permit
-        self.readAttr = [None] * 2
+        self.decision = Decision.permit
+        self.readAttr = [None] * 3
         self.updates  = set()
         self.updatedObj = None
         self.rdonlydObj = None

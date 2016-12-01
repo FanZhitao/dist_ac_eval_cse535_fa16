@@ -6,6 +6,17 @@ import time
 
 log = logging.getLogger("AdminMvcc")
 
+class Version:
+
+    def __init__(self, rts, wts):
+        self.rts = 0
+        self.wts = 0
+        self.pendingMightRead = list()
+
+    def __repr__(self):
+        return "{rts=" + str(self.rts) + ", wts=" + str(self.wts) + ", pendingMightRead=" + str(self.pendingMightRead) + "}"
+
+
 class AdminMvcc:
 
     def __init__(self, window):
@@ -14,13 +25,16 @@ class AdminMvcc:
         self.versions = dict()
         self.window = window
 
-    def commit_cache(self, x, updates, ts):
-        cache = self.subcache if x in self.subcache else self.rescache
-        for attr, newval in updates.items():
-            cache[x][attr] = (newval, ts)
+    def commit_cache(self, x, resp):
+        cache = self.subcache if x == resp.subject else self.rescache
+        if x not in cache:
+            cache[x] = dict()
+        for attr, newval in resp.updates.items():
+            cache[x][attr] = (newval, resp.ts)
 
-    def update_version(self, x, updates, ts):
-        for attr, _ in updates.items():
+    def update_version(self, x, resp):
+        ts = resp.ts
+        for attr, _ in resp.updates.items():
             self.versions[x][attr].append(Version(ts, ts))
 
     def now(self):
@@ -54,11 +68,3 @@ class AdminMvcc:
             if v.wts <= ts and latest.wts < v.wts:
                 latest = v
         return latest
-
-class Version:
-
-    def __init__(self, rts, wts):
-        self.rts = 0
-        self.wts = 0
-        self.pendingMightRead = list()
-
