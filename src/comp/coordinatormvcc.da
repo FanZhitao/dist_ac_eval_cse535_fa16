@@ -43,7 +43,7 @@ class CoordinatorMvcc(process):
         """
         coord1: Received request from Application
         """
-        log.info("Coord-1 - Incoming application request: #seq=[%d] subject=[%s]", req.seq, req.subject)
+        log.info("Coord-1 - Incoming application request: #seq=[%d] object=[%s]", req.seq, self.analyzer.obj(req, 1))
         delay(req.seq, 'reqapp')
 
         handle_request(req, 1)
@@ -119,10 +119,9 @@ class CoordinatorMvcc(process):
         if req.id is None:
             req.id = self.idgen.next()
             req.ts = self.admin.now()
-            log.info('Coord-%d - Assign globalID=[%s] to #seq=[%s]', i, req.id, req.seq)
+            log.info('Coord-%d - Assign globalID=[%s] and ts=[%d] to #seq=[%s]', i, req.id, req.ts, req.seq)
 
-        # 2.Handle potential starvation proactively
-        #   Pending readonly request to prevent pending write request starvation
+        # 2.Handle potential starvation proactively: delay readonly request
         prevent_starvation_proactively(req, i)
 
         # 3.Setup administration
@@ -139,20 +138,29 @@ class CoordinatorMvcc(process):
                 self.admin.latestVersionBefore(x, attr, req.ts).pendingMightRead.append(req.id)
 
         # 4.Populate data piggybacked to request
-        log.info("cachedUpdates: " + str(req.cachedUpdates))
         req.cachedUpdates[i] = self.admin.cachedUpdates(x, req)
-        log.info("Coord-%d - Handle request complete: #seq=[%d]", i, req.seq)
+        log.info("Coord-%d - Handle request complete: #seq=[%d], defRead=[%s], mightRead=[%s]," + 
+                "cachedUpdates=%s", i, req.seq, defR, mgtR, str(req.cachedUpdates))
 
     def prevent_starvation_proactively(req, i):
         x = self.analyzer.obj(req, i)
         if self.analyzer.readonly(req):
             defR = self.analyzer.defReadAttr(x, req)
             mgtR = self.analyzer.mightReadAttr(x, req)
+            wrtreq = set()
+            if x in pendingwrt:
+                for attr in defR | mgtR:
+                    if attr in pendingwrt[x] and not all(req2.ts > req.ts for req2 in pendingwrt[x][attr]):
+                        wrtreq.add(pendingwrt[x][attr])
+
+            if not wrtreq:
+                log.warn("Coord-%d - *****Pending current readonly request #seq=[%d]" + 
+                        "due to potentially starving write request: %s", i, req.seq, wrtreq)
+
             await(each(attr in defR | mgtR,
-                has= ((x not in pendingwrt) or 
-                    (attr not in pendingwrt[x]) or 
+                has= ((x not in pendingwrt) or
+                    (attr not in pendingwrt[x]) or
                     all(req2.ts > req.ts for req2 in pendingwrt[x][attr]))))
-            log.warn("Coord-%d - pending application request due to pending write request: #seq=[%d]", i, req.seq)
         else:
             for attr in self.analyzer.mightWriteAttr(x, req):
                 if x not in pendingwrt:
@@ -160,6 +168,8 @@ class CoordinatorMvcc(process):
                 if attr not in pendingwrt[x]:
                     pendingwrt[x][attr] = set()
                 pendingwrt[x][attr].add((req.id, req.ts))
+                log.info("Coord-%d - Current write request #seq=[%d] might write obj.attr: %s.%s", 
+                        i, req.seq, x, attr) 
 
     def update_read_ts(resp, i, attrs):
         x = self.analyzer.obj(resp, i)

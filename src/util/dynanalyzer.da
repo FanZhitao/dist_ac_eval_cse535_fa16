@@ -41,6 +41,6 @@ class DynAnalyzer(Analyzer):
 
         defR = set()
         for attr, c in cnt.items():
-            if compare(c, len(rules)):
+            if compare(c, len(rules[idx])):
                 defR.add(attr)
         return defR
