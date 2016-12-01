@@ -1,13 +1,16 @@
 
+import logging
 import operator
 from collections import Counter
 
 from util.analyzer import Analyzer
 
 SUB_READ = 0
-RES_READ = 1
-SUB_UPD = 2
-RES_UPD = 3
+SUB_UPD  = 1
+RES_READ = 2
+RES_UPD  = 3
+
+log = logging.getLogger(__name__)
 
 class DynAnalyzer(Analyzer):
 
@@ -19,28 +22,32 @@ class DynAnalyzer(Analyzer):
         """
         Determine definite read attributes as those appear in every matched rule
         """
-        return self.predict(obj, req, operator.eq)
+        defR = None
+        idx = SUB_READ if obj == req.subject else RES_READ
+        for rule in self.policy[(req.subject, req.resource, req.action)]:
+            if defR is None:
+                defR = rule[idx].copy()
+            else:
+                defR &= rule[idx]
+        return defR
 
     def mightReadAttr(self, obj, req):
-        return self.predict(obj, req, operator.lt)
+        allR = None
+        idx = SUB_READ if obj == req.subject else RES_READ
+        for rule in self.policy[(req.subject, req.resource, req.action)]:
+            if allR is None:
+                allR = rule[idx].copy()
+            else:
+                allR |= rule[idx]
+        return allR - self.defReadAttr(obj, req)
 
     def mightWriteAttr(self, obj, req):
-        rules = self.policy[(req.subject, req.resource, req.action)]
+        mgtW = None
         idx = SUB_UPD if obj == req.subject else RES_UPD
-        mgtW = set()
-        for attr in rules[idx]:
-            mgtW.add(attr)
+        for rule in self.policy[(req.subject, req.resource, req.action)]:
+            if mgtW is None:
+                mgtW = rule[idx].copy()
+            else:
+                mgtW |= rule[idx]
         return mgtW
 
-    def predict(self, obj, req, compare):
-        rules = self.policy[(req.subject, req.resource, req.action)]
-        cnt = Counter()
-        idx = SUB_READ if obj == req.subject else RES_READ
-        for attr in rules[idx]:
-            cnt[attr] += 1
-
-        defR = set()
-        for attr, c in cnt.items():
-            if compare(c, len(rules[idx])):
-                defR.add(attr)
-        return defR

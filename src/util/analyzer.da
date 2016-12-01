@@ -33,8 +33,9 @@ class Analyzer:
             action = rule.find('action').attrib.get('name')
 
             if (subject, resource, action) not in policy:
-                policy[(subject, resource, action)] = [set(), set(), set(), set()]
-            cur = policy[(subject, resource, action)]
+                policy[(subject, resource, action)] = list()
+            cur = [set(), set(), set(), set()]
+            policy[(subject, resource, action)].append(cur)
 
             # Analyze potential read/update attributes in each rule
             for attr in rule.find('subjectCondition').attrib:
@@ -53,12 +54,14 @@ class Analyzer:
 
     def dump_result(self, policy):
         log.info('=' * 20)
-        for (sub, res, act), result in policy.items():
-            log.info("*** Subject [%s], Resource [%s], Action [%s] ***", sub, res, act)
-            log.info("Subject attrs read: %s", result[SUB_READ])
-            log.info("Resource attrs read: %s", result[RES_READ])
-            log.info("Subject attrs update: %s", result[SUB_UPD])
-            log.info("Resource attrs update: %s", result[RES_UPD])
+        for (sub, res, act), rules in policy.items():
+            log.info("=== Subject [%s], Resource [%s], Action [%s] ===", sub, res, act)
+            for i, result in enumerate(rules):
+                log.info(" == Analysis Result of Rule %d ==", i)
+                log.info(" Subject attrs read: %s", result[SUB_READ])
+                log.info(" Resource attrs read: %s", result[RES_READ])
+                log.info(" Subject attrs update: %s", result[SUB_UPD])
+                log.info(" Resource attrs update: %s", result[RES_UPD])
         log.info('=' * 20)
 
     def obj(self, req, i):
@@ -77,9 +80,13 @@ class Analyzer:
 
     def mightWriteObj(self, req):
         wrtobj = list()
-        if self.policy[(req.subject, req.resource, req.action)][SUB_UPD]:
-            wrtobj.append(req.subject)
-        if self.policy[(req.subject, req.resource, req.action)][RES_UPD]:
-            wrtobj.append(req.resource)
+        for rule in self.policy[(req.subject, req.resource, req.action)]:
+            if rule[SUB_UPD]:
+                wrtobj.append(req.subject)
+                break
+        for rule in self.policy[(req.subject, req.resource, req.action)]:
+            if rule[RES_UPD]:
+                wrtobj.append(req.resource)
+                break
         return wrtobj
 
