@@ -28,9 +28,9 @@ kill $(ps -ef | grep dar | grep -v grep | awk '{print $2}')
 
 start_node() {
     if [ "$2" = "master" ]; then
-        dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n $1 src/master.da $config $workload
+        dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n $1 --message-buffer-size=$((16*1024)) src/master.da $config $workload
     else # -D
-        dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n $1 -D src/master.da $config $workload
+        dar -L $level -F $level -f --logfilename logs/master.`date +"%y-%m-%d"`.log -n $1 -D --message-buffer-size=$((16*1024)) src/master.da $config $workload
     fi
 }
 

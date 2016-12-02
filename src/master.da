@@ -48,6 +48,7 @@ class MockWorker(process):
             resp.updates = { 'history': req.resource }
         else:
             resp.updates = dict()
+        resp.readAttr[1] = list()
         resp.readAttr[2] = list()
         resp.readAttr[2].append('history')
 

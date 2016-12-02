@@ -66,8 +66,8 @@ class Application(process):
 
         # Re-submit request if timeout
         now = time.time()
-        for req, coord, ts in self.sentreq.items():
-            if now - ts > cfg['timeout']:
+        for seq, (req, coord, ts) in self.sentreq.items():
+            if now - ts > float(cfg['timeout']):
                 send(('reqapp', req,), to=coord)
                 self.sentreq[seq] = (req, coord, time.time())
                 log.warning("App - ***** Resubmit ***** due to timeout #seq=[%d]", req.seq)

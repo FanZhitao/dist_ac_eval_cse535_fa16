@@ -46,7 +46,8 @@ class CoordinatorMvcc(process):
         log.info("Coord1 - Incoming application request: #seq=[%d] object=[%s]", req.seq, self.analyzer.obj(req, 1))
         delay(req.seq, 'reqapp')
 
-        req.app = p
+        if req.app is None:
+            req.app = p
         handle_request(req, 1)
         nextco = self.router.route(self.analyzer.obj(req, 2))
         log.info("Coord1 - Send evaluation request to Coord2: #seq=[%d], to=%s\n", req.seq, nextco)
@@ -79,6 +80,7 @@ class CoordinatorMvcc(process):
         dump_current_state(resp, x)
         if not conflict(x, resp):
             # Wait for all pending read complete
+            warning_potential_conflict(resp, x)
             await(each(attr in resp.updates.keys(),
                 has= (not self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead) or
                         all(reqid == resp.id for reqid in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead)))
@@ -106,9 +108,9 @@ class CoordinatorMvcc(process):
                 send(('readAttr', resp, resp.rdonlydObj), to=coordR)
                 dump_current_state(resp, x)
             else:
-                restart(resp)
+                restart(x, resp)
         else:
-            restart(resp)
+            restart(x, resp)
 
     def receive(msg=('readAttr', resp, i), from_=p):
         """
@@ -199,9 +201,14 @@ class CoordinatorMvcc(process):
         log.info("CoordW - no conflict found for request #seq=[%d]", resp.seq)
         return False
 
-    def restart(resp):
+    def restart(x, resp):
         cleanup_pending_update(resp)
+        for attr in self.analyzer.defReadAttr(x, resp) | self.analyzer.mightReadAttr(x, resp):
+            v = self.admin.latestVersionBefore(x, attr, resp.ts)
+            v.pendingMightRead.remove(resp.id)
+
         req = EvalReqMvcc(resp)
+        req.id = None
         prevco = self.router.route(self.analyzer.obj(req, 1))
         send(('reqapp', req), to=prevco)
         log.warning("***** Restart *****: Request #seq=[%d]", resp.seq)
@@ -211,6 +218,13 @@ class CoordinatorMvcc(process):
 
     def cleanup_pending_update(resp):
         pass
+
+    def warning_potential_conflict(resp, x):
+        for attr in resp.updates.keys():
+            for reqid in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead:
+                if reqid != resp.id:
+                    log.warning("CoordW - ***** Potential Conflict *****: Request #seq=[%d] id=[%s] against id=[%s] on attr [%s]", resp.seq, resp.id, reqid, attr)
+                    break
 
     def dump_current_state(resp, x):
         cache = self.admin.subcache if x == resp.subject else self.admin.rescache
