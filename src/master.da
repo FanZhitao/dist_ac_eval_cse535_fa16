@@ -44,7 +44,10 @@ class MockWorker(process):
         resp = EvalRespMvcc(req)
         resp.updatedObj = 2 # Suppose correctly predict
         resp.rdonlydObj = 1
-        resp.updates = { 'history': req.resource }
+        if req.seq == 1:
+            resp.updates = { 'history': req.resource }
+        else:
+            resp.updates = dict()
         resp.readAttr[2] = list()
         resp.readAttr[2].append('history')
 
@@ -69,10 +72,6 @@ def print_config(cfg, workload):
     log.info('=' * 20)
 
 def main():
-    subjects = ['employee']
-    resources = ['bank A', 'bank B']
-    actions = ['read']
-
     # 0.Read config. Set logger.
     logging.basicConfig(level=logging.INFO, 
         format='[%(asctime)s] %(name)s:%(levelname)s: %(message)s')
@@ -104,10 +103,10 @@ def main():
 
     # 3.Prepare coordinator with router table and analyzer
     # Assign role to coordinators according to total number of subjects and resources
-    router = Router()
-    router.assign(subjects, resources, co)
-    # Analyze policy
     analyzer = Analyzer(path_policy)
+    router = Router()
+    router.assign(analyzer.subjects, analyzer.resources, co)
+    # Analyze policy
     sender = new(Sender, (co, router, analyzer))
     start(sender)
     time.sleep(1)
@@ -118,8 +117,7 @@ def main():
     reqno = int(int(cfg[workload]['reqno']) / appno)
     apps = new(Application, num=appno)
     for i, app in zip(range(0, appno), apps):
-        setup(app, (router, i * reqno + 1, (i + 1) * reqno + 1, cfg[workload], 
-            subjects, resources, actions, analyzer, mode,))
+        setup(app, (router, i * reqno + 1, (i + 1) * reqno + 1, cfg[workload], analyzer, mode,))
     start(apps)
 
     # 5.Dump database content periodically for testing

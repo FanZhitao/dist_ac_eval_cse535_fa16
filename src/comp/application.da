@@ -14,7 +14,7 @@ log = logging.getLogger("Application")
 """
 class Application(process):
 
-    def setup(router:Router, seqfrom:int, seqto:int, cfg, subjects, resources, actions, analyzer, mode):
+    def setup(router:Router, seqfrom:int, seqto:int, cfg, analyzer, mode):
         log.info('Application [%s] is up', self)
         self.sentreq = dict()
 
@@ -29,17 +29,17 @@ class Application(process):
             if prefix + '.subject' in cfg:
                 req.subject = cfg[prefix + '.subject']
             else:
-                req.subject = random.choice(subjects)
+                req.subject = random.choice(analyzer.subjects)
 
             if prefix + '.resource' in cfg:
                 req.resource= cfg[prefix + '.resource']
             else:
-                req.resource = random.choice(resources)
+                req.resource = random.choice(analyzer.resources)
 
             if prefix + '.action' in cfg:
                 req.action = cfg[prefix + '.action']
             else:
-                req.action = random.choice(actions)
+                req.action = random.choice(analyzer.actions)
 
             # 2.Send to correspondent subject coordinator
             if mode == "oplock":
@@ -66,7 +66,8 @@ class Application(process):
 
         # Re-submit request if timeout
         now = time.time()
-        for seq, req, coord, ts in self.sentreq.items():
+        for req, coord, ts in self.sentreq.items():
             if now - ts > cfg['timeout']:
                 send(('reqapp', req,), to=coord)
                 self.sentreq[seq] = (req, coord, time.time())
+                log.warning("App - ***** Resubmit ***** due to timeout #seq=[%d]", req.seq)

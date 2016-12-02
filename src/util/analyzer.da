@@ -21,6 +21,9 @@ class Analyzer:
 
     def __init__(self, policyfile):
         self.policy = dict()
+        self.subjects = set()
+        self.resources = set()
+        self.actions = set()
         self.parse_policy(policyfile, self.policy)
         self.dump_result(self.policy)
 
@@ -31,6 +34,10 @@ class Analyzer:
             subject = rule.find('subjectCondition').attrib.get('position')
             resource = rule.find('resourceCondition').attrib.get('id')
             action = rule.find('action').attrib.get('name')
+
+            self.subjects.add(subject)
+            self.resources.add(resource)
+            self.actions.add(action)
 
             if (subject, resource, action) not in policy:
                 policy[(subject, resource, action)] = list()

@@ -165,7 +165,7 @@ class CoordinatorMvcc(process):
                         wrtreq.add(pendingwrt[x][attr])
 
             if not wrtreq:
-                log.warn("Coord%d - *****Pending current readonly request #seq=[%d]" + 
+                log.warning("Coord%d - *****Pending current readonly request #seq=[%d]" + 
                         "due to potentially starving write request: %s", i, req.seq, wrtreq)
 
             await(each(attr in defR | mgtR,
@@ -194,7 +194,7 @@ class CoordinatorMvcc(process):
         for attr, _ in resp.updates.items():
             v = self.admin.latestVersionBefore(x, attr, resp.ts)
             if v.rts > resp.ts:
-                log.warn("***** Conflict *****: Request #seq=[%d] conflicts!", resp.seq)
+                log.warning("***** Conflict *****: Request #seq=[%d] conflicts!", resp.seq)
                 return True
         log.info("CoordW - no conflict found for request #seq=[%d]", resp.seq)
         return False
@@ -202,8 +202,9 @@ class CoordinatorMvcc(process):
     def restart(resp):
         cleanup_pending_update(resp)
         req = EvalReqMvcc(resp)
-        prevco = self.router.route(req, self.analyzer.obj(req, 1))
+        prevco = self.router.route(self.analyzer.obj(req, 1))
         send(('reqapp', req), to=prevco)
+        log.warning("***** Restart *****: Request #seq=[%d]", resp.seq)
 
     def invalid_message(msg):
         return False
