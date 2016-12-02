@@ -5,6 +5,8 @@ import pprint
 import configparser
 
 from comp.application import Application
+from msg.evalreqmvcc import EvalReqMvcc
+from msg.evalrespmvcc import EvalRespMvcc
 from comp.coordinator import Coordinator
 from comp.coordinatormvcc import CoordinatorMvcc
 from comp.worker import Worker
@@ -25,6 +27,35 @@ class Sender(process):
     def run():
         for c in co:
             send(('prepare', router, analyzer,), to=c)
+
+
+class MockWorker(process):
+
+    def setup(cfg):
+        logging.basicConfig(level=logging.INFO, 
+            format='[%(asctime)s] %(name)s:%(levelname)s: %(message)s')
+
+    def run():
+        while True:
+            await(received(('done')))
+
+    def receive(msg=('assigneval', req), from_=p):
+        log.info('MockWorker - Received coordinator request #seq=[%d]', req.seq)
+        resp = EvalRespMvcc(req)
+        resp.updatedObj = 2 # Suppose correctly predict
+        resp.rdonlydObj = 1
+        resp.updates = { 'history': req.resource }
+        resp.readAttr[2] = list()
+        resp.readAttr[2].append('history')
+
+        key = 'req' + str(req.seq) + '.worker.delay'
+        if key in cfg:
+            delay = cfg[key]
+            log.info('***** Delay *****: #seq=[%d] delay %f(s) at worker', req.seq, float(delay))
+            time.sleep(float(delay))
+        send(('respeval', resp), to=p)
+        log.info('MockWorker - Send evalution result of #seq=[%d] back', req.seq)
+
 
 def print_config(cfg, workload):
     log.info('=' * 20)
@@ -63,8 +94,10 @@ def main():
     for i in range(1, int(cfg['master']['coordinators']) + 1):
         nodei = "CoordNode-" + str(i)
         w = new(Worker, (db,), at=nodei)
-        c = new(Coordinator if mode == "oplock" else CoordinatorMvcc, (w, db, cfg[workload]), at=nodei)
+        mw = new(MockWorker, (cfg[workload],), at=nodei)
+        c = new(Coordinator if mode == "oplock" else CoordinatorMvcc, (w, db, cfg[workload], mw), at=nodei)
         start(w)
+        start(mw)
         start(c)
         co.append(c)
         log.info("Start a pair of Coordinator and Worker on Node [%s]", nodei) 

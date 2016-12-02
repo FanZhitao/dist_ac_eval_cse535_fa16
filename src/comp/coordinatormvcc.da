@@ -15,7 +15,7 @@ log = logging.getLogger("Coordinator")
 
 class CoordinatorMvcc(process):
 
-    def setup(workers:set, db:DB, cfg):
+    def setup(workers:set, db:DB, cfg, mockworker):
         logging.basicConfig(level=logging.INFO, 
             format='[%(asctime)s] %(name)s:%(levelname)s: %(message)s')
         self.router = None
@@ -63,15 +63,7 @@ class CoordinatorMvcc(process):
         worker = next(iter(workers))
         log.info("Coord2 - Assign evalution request: #seq=[%d] to worker=[%s]\n", req.seq, worker)
         send(('assigneval', req), to=worker)
-
-        # Test
-        resp = EvalRespMvcc(req)
-        resp.updatedObj = 2 # Suppose correctly predict
-        resp.rdonlydObj = 1
-        resp.updates = { 'history': req.resource }
-        resp.readAttr[2] = list()
-        resp.readAttr[2].append('history')
-        send(('respeval', resp), to=self)
+        send(('assigneval', req), to=mockworker)
 
     def receive(msg=('respeval', resp), from_=p):
         """
