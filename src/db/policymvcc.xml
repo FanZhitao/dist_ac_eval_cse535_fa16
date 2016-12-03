@@ -10,21 +10,25 @@
 		<resourceCondition id="bank A"/>
 		<action name="read"/>
 	</rule>
-		<rule name="access bank B first time">
+
+    <rule name="access bank B first time">
 		<subjectCondition position="employee" history="empty"/>
 		<resourceCondition id="bank B"/>
 		<action name="read"/>
-		<subjectUpdate history="bank B"/>
 	</rule>
+
+    <!--
 	<rule name="access bank B again">
-		<subjectCondition position="employee" history="bank B"/>
+		<subjectCondition position="employee"/>
 		<resourceCondition id="bank B"/>
 		<action name="read"/>
 	</rule>
+
     <rule name="access bank C after bank A">
 		<subjectCondition position="employee" history="bank A"/>
 		<resourceCondition id="bank C"/>
 		<action name="read"/>
 		<subjectUpdate history="bank C"/>
 	</rule>
+    -->
 </policy>

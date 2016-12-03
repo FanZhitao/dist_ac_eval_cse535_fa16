@@ -80,7 +80,7 @@ class Analyzer:
             rdobj = req.subject if req.subject != wrtobj[0] else req.resource
             return rdobj if i == 1 else wrtobj[0]
         else:
-            return req.subject if i == 1 else req.resource
+            return req.resource if i == 1 else req.subject
 
     def readonly(self, req):
         return not self.mightWriteObj(req)

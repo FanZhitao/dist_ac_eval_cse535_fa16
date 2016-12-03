@@ -41,23 +41,32 @@ class MockWorker(process):
 
     def receive(msg=('assigneval', req), from_=p):
         log.info('MockWorker - Received coordinator request #seq=[%d]', req.seq)
+        readonly = False
         resp = EvalRespMvcc(req)
-        resp.updatedObj = 2 # Suppose correctly predict
-        resp.rdonlydObj = 1
-        if req.seq == 1:
-            resp.updates = { 'history': req.resource }
-        else:
-            resp.updates = dict()
         resp.readAttr[1] = list()
         resp.readAttr[2] = list()
-        resp.readAttr[2].append('history')
+        if req.subject == 'employee' and req.resource == 'bank A': #read-write
+            resp.updatedObj = 2 # Suppose correctly predict
+            resp.rdonlydObj = 1
+            if req.seq == 1: # only first one succeed
+                resp.updates = { 'history': req.resource }
+            else:
+                resp.updates = dict()
+            resp.readAttr[2].append('history')
+        elif req.subject == 'manager' and req.resource == 'bank A': #readonly
+            resp.updatedObj = -1
+            resp.rdonlydObj = -1
+            resp.readAttr[1].append('history') 
+            resp.updates = dict()
+            readonly = True
 
         key = 'req' + str(req.seq) + '.worker.delay'
         if key in cfg:
             delay = cfg[key]
             log.info('***** Delay *****: #seq=[%d] delay %f(s) at worker', req.seq, float(delay))
             time.sleep(float(delay))
-        send(('respeval', resp), to=p)
+        if not readonly:
+            send(('respeval', resp), to=p)
         log.info('MockWorker - Send evalution result of #seq=[%d] back', req.seq)
 
 

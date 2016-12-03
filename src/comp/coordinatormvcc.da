@@ -43,7 +43,7 @@ class CoordinatorMvcc(process):
         """
         coord1: Received request from Application
         """
-        log.info("Coord1 - Incoming application request: #seq=[%d] object=[%s]", req.seq, self.analyzer.obj(req, 1))
+        log.info("Coord1 - Incoming application request: #seq=[%d] object=[%s], readonly=[%s]", req.seq, self.analyzer.obj(req, 1), self.analyzer.readonly(req))
         delay(req.seq, 'reqapp')
 
         if req.app is None:
@@ -80,13 +80,13 @@ class CoordinatorMvcc(process):
         dump_current_state(resp, x)
         if not conflict(x, resp):
             # Wait for all pending read complete
-            warning_potential_conflict(resp, x)
+            warning_potential_conflict(x, resp)
             await(each(attr in resp.updates.keys(),
                 has= (not self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead) or
                         all(reqid == resp.id for reqid in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead)))
 
             if not conflict(x, resp):
-                cleanup_pending_update(resp)
+                cleanup_pending_update(x, resp)
 
                 # Commit update to database
                 log.info("CoordW - Send attribute updates to database [%s]", self.db)
@@ -163,17 +163,20 @@ class CoordinatorMvcc(process):
             wrtreq = set()
             if x in pendingwrt:
                 for attr in defR | mgtR:
-                    if attr in pendingwrt[x] and not all(req2.ts > req.ts for req2 in pendingwrt[x][attr]):
-                        wrtreq.add(pendingwrt[x][attr])
+                    if attr in pendingwrt[x] and not all(req2[1] > req.ts for req2 in pendingwrt[x][attr]):
+                        wrtreq.update(pendingwrt[x][attr])
 
-            if not wrtreq:
-                log.warning("Coord%d - *****Pending current readonly request #seq=[%d]" + 
-                        "due to potentially starving write request: %s", i, req.seq, wrtreq)
+            if wrtreq:
+                log.warning("Coord%d - ***** Pending ***** Request #seq=[%d]" + 
+                        " due to potentially starving write request: %s", i, req.seq, wrtreq)
 
             await(each(attr in defR | mgtR,
                 has= ((x not in pendingwrt) or
                     (attr not in pendingwrt[x]) or
-                    all(req2.ts > req.ts for req2 in pendingwrt[x][attr]))))
+                    all(req2[1] > req.ts for req2 in pendingwrt[x][attr]))))
+
+            if wrtreq:
+                log.warning("Coord%d - ***** Wakeup ***** Request #seq=[%d]", i, req.seq)
         else:
             for attr in self.analyzer.mightWriteAttr(x, req):
                 if x not in pendingwrt:
@@ -202,7 +205,7 @@ class CoordinatorMvcc(process):
         return False
 
     def restart(x, resp):
-        cleanup_pending_update(resp)
+        cleanup_pending_update(x, resp)
         for attr in self.analyzer.defReadAttr(x, resp) | self.analyzer.mightReadAttr(x, resp):
             v = self.admin.latestVersionBefore(x, attr, resp.ts)
             v.pendingMightRead.remove(resp.id)
@@ -216,10 +219,11 @@ class CoordinatorMvcc(process):
     def invalid_message(msg):
         return False
 
-    def cleanup_pending_update(resp):
-        pass
+    def cleanup_pending_update(x, resp):
+        for attr in self.analyzer.mightWriteAttr(x, resp):
+            pendingwrt[x][attr].remove((resp.id, resp.ts))
 
-    def warning_potential_conflict(resp, x):
+    def warning_potential_conflict(x, resp):
         for attr in resp.updates.keys():
             for reqid in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead:
                 if reqid != resp.id:

@@ -1,5 +1,7 @@
 #!/bin/bash -x
 
+mode="mvcc"
+
 if [ $# -eq 1 ]; then
     workload="$1"
     level="info"
@@ -11,13 +13,14 @@ else
     level="info"
 fi
 
-if [ "$workload" = "workload7" ]; then
+if [ "$mode" = "mvcc" ]; then
+    config="config/testmvcc.config"
+elif [ "$workload" = "workload7" ]; then
     config="config/stresstest.config"
 elif [ "$workload" = "workload8" ]; then
     config="config/test2.config"
 else
-    #config="config/test.config"
-    config="config/testmvcc.config"
+    config="config/test.config"
 fi
 
 make

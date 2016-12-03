@@ -1,0 +1,36 @@
+
+====== Functional Test ======
+
+=== Workload 1 ===
+
+=== Workload 2 ===
+
+
+====== Conflict Handling Test ======
+
+=== Workload 3 ===
+
+=== Workload 4 ===
+
+1) Goal: Test
+
+2) Scenario: 
+ Send request #r1 and #r2. Then #r1 was pending due to #r2 might read attr that #r1 is going to update.
+ Finally #r2 succeed and #r1 waked up and being restarted because of conflict.
+
+3) Configuration:
+
+4) Log file:
+
+
+=== Workload 5 ===
+
+=== Workload 6 ===
+
+=== Workload 7 ===
+
+1) Goal: Test starvation
+
+
+====== Stress Test ======
+
