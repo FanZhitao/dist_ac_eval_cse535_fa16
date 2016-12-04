@@ -50,7 +50,12 @@ class WorkerMvcc(process):
         if resp.updateObj == -1:
             # req is read-only
             # send decision to app and obj1
-            send(('respapp', resp.seq, resq.decision,), to=resp.app)
+            send(('respapp', resp.seq, resp.decision,), to=resp.app)
+            send(('evalresp', resp), to=self.analyzer.obj(req, 1))
+        else:
+            # req is write-one-object
+            coord = self.router.route(resp.updatedObj)
+            send(('evalresp', resp), to=coord)
 
     def receive(msg=('policy', policy), from_=p):
         log.info("Received policy data from database: %s", p)
@@ -204,6 +209,19 @@ class WorkerMvcc(process):
         fulfill_obligation(rule, 'subjectUpdate', resp)
         # resource attributes update
         fulfill_obligation(rule, 'resourceUpdate', resp)
+
+        if (len(resp.subwattr) > 0 or len(resp.reswattr) > 0):        
+            # set updatedObj
+            x = self.analyzer.obj(req, 1)
+            wrtobj = self.analyzer.mightWriteObj(req)
+            if x == wrtobj:
+                # predicted wrong
+                resp.updatedObj = self.analyzer.obj(req, 1)
+            else:
+                # predicted correct
+                resp.updatedObj = wrtobj
+
+
         return resp
 
     def fulfill_obligation(rule:Element, sub_or_res:str, resp:EvalRespMvcc):
