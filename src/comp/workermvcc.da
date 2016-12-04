@@ -49,7 +49,8 @@ class WorkerMvcc(process):
 
         if resp.updateObj == -1:
             # req is read-only
-            pass
+            # send decision to app and obj1
+            send(('respapp', resp.seq, resq.decision,), to=resp.app)
 
     def receive(msg=('policy', policy), from_=p):
         log.info("Received policy data from database: %s", p)
