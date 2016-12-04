@@ -12,6 +12,8 @@ src/comp/coordinatormvcc.py: src/comp/coordinatormvcc.da src/comp/worker.py src/
 
 src/comp/worker.py: src/comp/worker.da src/db/db.py src/msg/request.py src/msg/response.py
 	dac src/comp/worker.da
+src/comp/workermvcc.py: src/comp/workermvcc.da src/db/db.py src/msg/request.py src/msg/response.py
+	dac src/comp/workermvcc.da
 
 src/db/db.py: src/db/db.da
 	dac src/db/db.da

@@ -28,7 +28,7 @@ class Worker(process):
 
         # Evaluate request and send the result back to subject coordinator.
         resp, rule = evaluate(req)
-        if resp.decision == Decision.permit:
+        if resp.decision == True:
             # Has found a matched rule.
             # Add read and write attributes into
             # resq.{subrattr, subwattr, resrattr, reswattr}.
@@ -44,7 +44,7 @@ class Worker(process):
     def evaluate(req:EvalReq):
         log.info("Start to evaluate req: [%d]", req.seq)
         resp = EvalResp(req) # construct response based on request
-        resp.decision = Decision.deny
+        resp.decision = False
         matched_rule = None
 
         for rule in policy.iter('rule'): # rule is an ElementTree instance
@@ -72,7 +72,7 @@ class Worker(process):
                 # all subject, resource, and action satisfied
                 log.debug("Action matched.")
                 log.info("Corresponding rule found: [%s]. granting access...", rule.attrib['name'])
-                resp.decision = Decision.permit
+                resp.decision = True
                 matched_rule = rule
                 break
 
