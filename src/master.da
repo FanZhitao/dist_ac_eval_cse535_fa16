@@ -25,10 +25,12 @@ log = logging.LoggerAdapter(logging.getLogger("Master"), {})
 """
 
 class Sender(process):
-    def setup(co, router, analyzer): pass
+    def setup(co, workers, router, analyzer): pass
     def run():
         for c in co:
             send(('prepare', router, analyzer,), to=c)
+        for w in workers:
+            send(('prepare', router, analyzer,), to=w)
 
 
 class MockWorker(process):
@@ -105,6 +107,7 @@ def main():
 
     # 2.Create and start coordinators and correspondent worker on remote node
     co = list()
+    workers = list()
     for i in range(1, int(cfg['master']['coordinators']) + 1):
         nodei = "CoordNode-" + str(i)
         w = new(WorkerMvcc, (db,), at=nodei)
@@ -114,6 +117,7 @@ def main():
         start(mw)
         start(c)
         co.append(c)
+        workers.append(w)
         log.info("Start a pair of Coordinator and Worker on Node [%s]", nodei) 
 
     # 3.Prepare coordinator with router table and analyzer
@@ -122,7 +126,7 @@ def main():
     router = Router()
     router.assign(analyzer.subjects, analyzer.resources, co)
     # Analyze policy
-    sender = new(Sender, (co, router, analyzer))
+    sender = new(Sender, (co, workers, router, analyzer))
     start(sender)
     time.sleep(1)
 

@@ -1,4 +1,7 @@
 import logging
+from util.router import Router
+from util.analyzer import Analyzer
+from util.dynanalyzer import DynAnalyzer
 from msg.evalreqmvcc import EvalReqMvcc
 from msg.evalrespmvcc import EvalRespMvcc
 from msg.commitreq import CommitReq
@@ -10,6 +13,8 @@ log = logging.getLogger('Worker')
 class WorkerMvcc(process):
     def setup(db:set):
         self.policy = None
+        self.router = None
+        self.analyzer = None
         
     def run():
         log.info("Worker %s is up.", self)
@@ -18,6 +23,11 @@ class WorkerMvcc(process):
         log.info("Sending message to database %s to fetch policy and waiting for response.", db)
         while True:
             await(received(()))
+
+    def receive(msg=('prepare', router, analyzer)):
+        log.info("Coord - Received route table and analyzer")
+        self.router = router
+        self.analyzer = DynAnalyzer(analyzer)
 
     def receive(msg=('assigneval', req), from_=c):
         log.info("Received evaluation request from coodinator: %s", c)
