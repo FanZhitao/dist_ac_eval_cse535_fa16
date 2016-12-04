@@ -17,6 +17,7 @@ class WorkerMvcc(process):
         self.policy = None
         self.router = None
         self.analyzer = None
+        self.predictCorrect = False
         
     def run():
         log.info("Worker %s is up.", self)
@@ -47,13 +48,14 @@ class WorkerMvcc(process):
             # resq.{subrattr, subwattr, resrattr, reswattr}.
             resp = add_read_write_attributes(req, resp, rule)
 
-        if resp.updateObj == -1:
+        if resp.updatedObj == -1:
             # req is read-only
             # send decision to app and obj1
             send(('respapp', resp.seq, resp.decision,), to=resp.app)
             send(('evalresp', resp), to=self.analyzer.obj(req, 1))
         else:
             # req is write-one-object
+            log.info("WRIIIIIIIITE 1 object")
             coord = self.router.route(resp.updatedObj)
             send(('evalresp', resp), to=coord)
 
@@ -74,13 +76,13 @@ class WorkerMvcc(process):
             should_try_next_rule = False # flag used to continue outter for loop
 
             # subject
-            should_try_next_rule = not do_attributes_match(rule.find('subjectCondition'), req.subattr, req)
+            should_try_next_rule = not do_attributes_match(rule.find('subjectCondition'), req.subject, req)
             if should_try_next_rule == True:
                 continue
             log.debug("Subject condition satisfied.")
 
             # resource
-            should_try_next_rule = not do_attributes_match(rule.find('resourceCondition'), req.resattr, req)
+            should_try_next_rule = not do_attributes_match(rule.find('resourceCondition'), req.resource, req)
             if should_try_next_rule == True:
                 continue
             log.debug("Resource condition satisfied.")
@@ -162,18 +164,20 @@ class WorkerMvcc(process):
     def add_read_write_attributes(req:EvalReqMvcc, resp:EvalRespMvcc, rule:Element):
         # Copy attributes from request.
         # subject attributes
-        for attribute_name in req.subattr:
+        subattr = req.subject
+        resattr = req.resource
+        for attribute_name in subattr:
             resp.subrattr.append(attribute_name) # read attributes
-            value_original = req.subattr.get(attribute_name)
+            value_original = subattr.get(attribute_name)
             # replace $subject.ATTRIBUTE with original value
             while value_original != None and isinstance(value_original, str) and value_original.startswith("$"):
                 dot_index = value_original.index(".")
                 attribute_key = value_original[dot_index + 1 :]
                 sub_or_res = value_original[1 : dot_index]
                 if sub_or_res == 'subject':
-                    value = req.subattr[attribute_key]
+                    value = subattr[attribute_key]
                 elif sub_or_res == 'resource':
-                    value = req.resattr[attribute_key]
+                    value = resattr[attribute_key]
                 else:
                     # TODO: Throw invalid policy exception
                     return
@@ -183,18 +187,18 @@ class WorkerMvcc(process):
             resp.subwattr[attribute_name] = value_original
 
         # resource attributes
-        for attribute_name in req.resattr:
+        for attribute_name in resattr:
             resp.resrattr.append(attribute_name) # read attributes
-            value_original = req.resattr.get(attribute_name)
+            value_original = resattr.get(attribute_name)
             # replace $resource.ATTRIBUTE with original value
             while value_original != None and isinstance(value_original, str) and value_original.startswith("$"):
                 dot_index = value_original.index(".")
                 attribute_key = value_original[dot_index + 1 :]
                 sub_or_res = value_original[1 : dot_index]
                 if sub_or_res == 'subject':
-                    value = req.subattr[attribute_key]
+                    value = subattr[attribute_key]
                 elif sub_or_res == 'resource':
-                    value = req.resattr[attribute_key]
+                    value = resattr[attribute_key]
                 else:
                     # TODO: Throw invalid policy exception
                     return
@@ -206,33 +210,23 @@ class WorkerMvcc(process):
 
         # Modify write attributes according to obligation
         # subject attributes update
-        fulfill_obligation(rule, 'subjectUpdate', resp)
+        fulfill_obligation(rule, 'subjectUpdate', resp, req)
         # resource attributes update
-        fulfill_obligation(rule, 'resourceUpdate', resp)
+        fulfill_obligation(rule, 'resourceUpdate', resp, req)
 
-        if (len(resp.subwattr) > 0 or len(resp.reswattr) > 0):        
-            # set updatedObj
-            x = self.analyzer.obj(req, 1)
-            wrtobj = self.analyzer.mightWriteObj(req)
-            if x == wrtobj:
-                # predicted wrong
-                resp.updatedObj = self.analyzer.obj(req, 1)
+        if len(resp.updates) > 0:
+            if self.predictCorrect:
+                resp.updatedObj = self.analyzer.obj(req, 2)
             else:
-                # predicted correct
-                resp.updatedObj = wrtobj
-
+                resp.updatedObj = self.analyzer.obj(req, 1)
+        else:
+            resp.updatedObj = -1
 
         return resp
 
-    def fulfill_obligation(rule:Element, sub_or_res:str, resp:EvalRespMvcc):
+    def fulfill_obligation(rule:Element, sub_or_res:str, resp:EvalRespMvcc, req:EvalReqMvcc):
         log.debug('Checking if %s obligation exists in rule:%s.', sub_or_res, rule)
-        if sub_or_res == 'subjectUpdate':
-            attrs_to_update = resp.subwattr 
-        elif sub_or_res == 'resourceUpdate':
-            attrs_to_update = resp.reswattr
-        else:
-            # TODO: throw wrong 'sub_or_res' parameter
-            return
+        attrs_to_update = resp.updates
 
         obligation_element = rule.find(sub_or_res)
         if obligation_element != None:
@@ -272,6 +266,12 @@ class WorkerMvcc(process):
                 # case 2: constant -> write (or overwrite) the value
                 attrs_to_update[attribute_name] = value_to_update
                 log.debug("Obligation: %s=%s. New value: %s", attribute_name, value_to_update, attrs_to_update[attribute_name])
+
+            wrtobj = self.analyzer.mightWriteObj(req)
+            if (wrtobj == req.resource and sub_or_res == "resourceUpdate") or (wrtobj == req.subject and sub_or_res == "subjectUpdate"):
+                self.predictCorrect = True
+            else:
+                self.predictCorrect = False 
 
 def main():
     # test cases to simlulate messages from resource coordinators
