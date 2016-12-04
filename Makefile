@@ -7,7 +7,7 @@ src/comp/application.py: src/comp/application.da src/msg/request.py src/msg/resp
 
 src/comp/coordinator.py: src/comp/coordinator.da src/comp/worker.py src/msg/evalreq.py src/msg/evalresp.py src/msg/commitreq.py src/msg/commitresp.py src/util/router.py src/util/idgen.py src/state/admin.py src/util/dynanalyzer.py
 	dac src/comp/coordinator.da
-src/comp/coordinatormvcc.py: src/comp/coordinatormvcc.da src/comp/worker.py src/msg/evalreqmvcc.py src/msg/evalrespmvcc.py src/util/router.py src/util/idgen.py src/state/adminmvcc.py 
+src/comp/coordinatormvcc.py: src/comp/coordinatormvcc.da src/comp/workermvcc.py src/msg/evalreqmvcc.py src/msg/evalrespmvcc.py src/util/router.py src/util/idgen.py src/state/adminmvcc.py 
 	dac src/comp/coordinatormvcc.da
 
 src/comp/worker.py: src/comp/worker.da src/db/db.py src/msg/request.py src/msg/response.py

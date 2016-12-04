@@ -3,10 +3,11 @@ from msg.evalreqmvcc import EvalReqMvcc
 from msg.evalrespmvcc import EvalRespMvcc
 from msg.commitreq import CommitReq
 from msg.commitresp import CommitResp
+from msg.evalrespmvcc import Decision
 
 log = logging.getLogger('Worker')
 
-class Worker(process):
+class WorkerMvcc(process):
     def setup(db:set):
         self.policy = None
         
@@ -36,6 +37,7 @@ class Worker(process):
 
         if resp.updateObj == -1:
             # req is read-only
+            pass
 
     def receive(msg=('policy', policy), from_=p):
         log.info("Received policy data from database: %s", p)

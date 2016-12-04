@@ -11,6 +11,7 @@ from msg.evalrespmvcc import Decision
 from comp.coordinator import Coordinator
 from comp.coordinatormvcc import CoordinatorMvcc
 from comp.worker import Worker
+from comp.workermvcc import WorkerMvcc
 from db.db import DB
 from util.router import Router
 from util.analyzer import Analyzer
@@ -106,7 +107,7 @@ def main():
     co = list()
     for i in range(1, int(cfg['master']['coordinators']) + 1):
         nodei = "CoordNode-" + str(i)
-        w = new(Worker, (db,), at=nodei)
+        w = new(WorkerMvcc, (db,), at=nodei)
         mw = new(MockWorker, (cfg[workload],), at=nodei)
         c = new(Coordinator if mode == "oplock" else CoordinatorMvcc, (w, db, cfg[workload], mw), at=nodei)
         start(w)
