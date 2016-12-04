@@ -67,8 +67,8 @@ class Application(process):
         log.info("App - Waiting for response")
         await(received('done'))
 
-    def receive(msg=('respapp', seq, result,), from_=sc):
-        log.info("App - Received request #seq-[%d] result: %s from SC %s", seq, result, sc)
+    def receive(msg=('respapp', seq, result,), from_=p):
+        log.info("App - Received request #seq-[%d] result: %s from %s", seq, result, p)
         del self.sentreq[seq]
 
         # Re-submit request if timeout

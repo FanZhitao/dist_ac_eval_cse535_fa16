@@ -11,6 +11,6 @@ class EvalRespMvcc(Response):
         self.ts = req.ts
         self.decision = Decision.permit
         self.readAttr = [None] * 3
-        self.updates  = set()
-        self.updatedObj = None
+        self.updates  = {}
+        self.updatedObj = -1
         self.rdonlydObj = None
