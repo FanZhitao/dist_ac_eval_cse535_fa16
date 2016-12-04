@@ -97,3 +97,16 @@ class Analyzer:
                 break
         return wrtobj
 
+    def subattr(self, req):
+        o = self.obj(req, 1)
+        if o == req.subject:
+            return req.cachedUpdates[1]
+        else:
+            return req.cachedUpdates[2]
+
+    def resattr(self, req):
+        o = self.obj(req, 1)
+        if o == req.subject:
+            return req.cachedUpdates[2]
+        else:
+            return req.cachedUpdates[1]
