@@ -49,7 +49,7 @@ class AdminMvcc:
 
         # Remove entry if alive longer than inconsitent window of attribute DB
         window = 10000 #TODO
-        for attr, _, ts in cache:
+        for attr, (_, ts) in cache.items():
             if self.now() - ts >= window:
                 del cache[attr]
         return cache

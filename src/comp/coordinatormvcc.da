@@ -184,8 +184,7 @@ class CoordinatorMvcc(process):
                 if attr not in pendingwrt[x]:
                     pendingwrt[x][attr] = set()
                 pendingwrt[x][attr].add((req.id, req.ts))
-                log.info("Coord%d - Current write request #seq=[%d] might write obj=[%s] attr=[%s]", 
-                        i, req.seq, x, attr) 
+                log.info("Coord%d - Request #seq=[%d] might write obj=[%s] attr=[%s]", i, req.seq, x, attr) 
 
     def update_read_ts(resp, i, attrs):
         x = self.analyzer.obj(resp, i)
@@ -196,7 +195,7 @@ class CoordinatorMvcc(process):
                 v.rts = resp.ts
 
     def conflict(x, resp):
-        for attr, _ in resp.updates.items():
+        for attr in resp.updates.keys():
             v = self.admin.latestVersionBefore(x, attr, resp.ts)
             if v.rts > resp.ts:
                 log.warning("***** Conflict *****: Request #seq=[%d] conflicts!", resp.seq)
