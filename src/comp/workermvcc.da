@@ -12,6 +12,8 @@ log = logging.getLogger('Worker')
 
 class WorkerMvcc(process):
     def setup(db:set):
+        logging.basicConfig(level=logging.INFO, 
+            format='[%(asctime)s] %(name)s:%(levelname)s: %(message)s')
         self.policy = None
         self.router = None
         self.analyzer = None
@@ -25,7 +27,7 @@ class WorkerMvcc(process):
             await(received(()))
 
     def receive(msg=('prepare', router, analyzer)):
-        log.info("Coord - Received route table and analyzer")
+        log.info("Worker - Received route table and analyzer")
         self.router = router
         self.analyzer = DynAnalyzer(analyzer)
 
