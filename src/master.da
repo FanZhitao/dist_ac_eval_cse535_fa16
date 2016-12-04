@@ -7,6 +7,7 @@ import configparser
 from comp.application import Application
 from msg.evalreqmvcc import EvalReqMvcc
 from msg.evalrespmvcc import EvalRespMvcc
+from msg.evalrespmvcc import Decision
 from comp.coordinator import Coordinator
 from comp.coordinatormvcc import CoordinatorMvcc
 from comp.worker import Worker
@@ -51,6 +52,7 @@ class MockWorker(process):
                 resp.updates = { 'history': req.resource }
             else:
                 resp.updates = dict()
+                resp.decision = Decision.deny
             resp.readAttr[2].append('history')
             delay(req)
             send(('respeval', resp), to=p)
