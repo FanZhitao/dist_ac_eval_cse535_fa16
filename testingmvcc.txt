@@ -1,33 +1,60 @@
 
+subject1=employee
+resource1=bank A
+resource1=bank B
+resource1=bank C
+resource1=bank D
+
 ====== Functional Test ======
 
-=== Workload 1 ===
-
-=== Workload 2 ===
+=== Test Case 1 ===
 
 
 ====== Conflict Handling Test ======
 
-=== Workload 3 ===
+=== Test Case 2 ===
 
-=== Workload 4 ===
+1) Goal: #r1 delay due to potential conflict but succeed at last
 
-1) Goal: Test
+ Send request #r1 (subject1, resource1, action1) and #r2 (subject1, resource1, action1). 
+ Then #r1 is delayed due to #r2 might read attr that #r1 is going to update.
+ Finally #r2 fails because #r1 update the attribute (history) #r2 depends on. 
+ At last #r1 wakes up and being restarted because of conflict.
 
-2) Scenario: 
- Send request #r1 and #r2. Then #r1 was pending due to #r2 might read attr that #r1 is going to update.
- Finally #r2 succeed and #r1 waked up and being restarted because of conflict.
+2) Configuration: Workload2 section in config/testmvcc.config. Run bin/startup.sh workload2
 
-3) Configuration:
-
-4) Log file:
+3) Log file:
 
 
-=== Workload 5 ===
+=== Test Case 3 ===
 
-=== Workload 6 ===
+1) Goal: #r1 delay due to potential conflict and failed immediately at last
 
-=== Workload 7 ===
+ Send request #r1 (subject1, resource1, action1) and #r2 (subject3, resource2, action1). 
+ Then #r1 is failed and restarted due to #r2 definitely read attr that #r1 is going to update.
+
+2) Configuration: Workload3 section in config/testmvcc.config. Run bin/startup.sh workload3
+
+3) Log file:
+
+
+=== Test Case 4 ===
+
+=== Test Case 5 ===
+
+1) Goal: Same as Test Case 2 but wrong prediction
+
+ Send request #r1 (subject1, resource3, action1) and #r2 (subject1, resource3, action1). 
+ Same as Test Case 2, but intentional make both subject1 and resource3 possible be written.
+ Thus Client (Application) makes wrong prediction.
+
+2) Configuration: Workload5 section in config/testmvcc.config. Run bin/startup.sh workload5
+
+3) Log file:
+
+=== Test Case 6 ===
+
+=== Test Case 7 ===
 
 1) Goal: Test starvation
 

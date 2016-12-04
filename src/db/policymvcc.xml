@@ -25,21 +25,21 @@
     -->
 
     <!-- Interfere prediction. Actually resource updated at last -->
-    <rule name="access bank C">
+    <rule name="access bank C first time">
 		<subjectCondition position="employee" history="xxx"/>
 		<resourceCondition id="bank C"/>
 		<action name="read"/>
 		<subjectUpdate history="bank C"/>
 	</rule>
-    <rule name="access bank C">
+    <rule name="access bank C later">
 		<subjectCondition position="employee"/>
 		<resourceCondition id="bank C" amount="0"/>
 		<action name="read"/>
 		<resourceUpdate amount="++"/>
 	</rule>
-    <rule name="access bank D">
-		<subjectCondition position="employee"/>
-		<resourceCondition id="bank D" amount="0"/>
+    <rule name="access bank C by manager">
+		<subjectCondition position="manager"/>
+		<resourceCondition id="bank C" amount="0"/>
 		<action name="read"/>
 	</rule>
 </policy>
