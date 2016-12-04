@@ -45,6 +45,13 @@ class Application(process):
             if mode == "oplock":
                 coord = router.get_sc(req.subject)
             else:
+                wrtobj = self.analyzer.mightWriteObj(req)
+                if len(wrtobj) == 0:
+                    log.info("App - Request #seq=[%d] type is READ-ONLY", req.seq)
+                elif len(wrtobj) == 1:
+                    log.info("App - Request #seq=[%d] type is READ-WRITE", req.seq)
+                else:
+                    log.info("App - Request #seq=[%d] type is UNKNOWN", req.seq)
                 x = self.analyzer.obj(req, 1)
                 coord = router.route(x)
             log.info("App - Send request #seq [%d] to Coord %s", i, coord)

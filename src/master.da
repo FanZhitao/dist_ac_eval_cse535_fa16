@@ -25,12 +25,14 @@ log = logging.LoggerAdapter(logging.getLogger("Master"), {})
 """
 
 class Sender(process):
-    def setup(co, workers, router, analyzer): pass
+    def setup(co, workers, mworkers, router, analyzer): pass
     def run():
         for c in co:
             send(('prepare', router, analyzer,), to=c)
         for w in workers:
             send(('prepare', router, analyzer,), to=w)
+        for mw in mworkers:
+            send(('prepare', router, analyzer,), to=mw)
 
 
 class MockWorker(process):
@@ -38,6 +40,13 @@ class MockWorker(process):
     def setup(cfg):
         logging.basicConfig(level=logging.INFO, 
             format='[%(asctime)s] %(name)s:%(levelname)s: %(message)s')
+        self.router = None
+        self.analyzer = None
+
+    def receive(msg=('prepare', router, analyzer)):
+        log.info("Worker - Received route table and analyzer")
+        self.router = router
+        self.analyzer = analyzer
 
     def run():
         while True:
@@ -67,6 +76,17 @@ class MockWorker(process):
             delay(req)
             send(('respapp', resp.seq, resp.decision), to=resp.app)
             send(('readAttr', resp, 2), to=p)
+        elif req.subject == 'employee' and req.resource == 'bank C': #2-write-obj, actual write happen on obj-1 (resource) which means wrong prediction
+            resp.updatedObj = 1
+            resp.rdonlydObj = 2
+            if req.seq == 1: # only first one succeed
+                resp.updates = { 'amount': 1 }
+            else:
+                resp.updates = dict()
+                resp.decision = Decision.deny
+            resp.readAttr[1].append('amount')
+            delay(req)
+            send(('respeval', resp), to=router.route(analyzer.obj(req, 1)))
         log.info('MockWorker - Send evalution result of #seq=[%d] back', req.seq)
 
     def delay(req):
@@ -108,6 +128,7 @@ def main():
     # 2.Create and start coordinators and correspondent worker on remote node
     co = list()
     workers = list()
+    mworkers = list()
     for i in range(1, int(cfg['master']['coordinators']) + 1):
         nodei = "CoordNode-" + str(i)
         w = new(WorkerMvcc, (db,), at=nodei)
@@ -118,6 +139,7 @@ def main():
         start(c)
         co.append(c)
         workers.append(w)
+        mworkers.append(mw)
         log.info("Start a pair of Coordinator and Worker on Node [%s]", nodei) 
 
     # 3.Prepare coordinator with router table and analyzer
@@ -126,7 +148,7 @@ def main():
     router = Router()
     router.assign(analyzer.subjects, analyzer.resources, co)
     # Analyze policy
-    sender = new(Sender, (co, workers, router, analyzer))
+    sender = new(Sender, (co, workers, mworkers, router, analyzer))
     start(sender)
     time.sleep(1)
 
