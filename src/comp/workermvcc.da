@@ -220,7 +220,7 @@ class WorkerMvcc(process):
 
                 value_original = value
 
-            resp.updates[attribute_name] = value_original
+            subattr[attribute_name] = value_original
 
         # resource attributes
         for attribute_name in resattr:
@@ -241,14 +241,13 @@ class WorkerMvcc(process):
 
                 value_original = value
 
-            resp.updates[attribute_name] = value_original
-
+            resattr[attribute_name] = value_original
 
         # Modify write attributes according to obligation
         # subject attributes update
-        #fulfill_obligation(rule, 'subjectUpdate', resp, req)
+        fulfill_obligation(rule, 'subjectUpdate', resp, req)
         # resource attributes update
-        #fulfill_obligation(rule, 'resourceUpdate', resp, req)
+        fulfill_obligation(rule, 'resourceUpdate', resp, req)
 
         if len(resp.updates) > 0:
             if self.predictCorrect:
