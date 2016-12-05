@@ -7,6 +7,7 @@ from msg.evalrespmvcc import EvalRespMvcc
 from msg.commitreq import CommitReq
 from msg.commitresp import CommitResp
 from msg.evalrespmvcc import Decision
+import time
 
 log = logging.getLogger('Worker')
 
@@ -56,6 +57,7 @@ class WorkerMvcc(process):
             resp = add_read_write_attributes(req, resp, rule)
             pass
 
+        delay(req)
         if resp.updatedObj == -1:
             # req is read-only
             # send decision to app and obj1
@@ -296,6 +298,13 @@ class WorkerMvcc(process):
                 self.predictCorrect = True
             else:
                 self.predictCorrect = False 
+
+    def delay(req):
+        key = 'req' + str(req.seq) + '.worker.delay'
+        if key in cfg:
+            interval = cfg[key]
+            log.info('***** Delay *****: #seq=[%d] delay %f(s) at worker', req.seq, float(interval))
+            time.sleep(float(interval))
 
 def main():
     # test cases to simlulate messages from resource coordinators
