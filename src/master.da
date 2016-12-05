@@ -138,7 +138,7 @@ def main():
     path_policy = './src/db/' + cfg['db']['policy']
     path_record = './src/db/' + cfg['db']['record']
     db = new(DB, args=(path_policy, path_record, cfg['db']['minDBlatency'], cfg['db']['maxDBlatency'], None), at='DbNode')
-    #start(db) TODO message too big exception?
+    start(db)
     log.info("Start Database instance")
 
     # 2.Create and start coordinators and correspondent worker on remote node
@@ -147,7 +147,7 @@ def main():
     mworkers = list()
     for i in range(1, int(cfg['master']['coordinators']) + 1):
         nodei = "CoordNode-" + str(i)
-        w = new(WorkerMvcc, (db,), at=nodei)
+        w = new(WorkerMvcc, (db, cfg), at=nodei)
         #mw = new(MockWorker, (cfg[workload],), at=nodei)
         mw = None
         c = new(Coordinator if mode == "oplock" else CoordinatorMvcc, (w, db, cfg[workload], mw), at=nodei)
