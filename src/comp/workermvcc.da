@@ -43,10 +43,15 @@ class WorkerMvcc(process):
             log.debug("No policy received yet. Waiting for response from database.")
             await(received(('policy')))
 
-        # In case no cached attributes in request
+        # Cases need to update cache by loading from database
         if len(req.cachedUpdates[1]) == 0 and len(req.cachedUpdates[2]) == 0:
             send(('getattrs', req), to=db)
+        elif 1 == 1:
+            # no certain sub/res record
+            # expired
+            send(('getattrs', req), to=db)
         else:
+            # cache is good
             process_evaluation()
 
     def receive(msg=('policy', policy), from_=p):
@@ -80,12 +85,15 @@ class WorkerMvcc(process):
         if resp.updatedObj == -1:
             # req is read-only
             # send decision to app and obj1
+            log.info("Sending decision to application %s", resp.app)
             send(('respapp', resp.seq, resp.decision,), to=resp.app)
             coord = self.router.route(self.analyzer.obj(req, 1))
+            log.info("Sending evaluation response to coordinator %s", coord)
             send(('evalresp', resp), to=coord)
         else:
             # req is write-one-object
             coord = self.router.route(resp.updatedObj)
+            log.info("Sending evaluation response to coordinator %s", coord)
             send(('evalresp', resp), to=coord)
 
     def evaluate(req:EvalReqMvcc):
@@ -95,7 +103,7 @@ class WorkerMvcc(process):
         matched_rule = None
 
         for rule in policy.iter('rule'): # rule is an ElementTree instance
-            log.debug("Trying to match rule [%s]", rule.attrib['name'])
+            log.info("Trying to match rule [%s]", rule.attrib['name'])
             # check if conditions satisfy the current rule
             should_try_next_rule = False # flag used to continue outter for loop
 
@@ -192,8 +200,8 @@ class WorkerMvcc(process):
         # subject attributes
         subattr = self.analyzer.subattr(req)
         resattr = self.analyzer.resattr(req)
-        log.info("subattr: %s", subattr)
-        log.info("resattr: %s", resattr)
+        log.debug("subattr: %s", subattr)
+        log.debug("resattr: %s", resattr)
         for attribute_name in subattr:
             #resp.subrattr.append(attribute_name) # read attributes
             value_original = subattr.get(attribute_name)
@@ -212,7 +220,7 @@ class WorkerMvcc(process):
 
                 value_original = value
 
-            resp.updates[attribute_name] = value_original
+            subattr[attribute_name] = value_original
 
         # resource attributes
         for attribute_name in resattr:
@@ -233,14 +241,13 @@ class WorkerMvcc(process):
 
                 value_original = value
 
-            resp.updates[attribute_name] = value_original
-
+            resattr[attribute_name] = value_original
 
         # Modify write attributes according to obligation
         # subject attributes update
-        #fulfill_obligation(rule, 'subjectUpdate', resp, req)
+        fulfill_obligation(rule, 'subjectUpdate', resp, req)
         # resource attributes update
-        #fulfill_obligation(rule, 'resourceUpdate', resp, req)
+        fulfill_obligation(rule, 'resourceUpdate', resp, req)
 
         if len(resp.updates) > 0:
             if self.predictCorrect:
