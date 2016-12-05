@@ -14,13 +14,19 @@ else
 fi
 
 if [ "$mode" = "mvcc" ]; then
-    config="config/testmvcc.config"
-elif [ "$workload" = "workload7" ]; then
-    config="config/stresstest.config"
-elif [ "$workload" = "workload8" ]; then
-    config="config/test2.config"
+    if [ "$workload" = "workload7" ]; then
+        config="config/stresstest_mvcc.config"
+    else
+        config="config/testmvcc.config"
+    fi
 else
-    config="config/test.config"
+    if [ "$workload" = "workload7" ]; then
+        config="config/stresstest.config"
+    elif [ "$workload" = "workload8" ]; then
+        config="config/test2.config"
+    else
+        config="config/test.config"
+    fi
 fi
 
 make
