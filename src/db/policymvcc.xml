@@ -5,26 +5,31 @@
 		<action name="read"/>
 		<subjectUpdate history="bank A"/>
 	</rule>
+    <!-- Case 2: r1 delay by this rule's mightRead (but failed due to rule1 update history first) -->
 	<rule name="access bank A again">
 		<subjectCondition position="employee" history="bank A"/>
 		<resourceCondition id="bank A"/>
 		<action name="read"/>
 	</rule>
+    <!-- Case 3: defRead history causes immediate find conflict and restart -->
     <rule name="access bank B first time">
 		<subjectCondition position="employee" history="empty"/>
 		<resourceCondition id="bank B"/>
 		<action name="read"/>
 	</rule>
-
-    <!--
-	<rule name="access bank B again">
-		<subjectCondition position="employee"/>
-		<resourceCondition id="bank B"/>
+    <!-- Case 4: Same as Case 2, but r2 succeed which causes r1 restarts after wakeup -->
+	<rule name="access bank D">
+		<subjectCondition position="employee" history="bank D"/>
+		<resourceCondition id="bank D"/>
 		<action name="read"/>
 	</rule>
-    -->
+	<rule name="access bank D again">
+        <subjectCondition position="employee" type="111"/> <!-- make history mightRead rather than defRead -->
+		<resourceCondition id="bank D"/>
+		<action name="read"/>
+	</rule>
 
-    <!-- Interfere prediction. Actually resource updated at last -->
+    <!-- Case 5: Interfere prediction. Actually resource updated at last -->
     <rule name="access bank C first time">
 		<subjectCondition position="employee" history="xxx"/>
 		<resourceCondition id="bank C"/>
@@ -37,6 +42,7 @@
 		<action name="read"/>
 		<resourceUpdate amount="++"/>
 	</rule>
+    <!-- Case 7: readonly pending due to potential starving write req on 'amount' -->
     <rule name="access bank C by manager">
 		<subjectCondition position="manager"/>
 		<resourceCondition id="bank C" amount="0"/>

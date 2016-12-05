@@ -76,6 +76,14 @@ class MockWorker(process):
             delay(req)
             send(('respapp', resp.seq, resp.decision), to=resp.app)
             send(('readAttr', resp, 2), to=p)
+        elif req.subject == 'employee' and req.resource == 'bank D': #readonly but have mightRead attr
+            resp.updatedObj = -1
+            resp.rdonlydObj = -1
+            resp.readAttr[2].append('history')
+            resp.updates = dict()
+            delay(req)
+            send(('respapp', resp.seq, resp.decision), to=resp.app)
+            send(('readAttr', resp, 2), to=p)
         elif req.subject == 'employee' and req.resource == 'bank C': #2-write-obj, actual write happen on obj-1 (resource) which means wrong prediction
             resp.updatedObj = 1
             resp.rdonlydObj = 2
@@ -87,7 +95,7 @@ class MockWorker(process):
             resp.readAttr[1].append('amount')
             delay(req)
             send(('respeval', resp), to=router.route(analyzer.obj(req, 1)))
-        elif req.subject == 'employee' and req.resource == 'bank D': #readonly
+        elif req.subject == 'manager' and req.resource == 'bank C': #readonly
             resp.updatedObj = -1
             resp.rdonlydObj = -1
             resp.readAttr[1].append('amount')
@@ -95,7 +103,6 @@ class MockWorker(process):
             delay(req)
             send(('respapp', resp.seq, resp.decision), to=resp.app)
             send(('readAttr', resp, 1), to=router.route(analyzer.obj(req, 1)))
-        
         log.info('MockWorker - Send evalution result of #seq=[%d] back', req.seq)
 
     def delay(req):

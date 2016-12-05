@@ -128,6 +128,7 @@ class CoordinatorMvcc(process):
             return
         x = self.analyzer.obj(resp, i)
         log.info("CoordR - Incoming readAttr request: coord=[%d], #seq=[%d], object=[%s]", i, resp.seq, x)
+        cleanup_pending_update(x, resp)
         update_read_ts(resp, i, self.analyzer.mightReadAttr(x, resp))
         log.info("CoordR - Update read ts of attr complete")
 
