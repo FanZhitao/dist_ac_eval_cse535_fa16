@@ -18,6 +18,7 @@ class WorkerMvcc(process):
         self.router = None
         self.analyzer = None
         self.predictCorrect = False
+        self.req = None
         
     def run():
         log.info("Worker %s is up.", self)
@@ -34,11 +35,17 @@ class WorkerMvcc(process):
 
     def receive(msg=('assigneval', req), from_=c):
         log.info("Received evaluation request from coodinator: %s", c)
+        self.req = req
 
         # In case not received policy from database yet.
         if self.policy == None:
             log.debug("No policy received yet. Waiting for response from database.")
             await(received(('records')))
+
+        # In case no cached attributes in request
+        if len(req.cachedUpdates[1]) == 0 or len(req.cachedUpdates[2]) == 0:
+            send(('getattrs', req), to=db)
+            await(received(('attrs', attrs), from_=db))
 
         # Evaluate the request.
         resp, rule = evaluate(req)
@@ -64,6 +71,16 @@ class WorkerMvcc(process):
         log.info("Received policy data from database: %s", p)
         log.debug("policy: %s", policy)
         self.policy = policy
+
+    def receive(msg=('attrs', attrs), from_=db):
+        log.info("Received attributes from database: %s\nattrs: %s", db, attrs)
+        o = self.analyzer.obj(self.req, 1)
+        if o == self.req.subject:
+            self.req.cachedUpdates[1] = attrs['sub']
+            self.req.cachedUpdates[2] = attrs['res']
+        else:
+            self.req.cachedUpdates[1] = attrs['res']
+            self.req.cachedUpdates[2] = attrs['sub']
 
     def evaluate(req:EvalReqMvcc):
         log.info("Start to evaluate req: [%d]", req.seq)
