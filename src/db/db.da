@@ -12,6 +12,8 @@ log = logging.getLogger('DB')
 
 class DB(process):
     def setup(policy_filename:str, record_filename:str, minDBlatency:str, maxDBlatency:str, workers:set):
+        logging.basicConfig(level=logging.INFO, 
+            format='[%(asctime)s] %(name)s:%(levelname)s: %(message)s')
         log.debug("%s is setting up.", self)
         log.debug("Parsing policy file: %s", policy_filename)
         tree = ET.parse(policy_filename)
@@ -45,7 +47,7 @@ class DB(process):
             pass
         minDBlatency = int(minDBlatency)
         maxDBlatency = int(maxDBlatency)
-        log.debug("DB setup finished.")
+        log.info("DB setup finished.")
 
     def run():
         log.info("%s is up.", self)

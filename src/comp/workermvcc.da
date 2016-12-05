@@ -46,9 +46,24 @@ class WorkerMvcc(process):
         # In case no cached attributes in request
         if (len(req.cachedUpdates[1]) == 0) and (len(req.cachedUpdates[2]) == 0):
             send(('getattrs', req), to=db)
-            await(received(('attrs',), from_=db))
+
+    def receive(msg=('policy', policy), from_=p):
+        log.info("Received policy data from database: %s", p)
+        log.debug("policy: %s", policy)
+        self.policy = policy
+
+    def receive(msg=('attrs', attrs), from_=db):
+        log.info("Received attributes from database: %s\nattrs: %s", db, attrs)
+        o = self.analyzer.obj(self.req, 1)
+        if o == self.req.subject:
+            self.req.cachedUpdates[1] = attrs['sub']
+            self.req.cachedUpdates[2] = attrs['res']
+        else:
+            self.req.cachedUpdates[1] = attrs['res']
+            self.req.cachedUpdates[2] = attrs['sub']
 
         # Evaluate the request.
+        req = self.req
         resp, rule = evaluate(req)
         if resp.decision == Decision.permit:
             # Has found a matched rule.
@@ -68,21 +83,6 @@ class WorkerMvcc(process):
             # req is write-one-object
             coord = self.router.route(resp.updatedObj)
             send(('evalresp', resp), to=coord)
-
-    def receive(msg=('policy', policy), from_=p):
-        log.info("Received policy data from database: %s", p)
-        log.debug("policy: %s", policy)
-        self.policy = policy
-
-    def receive(msg=('attrs', attrs), from_=db):
-        log.info("Received attributes from database: %s\nattrs: %s", db, attrs)
-        o = self.analyzer.obj(self.req, 1)
-        if o == self.req.subject:
-            self.req.cachedUpdates[1] = attrs['sub']
-            self.req.cachedUpdates[2] = attrs['res']
-        else:
-            self.req.cachedUpdates[1] = attrs['res']
-            self.req.cachedUpdates[2] = attrs['sub']
 
     def evaluate(req:EvalReqMvcc):
         log.info("Start to evaluate req: [%d]", req.seq)
