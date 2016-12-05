@@ -148,14 +148,15 @@ def main():
     for i in range(1, int(cfg['master']['coordinators']) + 1):
         nodei = "CoordNode-" + str(i)
         w = new(WorkerMvcc, (db,), at=nodei)
-        mw = new(MockWorker, (cfg[workload],), at=nodei)
+        #mw = new(MockWorker, (cfg[workload],), at=nodei)
+        mw = None
         c = new(Coordinator if mode == "oplock" else CoordinatorMvcc, (w, db, cfg[workload], mw), at=nodei)
         start(w)
-        start(mw)
+        #start(mw)
         start(c)
         co.append(c)
         workers.append(w)
-        mworkers.append(mw)
+        #mworkers.append(mw)
         log.info("Start a pair of Coordinator and Worker on Node [%s]", nodei) 
 
     # 3.Prepare coordinator with router table and analyzer
