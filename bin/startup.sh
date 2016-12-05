@@ -14,7 +14,7 @@ else
 fi
 
 if [ "$mode" = "mvcc" ]; then
-    if [ "$workload" = "workload7" ]; then
+    if [ "$workload" = "workload8" ]; then
         config="config/stresstest_mvcc.config"
     else
         config="config/testmvcc.config"

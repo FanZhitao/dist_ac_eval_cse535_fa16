@@ -29,16 +29,29 @@
 		<action name="read"/>
 	</rule>
 
-    <!-- Case 5: Interfere prediction. Actually resource updated at last -->
+    <!-- Case 5: Same as Case 2 but make wrong prediction. Actual update on resource -->
     <rule name="access bank C first time">
-		<subjectCondition position="employee" history="xxx"/>
+        <subjectCondition position="employee" history="xxx"/> <!-- Make this rule doesn't be effective -->
 		<resourceCondition id="bank C"/>
 		<action name="read"/>
 		<subjectUpdate history="bank C"/>
 	</rule>
-    <rule name="access bank C later">
+    <rule name="access bank C again">
 		<subjectCondition position="employee"/>
 		<resourceCondition id="bank C" amount="0"/>
+		<action name="read"/>
+		<resourceUpdate amount="++"/>
+	</rule>
+    <!-- Case 6: Same as Case 4 but make wrong prediction. -->
+	<rule name="access bank E">
+		<subjectCondition position="employee" history="xxx"/>
+		<resourceCondition id="bank E"/>
+		<action name="read"/>
+		<subjectUpdate history="bank E"/>
+	</rule>
+	<rule name="access bank E again">
+        <subjectCondition position="employee"/>
+        <resourceCondition id="bank E" amount="0"/> <!-- TODO How to make the seconde read-write request succeed as well -->
 		<action name="read"/>
 		<resourceUpdate amount="++"/>
 	</rule>

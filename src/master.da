@@ -95,6 +95,13 @@ class MockWorker(process):
             resp.readAttr[1].append('amount')
             delay(req)
             send(('respeval', resp), to=router.route(analyzer.obj(req, 1)))
+        elif req.subject == 'employee' and req.resource == 'bank E': #2-write-obj, actual write happen on obj-1 (resource) which means wrong prediction
+            resp.updatedObj = 1                                     #But the second request succeeds as well
+            resp.rdonlydObj = 2
+            resp.updates = { 'amount': 1 }
+            resp.readAttr[1].append('amount')
+            delay(req)
+            send(('respeval', resp), to=router.route(analyzer.obj(req, 1)))
         elif req.subject == 'manager' and req.resource == 'bank C': #readonly
             resp.updatedObj = -1
             resp.rdonlydObj = -1
