@@ -7,17 +7,19 @@ from msg.evalrespmvcc import EvalRespMvcc
 from msg.commitreq import CommitReq
 from msg.commitresp import CommitResp
 from msg.evalrespmvcc import Decision
+import time
 
 log = logging.getLogger('Worker')
 
 class WorkerMvcc(process):
-    def setup(db:set):
+    def setup(db:set, cfg):
         logging.basicConfig(level=logging.INFO, 
             format='[%(asctime)s] %(name)s:%(levelname)s: %(message)s')
         self.policy = None
         self.router = None
         self.analyzer = None
         self.predictCorrect = False
+        self.req = None
         
     def run():
         log.info("Worker %s is up.", self)
@@ -34,11 +36,17 @@ class WorkerMvcc(process):
 
     def receive(msg=('assigneval', req), from_=c):
         log.info("Received evaluation request from coodinator: %s", c)
+        self.req = req
 
         # In case not received policy from database yet.
         if self.policy == None:
             log.debug("No policy received yet. Waiting for response from database.")
             await(received(('records')))
+
+        # In case no cached attributes in request
+        if len(req.cachedUpdates[1]) == 0 or len(req.cachedUpdates[2]) == 0:
+            send(('getattrs', req), to=db)
+            await(received(('attrs', attrs), from_=db))
 
         # Evaluate the request.
         resp, rule = evaluate(req)
@@ -49,6 +57,7 @@ class WorkerMvcc(process):
             resp = add_read_write_attributes(req, resp, rule)
             pass
 
+        delay(req)
         if resp.updatedObj == -1:
             # req is read-only
             # send decision to app and obj1
@@ -64,6 +73,16 @@ class WorkerMvcc(process):
         log.info("Received policy data from database: %s", p)
         log.debug("policy: %s", policy)
         self.policy = policy
+
+    def receive(msg=('attrs', attrs), from_=db):
+        log.info("Received attributes from database: %s\nattrs: %s", db, attrs)
+        o = self.analyzer.obj(self.req, 1)
+        if o == self.req.subject:
+            self.req.cachedUpdates[1] = attrs['sub']
+            self.req.cachedUpdates[2] = attrs['res']
+        else:
+            self.req.cachedUpdates[1] = attrs['res']
+            self.req.cachedUpdates[2] = attrs['sub']
 
     def evaluate(req:EvalReqMvcc):
         log.info("Start to evaluate req: [%d]", req.seq)
@@ -279,6 +298,13 @@ class WorkerMvcc(process):
                 self.predictCorrect = True
             else:
                 self.predictCorrect = False 
+
+    def delay(req):
+        key = 'req' + str(req.seq) + '.worker.delay'
+        if key in cfg:
+            interval = cfg[key]
+            log.info('***** Delay *****: #seq=[%d] delay %f(s) at worker', req.seq, float(interval))
+            time.sleep(float(interval))
 
 def main():
     # test cases to simlulate messages from resource coordinators

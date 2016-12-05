@@ -98,7 +98,10 @@ class CoordinatorMvcc(process):
 
                 # Commit update to database
                 log.info("CoordW - Send attribute updates to database [%s]", self.db)
-                send(('writeattr', resp.updates), to=self.db)
+                sub_or_res = 'sub'
+                if x == resp.resource:
+                    sub_or_res = 'res'
+                send(('writeattr', resp.updates, resp.ts, sub_or_res), to=self.db)
 
                 # Commit update to cache and update version
                 self.admin.commit_cache(x, resp)

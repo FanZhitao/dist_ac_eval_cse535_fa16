@@ -21,8 +21,11 @@ class DB(process):
         record = tree.getroot()
 
         # convert record to attributes dict
-        self.subrecords = convert(record, 'subject')
-        self.resrecords = convert(record, 'resource')
+        ts = time.time()
+        self.subrecords = {}
+        self.resrecords = {}
+        self.subrecords[ts] = convert(record, 'subject')
+        self.resrecords[ts] = convert(record, 'resource')
 
         self.actions = []
         # save possible actions
@@ -35,8 +38,6 @@ class DB(process):
         log.debug("Parsing finished.")
         log.debug("subject records: %s", self.subrecords)
         log.debug("resource records: %s", self.resrecords)
-        self.subattrs = {}
-        self.resattrs = {}
 
         log.debug("min and max latency: %s, %s", minDBlatency, maxDBlatency)
         if not minDBlatency.isnumeric() or not maxDBlatency.isnumeric():
@@ -55,16 +56,12 @@ class DB(process):
         log.info("Received policy request message from worker %s", p)
         send(('policy', self.rules), to=p)
 
-    def receive(msg=('writesubattr', tattr), from_=p):
-        # tattr format: {subid, [{attr, (val, ts, _)},]}
-        log.info("Received write attribute messages from subject coordinator [%s]", p)
-        handle_write_message(tattr, self.subattrs) 
-        send(('writefinish', True), to=p)
-
-    def receive(msg=('writeresattr', rescache), from_=p):
-        # rescache format: {resid, [{attr, (val, ts)},]}
-        log.info("Received write attribute messages from resource coordinator [%s]", p)
-        handle_write_message(rescache, self.resattrs) 
+    def receive(msg=('writeattr', attr, ts, sub_or_res), from_=p):
+        log.info("Received write attribute messages from coordinator [%s]", p)
+        records = self.subrecords
+        if sub_or_res == 'res':
+            records = self.resrecords
+        write_attrs(records, attr, ts)
         send(('writefinish', True), to=p)
 
     def receive(msg=('getsubs'), from_=p):
@@ -85,28 +82,37 @@ class DB(process):
     def receive(msg=('dumpdb'), from_=p):
         log.info("\n" + "=" * 10 + " Database Data " + "=" * 10 
                     + "\n Subject %s\n Resource %s\n", 
-                        pprint.pformat(self.subattrs), pprint.pformat(self.resattrs))
+                        pprint.pformat(self.subrecords), pprint.pformat(self.resrecords))
 
-    def handle_write_message(attrs_recved, attrs_in_db):
-        id = next(iter(attrs_recved))
-        record_in_db = attrs_in_db.get(id)
-        record_received = attrs_recved.get(id)
-        log.debug("Trying to write (id=%s) with attributes %s if necessary.", id, record_received)
-        # Write if 1. no such record exists currently,
-        #       or 2. received record is newer then current in database.
-        if record_in_db == None:
-            log.debug("Writing new record.")
-            write(attrs_in_db, id, record_received)
+    def receive(msg=('getattrs', req), from_=p):
+        log.info("Received get attributes request from worker:%s", p)
+        sub = None
+        res = None
+        for ts in self.subrecords.keys():
+            if ts <= req.ts:
+                sub = self.subrecords[ts]
+        for ts in self.resrecords.keys():
+            if ts <= req.ts:
+                res = self.resrecords[ts]
+        attrs2send = {}
+        attrs2send['sub'] = sub
+        attrs2send['res'] = res
+        send(('attrs', attrs2send), to=p)
+
+    def write_attrs(records, attr, ts):
+        matched_record = None
+        for ts_in_db in records.keys():
+            if ts_in_db == ts:
+                matched_record = records[ts]
+                break
+
+        if matched_record == None:
+            # insert a record with timestamp ts
+            records[ts] = attr
         else:
-            tuple_temp = next(iter(record_in_db.values()))
-            value_in_db = tuple_temp[0]
-            ts_in_db = tuple_temp[1]
-            tuple_temp = next(iter(record_received.values()))
-            value_received = tuple_temp[0]
-            ts_received = tuple_temp[1]
-            log.debug("Record existed, comparing timestamps (database: %f vs. attentive: %f)", ts_in_db, ts_received)
-            if ts_in_db < ts_received:
-                write(attrs_in_db, id, record_received)
+            # update record at timestamp ts
+            for key in records[ts].keys():
+                records[ts][key] = attr[key]
 
         # delay the visibility of updates
         l = random.randrange(minDBlatency, maxDBlatency, 1)
@@ -124,8 +130,3 @@ class DB(process):
                 result[attr['id']] = attr
                 #result[attr['id']].pop('id')
         return result
-
-    def write(attributes, key:str, value):
-        attributes[key] = value
-        log.debug("Writing (%s, %s) finished.", str, value)
-        log.debug("After write, %s", attributes)
