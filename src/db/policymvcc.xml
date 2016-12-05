@@ -1,7 +1,7 @@
 <policy>
 	<rule name="access bank A first time">
 		<subjectCondition position="employee" history="empty"/>
-		<resourceCondition id="bank A" type="bank"/>
+		<resourceCondition id="bank A"/>
 		<action name="read"/>
 		<subjectUpdate history="bank A"/>
 	</rule>

@@ -46,6 +46,7 @@ class Application(process):
             # 2.Send to correspondent subject coordinator
             if mode == "oplock":
                 coord = router.get_sc(req.subject)
+                log.info(req)
             else:
                 wrtobj = self.analyzer.mightWriteObj(req)
                 if len(wrtobj) == 0:

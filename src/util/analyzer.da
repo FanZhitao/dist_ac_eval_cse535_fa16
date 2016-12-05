@@ -20,6 +20,8 @@ log = logging.getLogger(__name__)
 class Analyzer:
 
     def __init__(self, policyfile):
+        logging.basicConfig(level=logging.INFO, 
+            format='[%(asctime)s] %(name)s:%(levelname)s: %(message)s')
         self.policy = dict()
         self.subjects = set()
         self.resources = set()
@@ -76,22 +78,24 @@ class Analyzer:
         # If written object is decided, choose it as second to process
         # Otherwise (readonly request or more than 1 written object which cannot be decided)
         # Choose subject as the first object to handle randomly
+        sub_type = 'employee' # hardcoded
         if len(wrtobj) == 1:
-            rdobj = req.subject if req.subject != wrtobj[0] else req.resource
+            rdobj = sub_type if sub_type != wrtobj[0] else req.resource
             return rdobj if i == 1 else wrtobj[0]
         else:
-            return req.resource if i == 1 else req.subject
+            return req.resource if i == 1 else sub_type
 
     def readonly(self, req):
         return not self.mightWriteObj(req)
 
     def mightWriteObj(self, req):
         wrtobj = list()
-        for rule in self.policy[(req.subject, req.resource, req.action)]:
+        sub_type = 'employee' # hardcoded
+        for rule in self.policy[(sub_type, req.resource, req.action)]:
             if rule[SUB_UPD]:
-                wrtobj.append(req.subject)
+                wrtobj.append(sub_type)
                 break
-        for rule in self.policy[(req.subject, req.resource, req.action)]:
+        for rule in self.policy[(sub_type, req.resource, req.action)]:
             if rule[RES_UPD]:
                 wrtobj.append(req.resource)
                 break
@@ -100,13 +104,13 @@ class Analyzer:
     def subattr(self, req):
         o = self.obj(req, 1)
         if o == req.subject:
-            return req.cachedUpdates[1]
+            return req.cachedUpdates[1][req.subject]
         else:
-            return req.cachedUpdates[2]
+            return req.cachedUpdates[2][req.subject]
 
     def resattr(self, req):
         o = self.obj(req, 1)
         if o == req.subject:
-            return req.cachedUpdates[2]
+            return req.cachedUpdates[2][req.resource]
         else:
-            return req.cachedUpdates[1]
+            return req.cachedUpdates[1][req.resource]
