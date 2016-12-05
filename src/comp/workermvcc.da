@@ -41,11 +41,13 @@ class WorkerMvcc(process):
         # In case not received policy from database yet.
         if self.policy == None:
             log.debug("No policy received yet. Waiting for response from database.")
-            await(received(('policy', policy), from_=db))
+            await(received(('policy')))
 
         # In case no cached attributes in request
-        if (len(req.cachedUpdates[1]) == 0) and (len(req.cachedUpdates[2]) == 0):
+        if len(req.cachedUpdates[1]) == 0 and len(req.cachedUpdates[2]) == 0:
             send(('getattrs', req), to=db)
+        else:
+            process_evaluation()
 
     def receive(msg=('policy', policy), from_=p):
         log.info("Received policy data from database: %s", p)
@@ -61,7 +63,9 @@ class WorkerMvcc(process):
         else:
             self.req.cachedUpdates[1] = attrs['res']
             self.req.cachedUpdates[2] = attrs['sub']
+        process_evaluation()
 
+    def process_evaluation():
         # Evaluate the request.
         req = self.req
         resp, rule = evaluate(req)

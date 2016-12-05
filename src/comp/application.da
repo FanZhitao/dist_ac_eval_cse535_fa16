@@ -15,6 +15,8 @@ log = logging.getLogger("Application")
 class Application(process):
 
     def setup(router:Router, seqfrom:int, seqto:int, cfg, analyzer, mode):
+        logging.basicConfig(level=logging.INFO, 
+            format='[%(asctime)s] %(name)s:%(levelname)s: %(message)s')
         log.info('Application [%s] is up', self)
         self.sentreq = dict()
 
