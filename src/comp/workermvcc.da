@@ -89,12 +89,12 @@ class WorkerMvcc(process):
             send(('respapp', resp.seq, resp.decision,), to=resp.app)
             coord = self.router.route(self.analyzer.obj(req, 1))
             log.info("Sending evaluation response to coordinator %s", coord)
-            send(('evalresp', resp), to=coord)
+            send(('respeval', resp), to=coord)
         else:
             # req is write-one-object
             coord = self.router.route(resp.updatedObj)
             log.info("Sending evaluation response to coordinator %s", coord)
-            send(('evalresp', resp), to=coord)
+            send(('respeval', resp), to=coord)
 
     def evaluate(req:EvalReqMvcc):
         log.info("Start to evaluate req: [%d]", req.seq)
