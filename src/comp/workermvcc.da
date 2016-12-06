@@ -12,7 +12,7 @@ import time
 log = logging.getLogger('Worker')
 
 class WorkerMvcc(process):
-    def setup(db:set, cfg, cfgwl):
+    def setup(db:set, cfg, cfgwl, isZeroLatency):
         logging.basicConfig(level=logging.INFO, 
             format='[%(asctime)s] %(name)s:%(levelname)s: %(message)s')
         self.policy = None
@@ -34,6 +34,21 @@ class WorkerMvcc(process):
 
     def receive(msg=('assigneval', req), from_=c):
         log.info("Received evaluation request from coodinator: %s", c)
+
+        if isZeroLatency:
+            # stress test response
+            resp = EvalRespMvcc(req)
+            resp.decision = Decision.permit
+            resp.readAttributes = [None, [], []]
+            resp.updates = []
+            log.info("Sending decision to application %s", resp.app)
+            send(('respapp', resp.seq, resp.decision,), to=resp.app)
+            coord = self.router.route(self.analyzer.obj(req, 1))
+            log.info("Sending evaluation response to coordinator %s", coord)
+            send(('readAttr', resp, 1), to=coord)
+            coord = self.router.route(self.analyzer.obj(req, 2))
+            log.info("Sending evaluation response to coordinator %s", coord)
+            send(('readAttr', resp, 2), to=coord)
 
         delay(req)
         # In case not received policy from database yet.

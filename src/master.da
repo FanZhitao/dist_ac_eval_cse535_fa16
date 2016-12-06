@@ -150,11 +150,16 @@ def main():
 
     # 2.Create and start coordinators and correspondent worker on remote node
     co = list()
+    isZeroLatency = False
+    if 'worker' in cfg:
+        if 'ZeroLatency' in cfg['worker']:
+            if cfg['worker']['ZeroLatency'] == 1:
+                isZeroLatency = True
     workers = list()
     mworkers = list()
     for i in range(1, int(cfg['master']['coordinators']) + 1):
         nodei = "CoordNode-" + str(i)
-        w = new(WorkerMvcc, (db, cfg, cfg[workload]), at=nodei)
+        w = new(WorkerMvcc, (db, cfg, cfg[workload], isZeroLatency), at=nodei)
         #mw = new(MockWorker, (cfg[workload],), at=nodei)
         mw = None
         c = new(Coordinator if mode == "oplock" else CoordinatorMvcc, (w, db, cfg[workload], mw, nodei), at=nodei)
