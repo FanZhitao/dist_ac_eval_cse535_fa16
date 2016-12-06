@@ -17,13 +17,13 @@
 		<subjectCondition id="Yuce1" position="coach" history="basket1"/>
 		<resourceCondition id="basket1" goals="0"/>
 		<action name="shoot"/>
-		<resourceCondition goals="++"/>
+		<resourceUpdate goals="++"/>
 	</rule>
 	<rule name="correctly predicts2">
 		<subjectCondition id="Yuce1" position="employee"/>
 		<resourceCondition id="basket1" goals="0"/>
 		<action name="shoot"/>
-		<subjectCondition goals="++"/>
+		<subjectUpdate goals="++"/>
 	</rule>
 	<!-- incorrectly predicts -->
 	<rule name="incorrectly predicts1">
