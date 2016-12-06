@@ -33,7 +33,7 @@ class Analyzer:
         log.info("Start parsing policy file [%s]", policyfile)
         tree = ET.parse(policyfile)
         for rule in tree.getroot().iter('rule'):
-            subject = rule.find('subjectCondition').attrib.get('position')
+            subject = rule.find('subjectCondition').attrib.get('subid')
             resource = rule.find('resourceCondition').attrib.get('id')
             action = rule.find('action').attrib.get('name')
 
@@ -48,7 +48,7 @@ class Analyzer:
 
             # Analyze potential read/update attributes in each rule
             for attr in rule.find('subjectCondition').attrib:
-                if attr == 'position': continue
+                if attr == 'subid' or attr == 'position': continue
                 cur[SUB_READ].add(attr)
             for attr in rule.find('resourceCondition').attrib:
                 if attr == 'id': continue
@@ -78,24 +78,22 @@ class Analyzer:
         # If written object is decided, choose it as second to process
         # Otherwise (readonly request or more than 1 written object which cannot be decided)
         # Choose subject as the first object to handle randomly
-        sub_type = 'employee' # hardcoded
         if len(wrtobj) == 1:
-            rdobj = sub_type if sub_type != wrtobj[0] else req.resource
+            rdobj = req.subject if req.subject != wrtobj[0] else req.resource
             return rdobj if i == 1 else wrtobj[0]
         else:
-            return req.resource if i == 1 else sub_type
+            return req.resource if i == 1 else req.subject
 
     def readonly(self, req):
         return not self.mightWriteObj(req)
 
     def mightWriteObj(self, req):
         wrtobj = list()
-        sub_type = 'employee' # hardcoded
-        for rule in self.policy[(sub_type, req.resource, req.action)]:
+        for rule in self.policy[(req.subject, req.resource, req.action)]:
             if rule[SUB_UPD]:
-                wrtobj.append(sub_type)
+                wrtobj.append(req.subject)
                 break
-        for rule in self.policy[(sub_type, req.resource, req.action)]:
+        for rule in self.policy[(req.subject, req.resource, req.action)]:
             if rule[RES_UPD]:
                 wrtobj.append(req.resource)
                 break
@@ -114,3 +112,4 @@ class Analyzer:
             return req.cachedUpdates[2][req.resource]
         else:
             return req.cachedUpdates[1][req.resource]
+
