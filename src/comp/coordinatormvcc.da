@@ -16,13 +16,13 @@ log = logging.getLogger("Coordinator")
 
 class CoordinatorMvcc(process):
 
-    def setup(workers:set, db:DB, cfg, mockworker):
+    def setup(workers:set, db:DB, cfg, mockworker, nodei):
         logging.basicConfig(level=logging.INFO, 
             format='[%(asctime)s] %(name)s:%(levelname)s: %(message)s')
         self.router = None
         self.analyzer = None
         self.admin = AdminMvcc(db)
-        self.idgen = IdGen()
+        self.idgen = IdGen(nodei)
         self.activereq = set()
         self.pendingwrt = dict()
 

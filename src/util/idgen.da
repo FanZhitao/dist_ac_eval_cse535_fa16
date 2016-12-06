@@ -3,8 +3,8 @@ import multiprocessing
 
 class IdGen:
 
-    def __init__(self):
-        self.name = multiprocessing.current_process().name
+    def __init__(self, nodei):
+        self.name = nodei #multiprocessing.current_process().name
         self.lock = threading.Lock()
         self.cnt = 0
 
