@@ -19,7 +19,6 @@ class WorkerMvcc(process):
         self.router = None
         self.analyzer = None
         self.predictCorrect = False
-        self.req = None
         
     def run():
         log.info("Worker %s is up.", self)
@@ -36,7 +35,6 @@ class WorkerMvcc(process):
 
     def receive(msg=('assigneval', req), from_=c):
         log.info("Received evaluation request from coodinator: %s", c)
-        self.req = req
 
         # In case not received policy from database yet.
         if self.policy == None:
@@ -52,27 +50,26 @@ class WorkerMvcc(process):
             send(('getattrs', req), to=db)
         else:
             # cache is good
-            process_evaluation()
+            process_evaluation(req)
 
     def receive(msg=('policy', policy), from_=p):
         log.info("Received policy data from database: %s", p)
         log.debug("policy: %s", policy)
         self.policy = policy
 
-    def receive(msg=('attrs', attrs), from_=db):
+    def receive(msg=('attrs', attrs, req), from_=db):
         log.info("Received attributes from database: %s\nattrs: %s", db, attrs)
-        o = self.analyzer.obj(self.req, 1)
-        if o == self.req.subject:
-            self.req.cachedUpdates[1] = attrs['sub']
-            self.req.cachedUpdates[2] = attrs['res']
+        o = self.analyzer.obj(req, 1)
+        if o == req.subject:
+            req.cachedUpdates[1] = attrs['sub']
+            req.cachedUpdates[2] = attrs['res']
         else:
-            self.req.cachedUpdates[1] = attrs['res']
-            self.req.cachedUpdates[2] = attrs['sub']
-        process_evaluation()
+            req.cachedUpdates[1] = attrs['res']
+            req.cachedUpdates[2] = attrs['sub']
+        process_evaluation(req)
 
-    def process_evaluation():
+    def process_evaluation(req:EvalReqMvcc):
         # Evaluate the request.
-        req = self.req
         resp, rule = evaluate(req)
         if resp.decision == Decision.permit:
             # Has found a matched rule.

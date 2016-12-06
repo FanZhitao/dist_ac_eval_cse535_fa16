@@ -99,7 +99,7 @@ class DB(process):
         attrs2send = {}
         attrs2send['sub'] = sub
         attrs2send['res'] = res
-        send(('attrs', attrs2send), to=p)
+        send(('attrs', attrs2send, req), to=p)
 
     def write_attrs(records, attr, ts):
         matched_record = None
