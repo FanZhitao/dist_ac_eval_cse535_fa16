@@ -45,16 +45,14 @@
 	</rule>
     <!-- Case 6: Same as Case 4 but make wrong prediction. -->
 	<rule name="access bank E">
-		<subjectCondition id="Leo" position="employee" history="xxx"/>
-		<resourceCondition id="bank E"/>
+		<subjectCondition id="LeBron" position="employee" history="xxx"/>
+		<resourceCondition id="bank C"/>
 		<action name="read"/>
-		<subjectUpdate history="bank E"/>
 	</rule>
 	<rule name="access bank E again">
-        <subjectCondition id="Leo" position="employee"/>
-        <resourceCondition id="bank E" amount="0"/> <!-- TODO How to make the second read-write request succeed as well -->
+        <subjectCondition id="LeBron" position="employee"/>
+        <resourceCondition id="bank C" amount="0"/> <!-- TODO How to make the second read-write request succeed as well -->
 		<action name="read"/>
-		<resourceUpdate amount="++"/>
 	</rule>
     <!-- Case 7: readonly pending due to potential starving write req on 'amount' -->
     <rule name="access bank C by manager">
