@@ -101,6 +101,7 @@ class Analyzer:
 
     def subattr(self, req):
         o = self.obj(req, 1)
+        log.info(req.cachedUpdates)
         if o == req.subject:
             return req.cachedUpdates[1][req.subject]
         else:

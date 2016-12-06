@@ -8,6 +8,7 @@ import pprint
 from collections import OrderedDict
 
 from msg.commitresp import CommitResp
+from msg.evalrespmvcc import EvalRespMvcc
 
 log = logging.getLogger('DB')
 
@@ -27,8 +28,9 @@ class DB(process):
         ts = time.time()
         self.subrecords = OrderedDict()
         self.resrecords = OrderedDict()
-        self.subrecords[ts] = convert(record, 'subject')
-        self.resrecords[ts] = convert(record, 'resource')
+        str_ts = str(ts)
+        self.subrecords[str_ts] = convert(record, 'subject')
+        self.resrecords[str_ts] = convert(record, 'resource')
 
         self.actions = []
         # save possible actions
@@ -59,12 +61,19 @@ class DB(process):
         log.info("Received policy request message from worker %s", p)
         send(('policy', self.rules), to=p)
 
-    def receive(msg=('writeattr', attr, ts, sub_or_res), from_=p):
+    def receive(msg=('writeattr', resp, updatedObj, sub_or_res), from_=p):
         log.info("Received write attribute messages from coordinator [%s]", p)
-        records = self.subrecords
-        if sub_or_res == 'res':
-            records = self.resrecords
-        write_attrs(records, attr, ts)
+        records2update = self.subrecords
+        l = list(self.subrecords)
+        if sub_or_res == resp.resource:
+            records2update = self.resrecords
+            l = list(self.resrecords)
+        last_record = records2update[l[-1]]
+        str_ts = str(resp.ts)
+        records2update[str_ts] = last_record
+        for key in resp.updates:
+            records2update[str_ts][sub_or_res][key] = resp.updates[key]
+
         send(('writefinish', True), to=p)
 
     def receive(msg=('getsubs'), from_=p):
@@ -89,39 +98,20 @@ class DB(process):
 
     def receive(msg=('getattrs', req), from_=p):
         log.info("Received get attributes request from worker:%s", p)
-        sub = None
-        res = None
-        for ts in self.subrecords.keys():
-            if ts <= req.ts:
-                sub = self.subrecords[ts]
-        for ts in self.resrecords.keys():
-            if ts <= req.ts:
-                res = self.resrecords[ts]
+        l = list(self.subrecords)
+        sub = self.subrecords[l[-1]]
+        l = list(self.resrecords)
+        res = self.resrecords[l[-1]]
+        #for ts in self.subrecords.keys():
+        #    if ts <= req.ts:
+        #        sub = self.subrecords[ts]
+        #for ts in self.resrecords.keys():
+        #    if ts <= req.ts:
+        #        res = self.resrecords[ts]
         attrs2send = {}
         attrs2send['sub'] = sub
         attrs2send['res'] = res
-        send(('attrs', attrs2send, req), to=p)
-
-    def write_attrs(records, attr, ts):
-        matched_record = None
-        for ts_in_db in records.keys():
-            if ts_in_db == ts:
-                matched_record = records[ts]
-                break
-
-        if matched_record == None:
-            # insert a record with timestamp ts
-            l = list(records)
-            records[ts] = l[-1] # copy from lastest record
-
-        # update record at timestamp ts
-        for key in records[ts].keys():
-            records[ts][key] = attr[key]
-
-        # delay the visibility of updates
-        l = random.randrange(minDBlatency, maxDBlatency, 1)
-        log.debug("Delay %d seconds...", l)
-        time.sleep(l / 100)
+        send(('attrs', attrs2send, req), to=p)       
 
     def convert(record:Element, key:str):
         # convert {'id': id1, 'position': 'employee'}
