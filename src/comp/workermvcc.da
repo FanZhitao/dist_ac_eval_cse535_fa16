@@ -254,14 +254,17 @@ class WorkerMvcc(process):
         if len(resp.updates) > 0:
             if self.predictCorrect:
                 resp.updatedObj = 2
+                resp.rdonlydObj = 1
             else:
                 resp.updatedObj = 1
+                resp.rdonlydObj = 2
 
             resp.readAttr[resp.updatedObj] = []
             for key in resp.updates:
                 resp.readAttr[resp.updatedObj].append(key)
         else:
             resp.updatedObj = -1
+            resp.rdonlydObj = -1
 
         return resp
 
