@@ -1,0 +1,53 @@
+import logging
+import time
+import random
+
+from msg.evalreq import EvalReq
+from msg.evalreqmvcc import EvalReqMvcc
+from util.router import Router
+
+log = logging.getLogger("Application")
+
+"""
+ Each application process will start sending request to correspendent coordinator immediately upon running up. 
+ The requests carry payload which is described in the configuration file.
+"""
+class ApplicationSerial(process):
+
+    def setup(router:Router, seqfrom:int, seqto:int, cfg, analyzer, mode):
+        logging.basicConfig(level=logging.INFO, 
+            format='[%(asctime)s] %(name)s:%(levelname)s: %(message)s')
+        log.info('Application-Serial [%s] is up', self)
+        self.sentreq = dict()
+
+    def run():
+        log.info("App - [%s] get ready to send request from [%d] to [%d]", self, seqfrom, seqto - 1)
+        for i in range(seqfrom, seqto):
+            req = EvalReq() if mode == "oplock" else EvalReqMvcc()
+            req.seq = i
+
+            # 1.Generate specific or random payload
+            req.subject = cfg['req.subject']
+            req.resource= cfg['req.resource']
+            req.action = cfg['req.action']
+
+            # 2.Send to correspondent subject coordinator
+            if mode == "oplock":
+                coord = router.get_sc(req.subject)
+                log.info(req)
+            else:
+                wrtobj = self.analyzer.mightWriteObj(req)
+                if len(wrtobj) == 0:
+                    log.info("App - Request #seq=[%d] type is READ-ONLY", req.seq)
+                elif len(wrtobj) == 1:
+                    log.info("App - Request #seq=[%d] type is READ-WRITE", req.seq)
+                else:
+                    log.info("App - Request #seq=[%d] type is UNKNOWN", req.seq)
+                x = self.analyzer.obj(req, 1)
+                coord = router.route(x)
+            log.info("App - Send request #seq [%d] to Coord %s", i, coord)
+            send(('reqapp', req,), to=coord)
+            await(some(received(('respapp', seq, result)), has= seq==i))
+
+    def receive(msg=('respapp', seq, result,), from_=p):
+        log.info("App - Received request #seq-[%d] result: %s from %s", seq, result, p)
