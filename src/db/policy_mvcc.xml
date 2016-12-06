@@ -55,6 +55,6 @@
     <rule name="access bank C by manager">
 		<subjectCondition id="LeBron" position="manager"/>
 		<resourceCondition id="bank C" amount="0"/>
-		<action name="read"/>
+		<action name="update"/>
 	</rule>
 </policy>
