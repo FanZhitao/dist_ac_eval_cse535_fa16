@@ -51,7 +51,7 @@
 	</rule>
 	<rule name="access bank E again">
         <subjectCondition id="Leo" position="employee"/>
-        <resourceCondition id="bank E" amount="0"/> <!-- TODO How to make the seconde read-write request succeed as well -->
+        <resourceCondition id="bank E" amount="0"/> <!-- TODO How to make the second read-write request succeed as well -->
 		<action name="read"/>
 		<resourceUpdate amount="++"/>
 	</rule>

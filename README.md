@@ -69,6 +69,7 @@ Zhitao Fan:
 
 We follow the official naming convention: https://www.python.org/dev/peps/pep-0008/
 
+------------------------------
 ## 6.Phase 4: MVCC Improvement
 
 ### 6.1 Project Structure
@@ -79,7 +80,7 @@ We reuse the most of codes in Phase2 and add some new file ending with "mvcc" to
 
 For the test case, please refer to testingmvcc.txt. We test all cases mentioned in the requirement.
 
-### 6.2 Performance Evaluation
+### 6.3 Performance Evaluation
 
 1) First we perform stress test on old Phase 2 code. After running several times with different params, we observed that:
 
@@ -87,4 +88,13 @@ To handle 1000 request with random payload (5 subjects and 2 resources) and 5 ~ 
 
 2) Then we run test against the new codebase enhanced by MVCC.
 
+### 6.4 Contributions
+
+Chen Dai:
+    1.Multi-node support
+    2.Coordinator improvement
+
+Zhitao Fan:
+    1.Database and Worker improvement
+    2.Test case preparation
 

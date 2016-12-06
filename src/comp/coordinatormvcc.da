@@ -66,8 +66,8 @@ class CoordinatorMvcc(process):
         log.info("Coord2 - Assign evalution request: #seq=[%d] to worker=[%s]\n", req.seq, worker)
         send(('assigneval', req), to=worker)
         #send(('assigneval', req), to=mockworker)
-        import pprint
-        log.info("***** " + pprint.pformat(vars(req)))
+        #import pprint
+        #log.info("***** " + pprint.pformat(vars(req)))
 
     def receive(msg=('respeval', resp), from_=p):
         """
