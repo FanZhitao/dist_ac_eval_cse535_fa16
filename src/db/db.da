@@ -5,6 +5,7 @@ import logging
 import asyncio
 import time
 import pprint
+from collections import OrderedDict
 
 from msg.commitresp import CommitResp
 
@@ -24,8 +25,8 @@ class DB(process):
 
         # convert record to attributes dict
         ts = time.time()
-        self.subrecords = {}
-        self.resrecords = {}
+        self.subrecords = OrderedDict()
+        self.resrecords = OrderedDict()
         self.subrecords[ts] = convert(record, 'subject')
         self.resrecords[ts] = convert(record, 'resource')
 
@@ -110,11 +111,12 @@ class DB(process):
 
         if matched_record == None:
             # insert a record with timestamp ts
-            records[ts] = attr
-        else:
-            # update record at timestamp ts
-            for key in records[ts].keys():
-                records[ts][key] = attr[key]
+            l = list(records)
+            records[ts] = l[-1] # copy from lastest record
+
+        # update record at timestamp ts
+        for key in records[ts].keys():
+            records[ts][key] = attr[key]
 
         # delay the visibility of updates
         l = random.randrange(minDBlatency, maxDBlatency, 1)
