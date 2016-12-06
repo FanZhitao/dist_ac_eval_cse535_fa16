@@ -1,9 +1,9 @@
 <data>
-    <subject id="Jordan" position="employee"/>
-    <subject id="LeBron" position="employee"/>
-    <subject id="Kobe" position="employee"/>
-    <subject id="Curry" position="employee"/>
-    <subject id="Ming" position="employee"/>
+    <subject id="Jordan" position="employee" goals="0"/>
+    <subject id="LeBron" position="employee" goals="0"/>
+    <subject id="Kobe" position="employee" goals="0"/>
+    <subject id="Curry" position="employee" goals="0"/>
+    <subject id="Ming" position="employee" goals="0"/>
     <resource id="basket1"/>
     <resource id="basket2"/>
 </data>

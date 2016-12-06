@@ -1,12 +1,60 @@
 <policy>
 	<rule name="shoot1">
-		<subjectCondition position="employee"/>
+		<subjectCondition id="Jordan" position="employee"/>
+		<resourceCondition id="basket1"/>
+		<action name="shoot"/>
+		<subjectUpdate goals="++"/>
+	</rule>
+		<rule name="shoot1">
+		<subjectCondition id="LeBron" position="employee"/>
+		<resourceCondition id="basket1"/>
+		<action name="shoot"/>
+		<subjectUpdate goals="++"/>
+	</rule>
+		<rule name="shoot1">
+		<subjectCondition id="Kobe" position="employee"/>
+		<resourceCondition id="basket1"/>
+		<action name="shoot"/>
+		<subjectUpdate goals="++"/>
+	</rule>
+		<rule name="shoot1">
+		<subjectCondition id="Curry" position="employee"/>
+		<resourceCondition id="basket1"/>
+		<action name="shoot"/>
+		<subjectUpdate goals="++"/>
+	</rule>
+		<rule name="shoot1">
+		<subjectCondition id="Ming" position="employee"/>
 		<resourceCondition id="basket1"/>
 		<action name="shoot"/>
 		<subjectUpdate goals="++"/>
 	</rule>
 	<rule name="shoot2">
-		<subjectCondition position="employee"/>
+		<subjectCondition id="Jordan" position="employee"/>
+		<resourceCondition id="basket2"/>
+		<action name="shoot"/>
+		<subjectUpdate goals="++"/>
+	</rule>
+	<rule name="shoot2">
+		<subjectCondition id="LeBron" position="employee"/>
+		<resourceCondition id="basket2"/>
+		<action name="shoot"/>
+		<subjectUpdate goals="++"/>
+	</rule>
+	<rule name="shoot2">
+		<subjectCondition id="Kobe" position="employee"/>
+		<resourceCondition id="basket2"/>
+		<action name="shoot"/>
+		<subjectUpdate goals="++"/>
+	</rule>
+	<rule name="shoot2">
+		<subjectCondition id="Curry" position="employee"/>
+		<resourceCondition id="basket2"/>
+		<action name="shoot"/>
+		<subjectUpdate goals="++"/>
+	</rule>
+	<rule name="shoot2">
+		<subjectCondition id="Ming" position="employee"/>
 		<resourceCondition id="basket2"/>
 		<action name="shoot"/>
 		<subjectUpdate goals="++"/>

@@ -59,6 +59,10 @@ class Analyzer:
             if rule.find('resourceUpdate') is not None:
                 for attr in rule.find('resourceUpdate').attrib:
                     cur[RES_UPD].add(attr)
+
+        self.subjects = list(self.subjects)
+        self.resources = list(self.resources)
+        self.actions = list(self.actions)
         log.info("Parse policy file complete")
 
     def dump_result(self, policy):
