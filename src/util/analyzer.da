@@ -97,9 +97,6 @@ class Analyzer:
             if rule[SUB_UPD]:
                 wrtobj.append(req.subject)
                 break
-        if len(wrtobj) == 1:
-            return wrtobj
-
         for rule in self.policy[(req.subject, req.resource, req.action)]:
             if rule[RES_UPD]:
                 wrtobj.append(req.resource)
