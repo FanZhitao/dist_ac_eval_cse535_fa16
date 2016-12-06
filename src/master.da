@@ -5,6 +5,7 @@ import pprint
 import configparser
 
 from comp.application import Application
+from comp.applicationserial import ApplicationSerial
 from msg.evalreqmvcc import EvalReqMvcc
 from msg.evalrespmvcc import EvalRespMvcc
 from msg.evalrespmvcc import Decision
@@ -180,7 +181,7 @@ def main():
     #   Divide total requests evenly and assign sequence number of request to each application
     appno = int(cfg['master']['clients'])
     reqno = int(int(cfg[workload]['reqno']) / appno)
-    apps = new(Application, num=appno)
+    apps = new(ApplicationSerial if cfg['app']['serial'] == 'True' else Application, num=appno)
     for i, app in zip(range(0, appno), apps):
         setup(app, (router, i * reqno + 1, (i + 1) * reqno + 1, cfg[workload], analyzer, mode,))
     start(apps)

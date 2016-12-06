@@ -1,9 +1,11 @@
 
-src/master.py: src/master.da src/comp/application.py src/comp/coordinator.py src/comp/coordinatormvcc.py src/msg/request.py src/msg/response.py src/util/router.py
+src/master.py: src/master.da src/comp/application.py src/comp/applicationserial.py src/comp/coordinator.py src/comp/coordinatormvcc.py src/msg/request.py src/msg/response.py src/util/router.py
 	dac src/master.da
 
 src/comp/application.py: src/comp/application.da src/msg/request.py src/msg/response.py src/util/router.py src/util/analyzer.py
 	dac src/comp/application.da
+src/comp/applicationserial.py: src/comp/application.da src/msg/request.py src/msg/response.py src/util/router.py src/util/analyzer.py
+	dac src/comp/applicationserial.da
 
 src/comp/coordinator.py: src/comp/coordinator.da src/comp/worker.py src/msg/evalreq.py src/msg/evalresp.py src/msg/commitreq.py src/msg/commitresp.py src/util/router.py src/util/idgen.py src/state/admin.py src/util/dynanalyzer.py
 	dac src/comp/coordinator.da
