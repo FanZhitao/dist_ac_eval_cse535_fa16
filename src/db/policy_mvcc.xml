@@ -1,16 +1,17 @@
 <policy>
+    <!-- Case 2: r1 delay by this rule's mightRead (but failed due to rule1 update history first) -->
 	<rule name="access bank A first time">
 		<subjectCondition id="Leo" position="employee" history="empty"/>
 		<resourceCondition id="bank A"/>
 		<action name="read"/>
 		<subjectUpdate history="bank A"/>
 	</rule>
-    <!-- Case 2: r1 delay by this rule's mightRead (but failed due to rule1 update history first) -->
-    <!--<rule name="access bank A again">
-		<subjectCondition id="Leo" position="employee" history="empty"/>
-		<resourceCondition id="bank A"/>
+    <!-- Case 1: read other attr to make case 1 non-trival -->
+    <rule name="access bank F">
+		<subjectCondition id="Leo" position="employee" type="empty"/>
+		<resourceCondition id="bank F"/>
 		<action name="read"/>
-    </rule>-->
+    </rule>
     <!-- Case 3: defRead history causes immediate find conflict and restart -->
     <rule name="access bank B first time">
 		<subjectCondition id="Leo" position="employee" history="empty"/>

@@ -76,22 +76,25 @@ class CoordinatorMvcc(process):
         log.info("CoordW - Incoming evaluation response from worker: coord=[%d], #seq=[%d] object=[%s] decision=[%s]", 
                 resp.updatedObj, resp.seq, self.analyzer.obj(resp, resp.updatedObj), resp.decision)
         delay(resp.seq, 'respeval')
-        if invalid_message(resp):
-            return
 
         x = self.analyzer.obj(resp, resp.updatedObj)
         if resp.decision != Decision.permit:
             cleanup_pending_update(x, resp)
             send(('respapp', resp.seq, resp.decision), to=resp.app)
             return
+        # Break deadlock
+        for attr in resp.updates.keys():
+            if any((reqid != resp.id and ts < resp.ts) for (reqid, ts) in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead):
+                restart(x, resp)
+                return
 
         dump_current_state(resp, x)
         if not conflict(x, resp):
             # Wait for all pending read complete
             possible = warning_potential_conflict(x, resp)
             await(each(attr in resp.updates.keys(),
-                has= (not self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead) or
-                        all(reqid == resp.id for reqid in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead)))
+                has= ((not self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead) or
+                        all(reqid == resp.id for (reqid, _) in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead))))
             if possible:
                 log.warning("***** Wakeup *****: Request #seq=[%d]", resp.seq)
 
@@ -129,7 +132,7 @@ class CoordinatorMvcc(process):
         """
         coordR: Get notified that which attr in mightReadAttr is actually read
         """
-        if invalid_message(resp):
+        if not resp.readAttr[i]:
             return
         x = self.analyzer.obj(resp, i)
         log.info("CoordR - Incoming readAttr request: coord=[%d], #seq=[%d], object=[%s]", i, resp.seq, x)
@@ -155,10 +158,10 @@ class CoordinatorMvcc(process):
             for attr in defR:
                 self.admin.latestVersionBefore(x, attr, req.ts).rts = req.ts
             for attr in mgtR:
-                self.admin.latestVersionBefore(x, attr, req.ts).pendingMightRead.append(req.id)
+                self.admin.latestVersionBefore(x, attr, req.ts).pendingMightRead.append((req.id, req.ts))
         else:
             for attr in defR | mgtR:
-                self.admin.latestVersionBefore(x, attr, req.ts).pendingMightRead.append(req.id)
+                self.admin.latestVersionBefore(x, attr, req.ts).pendingMightRead.append((req.id, req.ts))
 
         # 4.Populate data piggybacked to request
         req.cachedUpdates[i] = self.admin.cachedUpdates(x, req)
@@ -227,21 +230,18 @@ class CoordinatorMvcc(process):
         send(('reqapp', req), to=prevco)
         log.warning("***** Restart *****: Request #seq=[%d]", resp.seq)
 
-    def invalid_message(msg):
-        return False
-
     def cleanup_pending_update(x, resp):
         for attr in self.analyzer.defReadAttr(x, resp) | self.analyzer.mightReadAttr(x, resp):
             v = self.admin.latestVersionBefore(x, attr, resp.ts)
-            if resp.id in v.pendingMightRead:
-                v.pendingMightRead.remove(resp.id)
+            if (resp.id, resp.ts) in v.pendingMightRead:
+                v.pendingMightRead.remove((resp.id, resp.ts))
         for attr in self.analyzer.mightWriteAttr(x, resp):
             if (resp.id, resp.ts) in pendingwrt[x][attr]:
                 pendingwrt[x][attr].remove((resp.id, resp.ts))
 
     def warning_potential_conflict(x, resp):
         for attr in resp.updates.keys():
-            for reqid in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead:
+            for (reqid, _) in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead:
                 if reqid != resp.id:
                     log.warning("CoordW - ***** Potential Conflict *****: Request #seq=[%d] id=[%s] against id=[%s] on attr [%s]", resp.seq, resp.id, reqid, attr)
                     return True
