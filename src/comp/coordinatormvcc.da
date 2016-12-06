@@ -84,7 +84,7 @@ class CoordinatorMvcc(process):
             return
         # Break deadlock if there exist other earlier request
         for attr in resp.updates.keys():
-            if resp.id in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead and any((reqid != resp.id and ts < resp.ts) for (reqid, ts) in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead):
+            if (resp.id, resp.ts) in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead and any((reqid != resp.id and ts < resp.ts) for (reqid, ts) in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead):
                 restart(x, resp)
                 return
 
