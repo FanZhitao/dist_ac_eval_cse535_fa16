@@ -12,7 +12,7 @@ import time
 log = logging.getLogger('Worker')
 
 class WorkerMvcc(process):
-    def setup(db:set, cfg):
+    def setup(db:set, cfg, cfgwl):
         logging.basicConfig(level=logging.INFO, 
             format='[%(asctime)s] %(name)s:%(levelname)s: %(message)s')
         self.policy = None
@@ -320,8 +320,8 @@ class WorkerMvcc(process):
 
     def delay(req):
         key = 'req' + str(req.seq) + '.worker.delay'
-        if key in cfg:
-            interval = cfg[key]
+        if key in cfgwl:
+            interval = cfgwl[key]
             log.info('***** Delay *****: #seq=[%d] delay %f(s) at worker', req.seq, float(interval))
             time.sleep(float(interval))
 
