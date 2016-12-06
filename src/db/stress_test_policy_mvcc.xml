@@ -17,7 +17,6 @@
 		<subjectCondition id="Yuce1" position="coach" history="basket1"/>
 		<resourceCondition id="basket1" goals="0"/>
 		<action name="shoot"/>
-		<resourceUpdate goals="++"/>
 	</rule>
 	<rule name="correctly predicts2">
 		<subjectCondition id="Yuce1" position="employee"/>
