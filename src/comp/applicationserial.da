@@ -1,6 +1,7 @@
 import logging
 import time
 import random
+import statistics
 
 from msg.evalreq import EvalReq
 from msg.evalreqmvcc import EvalReqMvcc
@@ -21,6 +22,7 @@ class ApplicationSerial(process):
 
     def run():
         log.info("App - [%s] get ready to send request from [%d] to [%d]", self, seqfrom, seqto - 1)
+        measure = [0.0] * (seqto - seqfrom)
         for i in range(seqfrom, seqto):
             req = EvalReq() if mode == "oplock" else EvalReqMvcc()
             req.seq = i
@@ -45,8 +47,18 @@ class ApplicationSerial(process):
                 x = self.analyzer.obj(req, 1)
                 coord = router.route(x)
             log.info("App - Send request #seq [%d] to Coord %s", i, coord)
+            start = time.time()
             send(('reqapp', req,), to=coord)
             await(some(received(('respapp', seq, result)), has= seq==i))
+            end = time.time()
+            measure[i - 1] = (end - start)
+        report(measure)
+
+    def report(measure):
+        log.info("***** Stress Test Report *****")
+        log.info("Total request: %d", len(measure))
+        log.info("Mean: %f", statistics.mean(measure))
+        log.info("Std:  %f", statistics.stdev(measure))
 
     def receive(msg=('respapp', seq, result,), from_=p):
         log.info("App - Received request #seq-[%d] result: %s from %s", seq, result, p)
