@@ -73,8 +73,8 @@ class CoordinatorMvcc(process):
         """
         coordW: Receive evaluation result from worker
         """
-        log.info("CoordW - Incoming evaluation response from worker: coord=[%d], #seq=[%d] object=[%s] decision=[%s]", 
-                resp.updatedObj, resp.seq, self.analyzer.obj(resp, resp.updatedObj), resp.decision)
+        log.info("CoordW - Incoming evaluation response from worker: coord=[%d], #seq=[%d], object=[%s], decision=[%s], updates=[%s]", 
+                resp.updatedObj, resp.seq, self.analyzer.obj(resp, resp.updatedObj), resp.decision, str(resp.updates))
         delay(resp.seq, 'respeval')
 
         x = self.analyzer.obj(resp, resp.updatedObj)
@@ -82,9 +82,9 @@ class CoordinatorMvcc(process):
             cleanup_pending_update(x, resp)
             send(('respapp', resp.seq, resp.decision), to=resp.app)
             return
-        # Break deadlock
+        # Break deadlock if there exist other earlier request
         for attr in resp.updates.keys():
-            if any((reqid != resp.id and ts < resp.ts) for (reqid, ts) in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead):
+            if resp.id in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead and any((reqid != resp.id and ts < resp.ts) for (reqid, ts) in self.admin.latestVersionBefore(x, attr, resp.ts).pendingMightRead):
                 restart(x, resp)
                 return
 
@@ -129,10 +129,11 @@ class CoordinatorMvcc(process):
         """
         coordR: Get notified that which attr in mightReadAttr is actually read
         """
+        x = self.analyzer.obj(resp, i)
+        log.info("CoordR - Incoming readAttr request: coord=[%d], #seq=[%d], object=[%s], readAttr=[%s]", 
+                i, resp.seq, x, str(resp.readAttr[i]))
         if not resp.readAttr[i]:
             return
-        x = self.analyzer.obj(resp, i)
-        log.info("CoordR - Incoming readAttr request: coord=[%d], #seq=[%d], object=[%s]", i, resp.seq, x)
         cleanup_pending_update(x, resp)
         update_read_ts(resp, i, self.analyzer.mightReadAttr(x, resp))
         log.info("CoordR - Update read ts of attr complete")

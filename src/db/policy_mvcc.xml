@@ -20,7 +20,7 @@
 	</rule>
     <!-- Case 4: Same as Case 2, but r2 succeed which causes r1 restarts after wakeup -->
 	<rule name="access bank D">
-		<subjectCondition id="Leo" position="employee" history="bank D"/>
+		<subjectCondition id="Leo" position="employee" history="empty"/>
 		<resourceCondition id="bank D"/>
 		<action name="read"/>
 	</rule>
@@ -32,7 +32,7 @@
 
     <!-- Case 5: Same as Case 2 but make wrong prediction. Actual update on resource -->
     <rule name="access bank C first time">
-        <subjectCondition id="Leo" position="employee" history="xxx"/> <!-- Make this rule doesn't be effective -->
+        <subjectCondition id="Leo" position="employee" history="xxx"/> <!-- Make this rule ineffective -->
 		<resourceCondition id="bank C"/>
 		<action name="read"/>
 		<subjectUpdate history="bank C"/>
