@@ -70,6 +70,8 @@ class WorkerMvcc(process):
     def process_evaluation(req:EvalReqMvcc):
         # Evaluate the request.
         resp, rule = evaluate(req)
+        resp.updatedObj = -1
+        resp.rdonlydObj = -1
         if resp.decision == Decision.permit:
             # Has found a matched rule.
             # Add read and write attributes into
@@ -196,64 +198,22 @@ class WorkerMvcc(process):
     def add_read_write_attributes(req:EvalReqMvcc, resp:EvalRespMvcc, rule:Element):
         # Copy attributes from request.
         # subject attributes
-        subattr = self.analyzer.subattr(req)
-        resattr = self.analyzer.resattr(req)
+        subattr = rule.find('subjectCondition').attrib
+        resattr = rule.find('resourceCondition').attrib
         log.debug("subattr: %s", subattr)
         log.debug("resattr: %s", resattr)
-        for attribute_name in subattr:
-            #resp.subrattr.append(attribute_name) # read attributes
-            value_original = subattr.get(attribute_name)
-            # replace $subject.ATTRIBUTE with original value
-            while value_original != None and isinstance(value_original, str) and value_original.startswith("$"):
-                dot_index = value_original.index(".")
-                attribute_key = value_original[dot_index + 1 :]
-                sub_or_res = value_original[1 : dot_index]
-                if sub_or_res == 'subject':
-                    value = subattr[attribute_key]
-                elif sub_or_res == 'resource':
-                    value = resattr[attribute_key]
-                else:
-                    # TODO: Throw invalid policy exception
-                    return
-
-                value_original = value
-
-            subattr[attribute_name] = value_original
-
-        # resource attributes
-        for attribute_name in resattr:
-            #resp.resrattr.append(attribute_name) # read attributes
-            value_original = resattr.get(attribute_name)
-            # replace $resource.ATTRIBUTE with original value
-            while value_original != None and isinstance(value_original, str) and value_original.startswith("$"):
-                dot_index = value_original.index(".")
-                attribute_key = value_original[dot_index + 1 :]
-                sub_or_res = value_original[1 : dot_index]
-                if sub_or_res == 'subject':
-                    value = subattr[attribute_key]
-                elif sub_or_res == 'resource':
-                    value = resattr[attribute_key]
-                else:
-                    # TODO: Throw invalid policy exception
-                    return
-
-                value_original = value
-
-            resattr[attribute_name] = value_original
+        if self.analyzer.obj(req, 1) == req.subject:
+            resp.readAttr[1] = list(subattr.keys())
+            resp.readAttr[2] = list(resattr.keys())
+        else:
+            resp.readAttr[2] = list(subattr.keys())
+            resp.readAttr[1] = list(resattr.keys())
 
         # Modify write attributes according to obligation
         # subject attributes update
         fulfill_obligation(rule, 'subjectUpdate', resp, req)
         # resource attributes update
         fulfill_obligation(rule, 'resourceUpdate', resp, req)
-
-        if any(resp.updates):
-            resp.readAttr[resp.updatedObj] = []
-            for key in resp.updates:
-                resp.readAttr[resp.updatedObj].append(key)
-        else:
-            resp.updatedObj = -1
-            resp.rdonlydObj = -1
 
         return resp
 
