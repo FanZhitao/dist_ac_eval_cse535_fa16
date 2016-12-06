@@ -33,7 +33,7 @@ class Analyzer:
         log.info("Start parsing policy file [%s]", policyfile)
         tree = ET.parse(policyfile)
         for rule in tree.getroot().iter('rule'):
-            subject = rule.find('subjectCondition').attrib.get('subid')
+            subject = rule.find('subjectCondition').attrib.get('id')
             resource = rule.find('resourceCondition').attrib.get('id')
             action = rule.find('action').attrib.get('name')
 
@@ -48,7 +48,7 @@ class Analyzer:
 
             # Analyze potential read/update attributes in each rule
             for attr in rule.find('subjectCondition').attrib:
-                if attr == 'subid' or attr == 'position': continue
+                if attr == 'id' or attr == 'position': continue
                 cur[SUB_READ].add(attr)
             for attr in rule.find('resourceCondition').attrib:
                 if attr == 'id': continue

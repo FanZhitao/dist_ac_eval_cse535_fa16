@@ -1,63 +1,63 @@
 <policy>
 	<rule name="access bank A first time">
-		<subjectCondition subid="Leo" position="employee" history="empty"/>
+		<subjectCondition id="Leo" position="employee" history="empty"/>
 		<resourceCondition id="bank A"/>
 		<action name="read"/>
 		<subjectUpdate history="bank A"/>
 	</rule>
     <!-- Case 2: r1 delay by this rule's mightRead (but failed due to rule1 update history first) -->
 	<rule name="access bank A again">
-		<subjectCondition subid="Leo" position="employee" history="bank A"/>
+		<subjectCondition id="Leo" position="employee" history="bank A"/>
 		<resourceCondition id="bank A"/>
 		<action name="read"/>
 	</rule>
     <!-- Case 3: defRead history causes immediate find conflict and restart -->
     <rule name="access bank B first time">
-		<subjectCondition subid="Leo" position="employee" history="empty"/>
+		<subjectCondition id="Leo" position="employee" history="empty"/>
 		<resourceCondition id="bank B"/>
 		<action name="read"/>
 	</rule>
     <!-- Case 4: Same as Case 2, but r2 succeed which causes r1 restarts after wakeup -->
 	<rule name="access bank D">
-		<subjectCondition subid="Leo" position="employee" history="bank D"/>
+		<subjectCondition id="Leo" position="employee" history="bank D"/>
 		<resourceCondition id="bank D"/>
 		<action name="read"/>
 	</rule>
 	<rule name="access bank D again">
-        <subjectCondition subid="Leo" position="employee" type="111"/> <!-- make history mightRead rather than defRead -->
+        <subjectCondition id="Leo" position="employee" type="111"/> <!-- make history mightRead rather than defRead -->
 		<resourceCondition id="bank D"/>
 		<action name="read"/>
 	</rule>
 
     <!-- Case 5: Same as Case 2 but make wrong prediction. Actual update on resource -->
     <rule name="access bank C first time">
-        <subjectCondition subid="Leo" position="employee" history="xxx"/> <!-- Make this rule doesn't be effective -->
+        <subjectCondition id="Leo" position="employee" history="xxx"/> <!-- Make this rule doesn't be effective -->
 		<resourceCondition id="bank C"/>
 		<action name="read"/>
 		<subjectUpdate history="bank C"/>
 	</rule>
     <rule name="access bank C again">
-		<subjectCondition subid="Leo" position="employee"/>
+		<subjectCondition id="Leo" position="employee"/>
 		<resourceCondition id="bank C" amount="0"/>
 		<action name="read"/>
 		<resourceUpdate amount="++"/>
 	</rule>
     <!-- Case 6: Same as Case 4 but make wrong prediction. -->
 	<rule name="access bank E">
-		<subjectCondition subid="Leo" position="employee" history="xxx"/>
+		<subjectCondition id="Leo" position="employee" history="xxx"/>
 		<resourceCondition id="bank E"/>
 		<action name="read"/>
 		<subjectUpdate history="bank E"/>
 	</rule>
 	<rule name="access bank E again">
-        <subjectCondition subid="Leo" position="employee"/>
+        <subjectCondition id="Leo" position="employee"/>
         <resourceCondition id="bank E" amount="0"/> <!-- TODO How to make the seconde read-write request succeed as well -->
 		<action name="read"/>
 		<resourceUpdate amount="++"/>
 	</rule>
     <!-- Case 7: readonly pending due to potential starving write req on 'amount' -->
     <rule name="access bank C by manager">
-		<subjectCondition subid="LeBron" position="manager"/>
+		<subjectCondition id="LeBron" position="manager"/>
 		<resourceCondition id="bank C" amount="0"/>
 		<action name="read"/>
 	</rule>
