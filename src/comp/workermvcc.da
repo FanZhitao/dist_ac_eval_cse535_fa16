@@ -79,7 +79,6 @@ class WorkerMvcc(process):
             # Add read and write attributes into
             # resq.{subrattr, subwattr, resrattr, reswattr}.
             resp = add_read_write_attributes(req, resp, rule)
-            pass
 
         delay(req)
         if resp.updatedObj == -1:
@@ -89,12 +88,15 @@ class WorkerMvcc(process):
             send(('respapp', resp.seq, resp.decision,), to=resp.app)
             coord = self.router.route(self.analyzer.obj(req, 1))
             log.info("Sending evaluation response to coordinator %s", coord)
-            send(('evalresp', resp), to=coord)
+            send(('respeval', resp), to=coord)
+            coord = self.router.route(self.analyzer.obj(req, 2))
+            log.info("Sending evaluation response to coordinator %s", coord)
+            send(('respeval', resp), to=coord)
         else:
             # req is write-one-object
-            coord = self.router.route(resp.updatedObj)
+            coord = self.router.route(self.analyzer.obj(req, resp.updatedObj))
             log.info("Sending evaluation response to coordinator %s", coord)
-            send(('evalresp', resp), to=coord)
+            send(('respeval', resp), to=coord)
 
     def evaluate(req:EvalReqMvcc):
         log.info("Start to evaluate req: [%d]", req.seq)
@@ -251,9 +253,13 @@ class WorkerMvcc(process):
 
         if len(resp.updates) > 0:
             if self.predictCorrect:
-                resp.updatedObj = self.analyzer.obj(req, 2)
+                resp.updatedObj = 2
             else:
-                resp.updatedObj = self.analyzer.obj(req, 1)
+                resp.updatedObj = 1
+
+            resp.readAttr[resp.updatedObj] = []
+            for key in resp.updates:
+                resp.readAttr[resp.updatedObj].append(key)
         else:
             resp.updatedObj = -1
 
@@ -261,7 +267,7 @@ class WorkerMvcc(process):
 
     def fulfill_obligation(rule:Element, sub_or_res:str, resp:EvalRespMvcc, req:EvalReqMvcc):
         log.debug('Checking if %s obligation exists in rule:%s.', sub_or_res, rule)
-        attrs_to_update = resp.updates
+        attrs_to_update = {}
         subattr = self.analyzer.subattr(req)
         resattr = self.analyzer.resattr(req)
 
@@ -308,7 +314,9 @@ class WorkerMvcc(process):
             if (wrtobj == req.resource and sub_or_res == "resourceUpdate") or (wrtobj == req.subject and sub_or_res == "subjectUpdate"):
                 self.predictCorrect = True
             else:
-                self.predictCorrect = False 
+                self.predictCorrect = False
+
+            resp.updates = attrs_to_update
 
     def delay(req):
         key = 'req' + str(req.seq) + '.worker.delay'
