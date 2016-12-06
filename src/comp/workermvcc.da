@@ -41,7 +41,7 @@ class WorkerMvcc(process):
             await(received(('policy')))
 
         # Cases need to update cache by loading from database
-        if len(req.cachedUpdates[1]) == 0 and len(req.cachedUpdates[2]) == 0:
+        if not req.cachedUpdates[1] and not req.cachedUpdates[2]:
             send(('getattrs', req), to=db)
         elif 1 == 1:
             # no certain sub/res record
@@ -247,7 +247,7 @@ class WorkerMvcc(process):
         # resource attributes update
         fulfill_obligation(rule, 'resourceUpdate', resp, req)
 
-        if len(resp.updates) > 0:
+        if any(resp.updates):
             resp.readAttr[resp.updatedObj] = []
             for key in resp.updates:
                 resp.readAttr[resp.updatedObj].append(key)
@@ -302,16 +302,16 @@ class WorkerMvcc(process):
                 attrs_to_update[attribute_name] = value_to_update
                 log.debug("Obligation: %s=%s. New value: %s", attribute_name, value_to_update, attrs_to_update[attribute_name])
 
-            if self.analyzer.obj(req, 1) == req.subject and sub_or_res == 'sub':
+            if self.analyzer.obj(req, 1) == req.subject and sub_or_res == 'subjectUpdate':
                 resp.updatedObj = 1
                 resp.rdonlydObj = 2
-            elif self.analyzer.obj(req, 2) == req.subject and sub_or_res == 'sub':
+            elif self.analyzer.obj(req, 2) == req.subject and sub_or_res == 'subjectUpdate':
                 resp.updatedObj = 2
                 resp.rdonlydObj = 1
-            elif self.analyzer.obj(req, 1) == req.resource and sub_or_res == 'res':
+            elif self.analyzer.obj(req, 1) == req.resource and sub_or_res == 'resourceUpdate':
                 resp.updatedObj = 1
                 resp.rdonlydObj = 2
-            elif self.analyzer.obj(req, 2) == req.resource and sub_or_res == 'res':
+            elif self.analyzer.obj(req, 2) == req.resource and sub_or_res == 'resourceUpdate':
                 resp.updatedObj = 2
                 resp.rdonlydObj = 1
 
