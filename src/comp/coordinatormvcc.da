@@ -73,8 +73,8 @@ class CoordinatorMvcc(process):
         """
         coordW: Receive evaluation result from worker
         """
-        log.info("CoordW - Incoming evaluation response from worker: coord=[%d], #seq=[%d] object=[%s]", 
-                resp.updatedObj, resp.seq, self.analyzer.obj(resp, resp.updatedObj))
+        log.info("CoordW - Incoming evaluation response from worker: coord=[%d], #seq=[%d] object=[%s] decision=[%s]", 
+                resp.updatedObj, resp.seq, self.analyzer.obj(resp, resp.updatedObj), resp.decision)
         delay(resp.seq, 'respeval')
         if invalid_message(resp):
             return
