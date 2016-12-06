@@ -68,3 +68,23 @@ Zhitao Fan:
 ## 5.OTHER COMMENTS
 
 We follow the official naming convention: https://www.python.org/dev/peps/pep-0008/
+
+## 6.Phase 4: MVCC Improvement
+
+### 6.1 Project Structure
+
+We reuse the most of codes in Phase2 and add some new file ending with "mvcc" to represent the file in this phase.
+
+### 6.2 Test Case
+
+For the test case, please refer to testingmvcc.txt. We test all cases mentioned in the requirement.
+
+### 6.2 Performance Evaluation
+
+1) First we perform stress test on old Phase 2 code. After running several times with different params, we observed that:
+
+To handle 1000 request with random payload (5 subjects and 2 resources) and 5 ~ 10 clients, it costs nearly 106s ~ 110s.
+
+2) Then we run test against the new codebase enhanced by MVCC.
+
+
