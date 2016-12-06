@@ -154,7 +154,7 @@ def main():
     isZeroLatency = False
     if 'worker' in cfg:
         if 'ZeroLatency' in cfg['worker']:
-            if cfg['worker']['ZeroLatency'] == 1:
+            if cfg['worker']['ZeroLatency'] == '1':
                 isZeroLatency = True
     workers = list()
     mworkers = list()

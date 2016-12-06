@@ -5,58 +5,37 @@
 		<action name="shoot"/>
 		<subjectUpdate goals="++"/>
 	</rule>
-		<rule name="shoot1">
-		<subjectCondition id="LeBron" position="employee"/>
+	<!-- assume send request to resource coordinator first under prediction -->
+	<!-- readonly predicts -->
+	<rule name="readonly">
+		<subjectCondition id="Yuce0" position="coach" history="basket1"/>
 		<resourceCondition id="basket1"/>
 		<action name="shoot"/>
-		<subjectUpdate goals="++"/>
 	</rule>
-		<rule name="shoot1">
-		<subjectCondition id="Kobe" position="employee"/>
-		<resourceCondition id="basket1"/>
+	<!-- correctly predicts -->
+	<rule name="correctly predicts1">
+		<subjectCondition id="Yuce1" position="coach" history="basket1"/>
+		<resourceCondition id="basket1" goals="0"/>
+		<action name="shoot"/>
+		<resourceCondition goals="++"/>
+	</rule>
+	<rule name="correctly predicts2">
+		<subjectCondition id="Yuce1" position="employee"/>
+		<resourceCondition id="basket1" goals="0"/>
+		<action name="shoot"/>
+		<subjectCondition goals="++"/>
+	</rule>
+	<!-- incorrectly predicts -->
+	<rule name="incorrectly predicts">
+		<subjectCondition id="Yuce2" position="employee"/>
+		<resourceCondition id="basket1" goals="0"/>
 		<action name="shoot"/>
 		<subjectUpdate goals="++"/>
 	</rule>
-		<rule name="shoot1">
-		<subjectCondition id="Curry" position="employee"/>
-		<resourceCondition id="basket1"/>
+	<rule name="incorrectly predicts">
+		<subjectCondition id="Yuce2" position="coach" history="basket1"/>
+		<resourceCondition id="basket1" goals="0"/>
 		<action name="shoot"/>
-		<subjectUpdate goals="++"/>
-	</rule>
-		<rule name="shoot1">
-		<subjectCondition id="Ming" position="employee"/>
-		<resourceCondition id="basket1"/>
-		<action name="shoot"/>
-		<subjectUpdate goals="++"/>
-	</rule>
-	<rule name="shoot2">
-		<subjectCondition id="Jordan" position="employee"/>
-		<resourceCondition id="basket2"/>
-		<action name="shoot"/>
-		<subjectUpdate goals="++"/>
-	</rule>
-	<rule name="shoot2">
-		<subjectCondition id="LeBron" position="employee"/>
-		<resourceCondition id="basket2"/>
-		<action name="shoot"/>
-		<subjectUpdate goals="++"/>
-	</rule>
-	<rule name="shoot2">
-		<subjectCondition id="Kobe" position="employee"/>
-		<resourceCondition id="basket2"/>
-		<action name="shoot"/>
-		<subjectUpdate goals="++"/>
-	</rule>
-	<rule name="shoot2">
-		<subjectCondition id="Curry" position="employee"/>
-		<resourceCondition id="basket2"/>
-		<action name="shoot"/>
-		<subjectUpdate goals="++"/>
-	</rule>
-	<rule name="shoot2">
-		<subjectCondition id="Ming" position="employee"/>
-		<resourceCondition id="basket2"/>
-		<action name="shoot"/>
-		<subjectUpdate goals="++"/>
+		<resourceUpdate goals="++"/>
 	</rule>
 </policy>

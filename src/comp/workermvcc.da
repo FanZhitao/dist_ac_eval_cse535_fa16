@@ -35,21 +35,6 @@ class WorkerMvcc(process):
     def receive(msg=('assigneval', req), from_=c):
         log.info("Received evaluation request from coodinator: %s", c)
 
-        if isZeroLatency:
-            # stress test response
-            resp = EvalRespMvcc(req)
-            resp.decision = Decision.permit
-            resp.readAttributes = [None, [], []]
-            resp.updates = []
-            log.info("Sending decision to application %s", resp.app)
-            send(('respapp', resp.seq, resp.decision,), to=resp.app)
-            coord = self.router.route(self.analyzer.obj(req, 1))
-            log.info("Sending evaluation response to coordinator %s", coord)
-            send(('readAttr', resp, 1), to=coord)
-            coord = self.router.route(self.analyzer.obj(req, 2))
-            log.info("Sending evaluation response to coordinator %s", coord)
-            send(('readAttr', resp, 2), to=coord)
-
         delay(req)
         # In case not received policy from database yet.
         if self.policy == None:
@@ -93,6 +78,13 @@ class WorkerMvcc(process):
             # Add read and write attributes into
             # resq.{subrattr, subwattr, resrattr, reswattr}.
             resp = add_read_write_attributes(req, resp, rule)
+
+        if isZeroLatency:
+            # stress test response
+            resp = EvalRespMvcc(req)
+            resp.decision = Decision.permit
+            resp.readAttributes = [None, [], []]
+            resp.updates = []
 
         if resp.updatedObj == -1:
             # req is read-only
