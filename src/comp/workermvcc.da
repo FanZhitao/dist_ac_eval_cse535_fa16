@@ -35,6 +35,7 @@ class WorkerMvcc(process):
     def receive(msg=('assigneval', req), from_=c):
         log.info("Received evaluation request from coodinator: %s", c)
 
+        delay(req)
         # In case not received policy from database yet.
         if self.policy == None:
             log.debug("No policy received yet. Waiting for response from database.")
@@ -78,7 +79,6 @@ class WorkerMvcc(process):
             # resq.{subrattr, subwattr, resrattr, reswattr}.
             resp = add_read_write_attributes(req, resp, rule)
 
-        delay(req)
         if resp.updatedObj == -1:
             # req is read-only
             # send decision to app and obj1
@@ -203,11 +203,11 @@ class WorkerMvcc(process):
         log.debug("subattr: %s", subattr)
         log.debug("resattr: %s", resattr)
         if self.analyzer.obj(req, 1) == req.subject:
-            resp.readAttr[1] = list(subattr.keys())
-            resp.readAttr[2] = list(resattr.keys())
+            resp.readAttr[1] = list(subattr)
+            resp.readAttr[2] = list(resattr)
         else:
-            resp.readAttr[2] = list(subattr.keys())
-            resp.readAttr[1] = list(resattr.keys())
+            resp.readAttr[2] = list(subattr)
+            resp.readAttr[1] = list(resattr)
 
         # Modify write attributes according to obligation
         # subject attributes update
