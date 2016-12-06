@@ -97,13 +97,13 @@ class WorkerMvcc(process):
             send(('respeval', resp), to=coord)
 
     def evaluate(req:EvalReqMvcc):
-        log.info("Start to evaluate req: [%d]", req.seq)
+        log.debug("Start to evaluate req: [%d]", req.seq)
         resp = EvalRespMvcc(req) # construct response based on request
         resp.decision = Decision.deny
         matched_rule = None
 
         for rule in policy.iter('rule'): # rule is an ElementTree instance
-            log.info("Trying to match rule [%s]", rule.attrib['name'])
+            log.debug("Trying to match rule [%s]", rule.attrib['name'])
             # check if conditions satisfy the current rule
             should_try_next_rule = False # flag used to continue outter for loop
 
@@ -250,11 +250,19 @@ class WorkerMvcc(process):
 
                 # case 1: ++ or --
                 if value_to_update == '++' or value_to_update == '--':
-                    # case 1.1: no such key exists -> create a new k,v pair with value 0
                     # e.g. viewCount
-                    if not attribute_name in attrs_to_update:
-                        attrs_to_update[attribute_name] = 0
-                    attrs_to_update[attribute_name] += 1
+                    attrs_to_update[attribute_name] = 0
+                    if sub_or_res == 'subjectUpdate':
+                        if attribute_name in subattr:
+                            attrs_to_update[attribute_name] = int(float(subattr[attribute_name]))
+                    elif sub_or_res == 'resourceUpdate':
+                        if attribute_name in resattr:
+                            attrs_to_update[attribute_name] = int(float(resattr[attribute_name]))
+
+                    if value_to_update == '++':
+                        attrs_to_update[attribute_name] += 1
+                    else:
+                        attrs_to_update[attribute_name] -= 1
                     log.debug("Obligation: %s=%s. New value: %d", attribute_name, value_to_update, attrs_to_update[attribute_name])
                     continue
 
