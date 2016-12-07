@@ -1,14 +1,20 @@
 
-subject1=employee
-subject2=manager
+subject1=Leo
+subject2=LeBron
 resource1=bank A
-resource1=bank B
-resource1=bank C
-resource1=bank D
+resource2=bank B
+resource3=bank C
+resource4=bank D
 
 ====== Functional Test ======
 
 === Test Case 1 ===
+
+1) Goal: Trival read-write request
+
+2) Configuration: Workload1 section in config/testmvcc.config. Run bin/startup.sh workload1
+
+3) Log file: mvcc-workload1-trival.txt
 
 
 ====== Conflict Handling Test ======
@@ -24,7 +30,7 @@ resource1=bank D
 
 2) Configuration: Workload2 section in config/testmvcc.config. Run bin/startup.sh workload2
 
-3) Log file:
+3) Log file: mvcc-workload2-r1-succeed-after-pending.txt
 
 
 === Test Case 3 ===
@@ -36,20 +42,20 @@ resource1=bank D
 
 2) Configuration: Workload3 section in config/testmvcc.config. Run bin/startup.sh workload3
 
-3) Log file:
+3) Log file: mvcc-workload3-r1-detect-conflict-immediately.txt
 
 
 === Test Case 4 ===
 
 1) Goal: Request delay due to potential conflict but failed after wakeup
 
- Send request read-write #r1 (subject1, resource1, action1) and read-only #r2 (subject1, resource3, action1). 
+ Send request read-write #r1 (subject1, resource1, action1) and read-only #r2 (subject1, resource4, action1). 
  Similar as Case 2, #r1 is delayed due to #r2 might read attr that #r1 is going to update.
  But #r1 restarts because #r2 succeeds and update rts of attr that #r1 is about to update.
 
 2) Configuration: Workload4 section in config/testmvcc.config. Run bin/startup.sh workload4
 
-3) Log file:
+3) Log file: mvcc-workload4-r1-failed-after-pending.txt
 
 
 === Test Case 5 ===
@@ -62,24 +68,35 @@ resource1=bank D
 
 2) Configuration: Workload5 section in config/testmvcc.config. Run bin/startup.sh workload5
 
-3) Log file:
+3) Log file: mvcc-workload5-r1-succeed-after-pending-wrong-predict.txt
 
 
 === Test Case 6 ===
+
+1) Goal: Same as Test Case 4 but wrong prediction as Test Case 5.
+
+2) Configuration: Workload6 section in config/testmvcc.config. Run bin/startup.sh workload6
+
+3) Log file: mvcc-workload6-r1-failed-after-pending-wrong-predict.txt
+
 
 === Test Case 7 ===
 
 1) Goal: Test starvation prevention mechanism
 
- Send request read-write #r1 (subject1, resource3, action1) and read-only #r2 (subject2, resource3, action1). 
+ Send request read-write #r1 (subject1, resource3, action1) and read-only #r2 (subject2, resource3, action2). 
  Due to wrong prediction made by client, resource3 is being handle by Coordinator-1 first.
  Upon receiving #r2, #r2 delays because read-write request #r1 is not complete.
  After #r1 is done, #r2 continues and succeeds at last.
 
-2) Configuration: Workload6 section in config/testmvcc.config. Run bin/startup.sh workload6
+2) Configuration: Workload7 section in config/testmvcc.config. Run bin/startup.sh workload7
 
-3) Log file:
+3) Log file: mvcc-workload7-r2-pending-to-prevent-starvation.txt
 
 
 ====== Stress Test ======
+
+1) Goal: Please find performance evaluation in README.md
+
+2) Configuration: Workload9/10/11 section in config/stresstest_mvcc.config. Run bin/startup.sh workload9/10/11
 
