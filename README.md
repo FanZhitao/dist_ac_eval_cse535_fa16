@@ -84,9 +84,21 @@ For the test case, please refer to testingmvcc.txt. We test all cases mentioned 
 
 1) First we perform stress test on old Phase 2 code. After running several times with different params, we observed that:
 
-To handle 1000 request with random payload (5 subjects and 2 resources) and 5 ~ 10 clients, it costs nearly 106s ~ 110s.
+Phase 2 stress test results:
+
+1000 read-only requests: Mean = 0.017520, Std = 0.002133
+1000 correctly predicted read-write requests: Mean = 0.018266, Std = 0.003426
+1000 incorrectly predicted read-write requests: Mean = 0.019274, Std = 0.003830
 
 2) Then we run test against the new codebase enhanced by MVCC.
+
+MVCC stress test results:
+
+1000 read-only requests: Mean = 0.009340, Std = 0.00201
+1000 correctly predicted read-write requests: Mean = 0.016032, Std = 0.004927
+1000 incorrectly predicted read-write requests: Mean = 0.018612, Std = 0.006436
+
+We can see that the performance of read-only requests get significantly improved. Correctly predicted read-write requests speed up as well which is benefited from local communications between coordinators and workers. The time consumption of incorrectly prdicted read-write requests remain at the same level.
 
 ### 6.4 Contributions
 
