@@ -11,10 +11,9 @@ If a secondary misses a mutation, the primary will notice it because only when a
 #### Problem 2: BigTable Tablet Locate
 
 ```py
-
 # Global data structure and variables:
-# 1) Client cache: <(table,rowkey), (roottbl, metatbl)>
-# 2) Chubby location: chubbyLoc
+# 1) Client cache: cache=<(table,rowkey), (roottbl, metatbl)>
+# 2) Chubby location: chubbyLoc="chubby://ip:port"
 
 def locateTablet(table, rowkey):
     # Traverse cached location from bottom up.
@@ -30,22 +29,29 @@ def locateTablet(table, rowkey):
     newMetaTbl = queryMetadataTablet(rootTbl, table, rowkey)
     if newMetaTbl is not None:
         tblId = queryUserTablet(newMetaTbl, table, rowkey)
-        updateCache((table, rowkey), (rootTbl, newMetaTbl))
-        return tblId
+        if tblId is not None:
+            updateCache((table, rowkey), (rootTbl, newMetaTbl))
+            return tblId
 
-    # Worst case: stale Metadata and Root tablet location info
+    # Stale Metadata and Root tablet location info or Empty cache
     newRootTbl = queryRootTablet(chubbyLoc, table, rowkey)
     if newRootTbl is not None:
         newMetaTbl = queryMetadataTablet(newRootTbl, table, rowkey)
         tblId = queryUserTablet(newMetaTbl, table, rowkey)
         updateCache((table, rowkey), (newRootTbl, newMetaTbl))
         return tblId
-    # Raise error if reach here which is impossible unless Chubby is down
+    # Raise error if reach here which is impossible unless Chubby is stale
+
+def checkCache(table, rowkey):
+    return cache[(table, rowkey)]
+
+def updateCache(key, value):
+    cache[key] = value
 
 def queryRootTablet(chubbyLoc, table, rowkey):
     # Send request to Chubby server directly
     # Don't consider failure of Chubby server
-    sendAndWaitForResponse(("queryRootTablet", table, rowkey), to=chubbyLoc)
+    return sendAndWaitForResponse(("queryRootTablet", table, rowkey), to=chubbyLoc)
 
 def queryMetadataTablet(rootTbl, table, rowkey):
     # Client cache is empty, then return None to fill cache
@@ -53,12 +59,21 @@ def queryMetadataTablet(rootTbl, table, rowkey):
         return None
 
     # Handle tablet server failure
-    sendAndWaitForResponse(("queryMetadataTablet", table, rowkey), to=rootTbl)
-    if timeout without reply:
-        return None    
+    resp = sendAndWaitForResponse(("queryMetadataTablet", table, rowkey), to=rootTbl)
 
-def queryUserTablet():
+    # Return None if failure or tablet being moved elsewhere
+    if timeout without reply or resp is invalid:
+        return None
+    return resp
+
+def queryUserTablet(metaTbl, table, rowkey):
     # Exactly same as queryMetadataTablet()
+    if metaTbl is None:
+        return None
+    resp = sendAndWaitForResponse(("queryUserTablet", table, rowkey), to=metaTbl)
+    if timeout without reply or resp is invalid:
+        return None
+    return resp
 ```
 
 ---------------------------------------
