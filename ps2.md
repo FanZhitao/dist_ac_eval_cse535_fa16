@@ -88,7 +88,23 @@ The paper says: "For a snapshot read, the system picks up the timestamp of the l
 
 In the case of planned removal of a node, the removing node can immediately send appropriate set of key range to corresponding node which will be in charge. If a node is down due to an unexpected failure, related nodes do not discover it until they confirm the node fails to respond to a message. In addition, they need to query the key ranges to N nodes to confirm the new range they will be in charge.
 
-(b) Let us consider the scenario where token X0 is being removed from the ring shown in Figure 2 between A and B. It is in charge of storing keys in the ranges (F, G], (G, A] and (A, X]. As a consequence, nodes B, C, and D need to store the keys in these respective ranges after X is removed. Therefore, X will offer to and upon confirmation from B, C, and D the appropriate set of keys. Then X0 can be removed. We can follow these steps to remove rest tokens of X one by one.
+(b) Let us consider the scenario where token X0 is being removed from the ring shown in following figure between A and B. It is in charge of storing keys in the ranges (F, G], (G, A] and (A, X]. As a consequence, nodes B, C, and D need to store the keys in these respective ranges after X is removed. Therefore, X will offer to and upon confirmation from B, C, and D the appropriate set of keys. Then X0 can be removed. We can follow these steps to remove rest tokens of X one by one.
+
+         ...A...
+     ....       ..X.
+   G.               .B
+  .                   .
+ .                     .
+ .                     .
+F                       .
+.                       C
+ .                     .
+ .                    .
+  .                  .
+   E.              .D
+     ....       ...
+         .......
+
 
 Key ranges that are newly assigned to B, C, and D:
 (F, G] --> B,
