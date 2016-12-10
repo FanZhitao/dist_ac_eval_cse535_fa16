@@ -64,8 +64,7 @@ def queryUserTablet():
 ---------------------------------------
 #### Problem 3: Megastore Snapshot Read
 
-The paper says: "For a snapshot read, the system picks up the timestamp of the last known fully applied transaction and reads from there, even if some committed transactions have not yet been applied." But for current read, it ensures all committed transactions have been applied before read. Therefore, if a committed transaction is being applied at the moment that snapshot read is performed. The write of that transaction won't be observed by snapshot read.
-
+The paper says: "For a snapshot read, the system picks up the timestamp of the last known fully applied transaction and reads from there, even if some committed transactions have not yet been applied." But for current read, the coordinator provides up-to-date view across the data centers and all committed transactions are guaranteed to have been applied by catch-up mechanism before read. Therefore correspondingly if a committed transaction is being applied at the moment that snapshot read is performed or even the transaction is not accepted by the replica of the data center that snapshot read is working on. The write of that transaction won't be observed by snapshot read obviously. 
 
 ----------------------
 #### Problem 4: Dynamo
