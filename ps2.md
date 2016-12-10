@@ -90,6 +90,7 @@ In the case of planned removal of a node, the removing node can immediately send
 
 (b) Let us consider the scenario where token X0 is being removed from the ring shown in following figure between A and B. It is in charge of storing keys in the ranges (F, G], (G, A] and (A, X]. As a consequence, nodes B, C, and D need to store the keys in these respective ranges after X is removed. Therefore, X will offer to and upon confirmation from B, C, and D the appropriate set of keys. Then X0 can be removed. We can follow these steps to remove rest tokens of X one by one.
 
+'''py
          ...A...
      ....       ..X.
    G.               .B
@@ -104,7 +105,7 @@ F                       .
    E.              .D
      ....       ...
          .......
-
+'''
 
 Key ranges that are newly assigned to B, C, and D:
 (F, G] --> B,
