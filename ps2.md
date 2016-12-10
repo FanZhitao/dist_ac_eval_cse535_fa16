@@ -5,6 +5,8 @@
 ------------------------------
 #### Problem 1: GFS Stale Chunk
 
+If a secondary misses a mutation, the primary will notice it because only when all the secondaries reply to the primary indicates they have completed the operation. Then the primary replies to the client with the error encountered. The modified region is left in an inconsistent state. The client code handles such errors by retrying the failed mutation. It will make a few attempts before reading a chuck from such a secondary.
+
 --------------------------------------
 #### Problem 2: BigTable Tablet Locate
 
